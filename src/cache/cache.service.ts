@@ -1,0 +1,116 @@
+import { Injectable, Logger } from '@nestjs/common';
+import { createClient, RedisClientType } from 'redis';
+
+export const CACHE_TTL = {
+  ROLES: 15 * 60,
+  MINISTRY: 30 * 60,
+  EVENTS: 10 * 60,
+  DASHBOARD: 5 * 60,
+  DEFAULT: 5 * 60,
+} as const;
+
+@Injectable()
+export class CacheService {
+  private client: RedisClientType;
+  private logger = new Logger('CacheService');
+
+  constructor() {
+    this.client = createClient({
+      url: process.env.REDIS_URL || 'redis://localhost:6379',
+      password: process.env.REDIS_PASSWORD || undefined,
+      socket: {
+        reconnectStrategy: (retries: number) =>
+          Math.min(retries * 50, 500),
+      },
+    });
+
+    this.client.on('error', (err) =>
+      this.logger.error('Redis Client Error', err),
+    );
+    this.client.on('connect', () =>
+      this.logger.log('✅ Redis connected'),
+    );
+  }
+
+  async onModuleInit() {
+    try {
+      await this.client.connect();
+    } catch (error) {
+      this.logger.error('Failed to connect to Redis:', error);
+    }
+  }
+
+  async get<T>(key: string): Promise<T | null> {
+    try {
+      const value = await this.client.get(key);
+      if (!value) return null;
+      return JSON.parse(value) as T;
+    } catch (error) {
+      this.logger.error(`Cache get error for key ${key}:`, error);
+      return null;
+    }
+  }
+
+  async set<T>(
+    key: string,
+    value: T,
+    ttlSeconds: number = CACHE_TTL.DEFAULT,
+  ): Promise<void> {
+    try {
+      await this.client.setEx(
+        key,
+        ttlSeconds,
+        JSON.stringify(value),
+      );
+    } catch (error) {
+      this.logger.error(`Cache set error for key ${key}:`, error);
+    }
+  }
+
+  async setRoles<T>(key: string, value: T): Promise<void> {
+    return this.set(key, value, CACHE_TTL.ROLES);
+  }
+
+  async setMinistry<T>(key: string, value: T): Promise<void> {
+    return this.set(key, value, CACHE_TTL.MINISTRY);
+  }
+
+  async setEvents<T>(key: string, value: T): Promise<void> {
+    return this.set(key, value, CACHE_TTL.EVENTS);
+  }
+
+  async setDashboard<T>(key: string, value: T): Promise<void> {
+    return this.set(key, value, CACHE_TTL.DASHBOARD);
+  }
+
+  async delete(key: string): Promise<void> {
+    try {
+      await this.client.del(key);
+    } catch (error) {
+      this.logger.error(`Cache delete error for key ${key}:`, error);
+    }
+  }
+
+  async invalidatePattern(pattern: string): Promise<void> {
+    try {
+      const keys = await this.client.keys(pattern);
+      if (keys.length > 0) {
+        await this.client.del(keys);
+      }
+    } catch (error) {
+      this.logger.error(`Cache invalidate error for pattern ${pattern}:`, error);
+    }
+  }
+
+  async clear(): Promise<void> {
+    try {
+      await this.client.flushDb();
+    } catch (error) {
+      this.logger.error('Cache clear error:', error);
+    }
+  }
+
+  async onModuleDestroy() {
+    await this.client.quit();
+  }
+}

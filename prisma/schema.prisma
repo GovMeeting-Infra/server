@@ -1,0 +1,541 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+// ============================================================================
+// AUTHENTICATION & SESSIONS (BetterAuth-managed)
+// ============================================================================
+
+model User {
+  id             String    @id @default(cuid())
+  email          String    @unique
+  emailVerified  Boolean   @default(false)
+  name           String
+  image          String?
+  jobTitle       String
+  systemRole     SystemRole @default(STAFF)
+  ministryId     String?
+  active         Boolean   @default(true)
+  loginAttempts  Int       @default(0)
+  lockedUntil    DateTime?
+  lastLoginAt    DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  deletedAt      DateTime?
+
+  ministry       Ministry? @relation(fields: [ministryId], references: [id], onDelete: SetNull)
+  sessions       Session[]
+  accounts       Account[]
+  preferences    UserPreferences?
+  organizedEvents Event[] @relation("organizer")
+  coOrganizedEvents EventCoOrganizer[]
+  attendances    Attendance[]
+  eventAttendees EventAttendee[] @relation("eventAttendees")
+  minutesDrafted Minutes[] @relation("draftedBy")
+  minutesPublished Minutes[] @relation("publishedBy")
+  assignedActionItems ActionItem[] @relation("actionOwner")
+  createdActionItems ActionItem[] @relation("actionAssignedBy")
+  roomBookings   RoomBooking[]
+  auditLogs      AuditLog[]
+  notifications  Notification[]
+
+  @@index([ministryId])
+  @@index([systemRole])
+  @@index([active])
+  @@index([deletedAt])
+}
+
+enum SystemRole {
+  SUPER_ADMIN
+  MINISTER
+  MINISTRY_ADMIN
+  STAFF
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model Account {
+  id                    String    @id @default(cuid())
+  userId                String
+  accountId             String
+  providerId            String
+  password              String?
+  accessToken           String?
+  refreshToken          String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  idToken               String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, providerId, accountId])
+  @@index([userId])
+}
+
+model Verification {
+  id         String   @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+}
+
+// ============================================================================
+// MINISTRIES & ORGANIZATIONS
+// ============================================================================
+
+model Ministry {
+  id                    String   @id @default(cuid())
+  name                  String   @unique
+  code                  String   @unique
+  emailDomain           String
+  compoundMaxGpsAccuracy Int     @default(75)
+  active                Boolean  @default(true)
+  logoUrl               String?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  users                 User[]
+  events                Event[]
+  rooms                 Room[]
+  roomBookings          RoomBooking[]
+  auditLogs             AuditLog[]
+  notifications         Notification[]
+
+  @@index([active])
+}
+
+model UserPreferences {
+  id                      String   @id @default(cuid())
+  userId                  String   @unique
+  emailNotifications      Boolean  @default(true)
+  minutesNotifications    Boolean  @default(true)
+  meetingReminders        Boolean  @default(true)
+  actionItemNotifications Boolean  @default(true)
+  theme                   String   @default("light")
+  compactMode             Boolean  @default(false)
+  sessionTimeout          Int      @default(1800)
+  consentTimestamp        DateTime @default(now())
+  consentVersion          String   @default("1.0")
+  geoLocationConsent      Boolean  @default(false)
+  updatedAt               DateTime @updatedAt
+
+  user                    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// ============================================================================
+// EVENTS
+// ============================================================================
+
+model Event {
+  id                      String   @id @default(cuid())
+  title                   String
+  description             String?  @db.Text
+  isPublic                Boolean  @default(false)
+  type                    EventType @default(MEETING)
+  scope                   EventScope?
+  classification          EventClassification?
+  colorCategory           String?
+  startAt                 DateTime
+  endAt                   DateTime
+  venueName               String?
+  venueLat                Float?
+  venueLng                Float?
+  geofenceRadius          Int      @default(100)
+  status                  EventStatus @default(DRAFT)
+  publishedAt             DateTime?
+  ministryId              String
+  organizerId             String?
+  seriesId                String?
+  roomId                  String?
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  ministry                Ministry @relation(fields: [ministryId], references: [id], onDelete: Cascade)
+  room                    Room? @relation(fields: [roomId], references: [id])
+  organizer               User? @relation("organizer", fields: [organizerId], references: [id])
+  series                  EventSeries? @relation(fields: [seriesId], references: [id])
+  coOrganizers            EventCoOrganizer[]
+  attendees               EventAttendee[]
+  attendances             Attendance[]
+  minutes                 Minutes?
+  qrTokens                QRToken[]
+
+  @@index([ministryId])
+  @@index([startAt])
+  @@index([isPublic])
+  @@index([status])
+}
+
+enum EventType {
+  MEETING
+  CONFERENCE
+  APPOINTMENT
+  TRAINING
+  WORKSHOP
+  LAUNCH
+  OTHER
+}
+
+enum EventScope {
+  OFFICIAL
+  TEAM
+}
+
+enum EventClassification {
+  PUBLIC
+  RESTRICTED
+}
+
+enum EventStatus {
+  DRAFT
+  PUBLISHED
+}
+
+model EventSeries {
+  id              String   @id @default(cuid())
+  frequency       Frequency
+  interval        Int      @default(1)
+  endType         EndType  @default(COUNT)
+  count           Int?
+  until           DateTime?
+  createdAt       DateTime @default(now())
+
+  events          Event[]
+}
+
+enum Frequency {
+  DAILY
+  WEEKLY
+  WEEKDAYS
+  BIWEEKLY
+  MONTHLY
+  QUARTERLY
+  YEARLY
+}
+
+enum EndType {
+  COUNT
+  UNTIL
+  NEVER
+}
+
+model EventCoOrganizer {
+  id        String   @id @default(cuid())
+  eventId   String
+  userId    String
+  addedAt   DateTime @default(now())
+
+  event     Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user      User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, userId])
+  @@index([eventId])
+  @@index([userId])
+}
+
+model EventAttendee {
+  id            String   @id @default(cuid())
+  eventId       String
+  userId        String?
+  externalName  String?
+  externalEmail String?
+  status        AttendeeStatus @default(INVITED)
+  rsvpTokenHash String?
+  respondedAt   DateTime?
+  createdAt     DateTime @default(now())
+
+  event         Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user          User?    @relation("eventAttendees", fields: [userId], references: [id])
+
+  @@unique([eventId, userId])
+  @@index([eventId])
+  @@index([rsvpTokenHash])
+}
+
+enum AttendeeStatus {
+  INVITED
+  CONFIRMED
+  DECLINED
+  NO_RESPONSE
+}
+
+// ============================================================================
+// ATTENDANCE & CHECK-IN
+// ============================================================================
+
+model Attendance {
+  id                String   @id @default(cuid())
+  eventId           String
+  userId            String
+  signedName        String
+  signature         String   @db.Text
+  checkInAt         DateTime @default(now())
+  checkInMethod     CheckInMethod
+  lat               String?
+  lng               String?
+  gpsAccuracy       Int?
+  withinGeofence    Boolean?
+  mockLocationFlag  Boolean  @default(false)
+  ipAddress         String?
+  userAgent         String?
+
+  event             Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, userId])
+  @@index([eventId])
+  @@index([userId])
+  @@index([checkInAt])
+}
+
+enum CheckInMethod {
+  QR
+  MANUAL
+  GEO
+}
+
+model QRToken {
+  id          String   @id @default(cuid())
+  eventId     String
+  token       String   @unique
+  expiresAt   DateTime
+  rotatedAt   DateTime @default(now())
+  createdAt   DateTime @default(now())
+
+  event       Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@index([eventId])
+  @@index([expiresAt])
+}
+
+// ============================================================================
+// MINUTES & ACTION ITEMS
+// ============================================================================
+
+model Minutes {
+  id                String   @id @default(cuid())
+  eventId           String   @unique
+  body              String   @db.Text
+  summary           String?
+  status            MinutesStatus @default(DRAFT)
+  draftedById       String?
+  draftedAt         DateTime?
+  publishedById     String?
+  publishedAt       DateTime?
+  archivedAt        DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  event             Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  draftedBy         User?    @relation("draftedBy", fields: [draftedById], references: [id])
+  publishedBy       User?    @relation("publishedBy", fields: [publishedById], references: [id])
+  actionItems       ActionItem[]
+
+  @@index([eventId])
+  @@index([status])
+}
+
+enum MinutesStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+model ActionItem {
+  id                String   @id @default(cuid())
+  minutesId         String
+  title             String
+  description       String?
+  ownerId           String?
+  ownerName         String?
+  assignedById      String?
+  dueDate           DateTime
+  completedAt       DateTime?
+  status            ActionItemStatus @default(TODO)
+  point             PointType @default(ACTION_POINT)
+  reminderSentAt    DateTime?
+  priority          String   @default("medium")
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  minutes           Minutes  @relation(fields: [minutesId], references: [id], onDelete: Cascade)
+  owner             User?    @relation("actionOwner", fields: [ownerId], references: [id])
+  assignedBy        User?    @relation("actionAssignedBy", fields: [assignedById], references: [id])
+
+  @@index([minutesId])
+  @@index([ownerId])
+  @@index([status])
+  @@index([dueDate])
+}
+
+enum PointType {
+  ACTION_POINT
+  AGREED
+  DECISION
+}
+
+enum ActionItemStatus {
+  TODO
+  IN_PROGRESS
+  BLOCKED
+  COMPLETED
+  CANCELLED
+}
+
+// ============================================================================
+// ROOMS & BOOKINGS
+// ============================================================================
+
+model Room {
+  id                String   @id @default(cuid())
+  ministryId        String
+  name              String
+  location          String
+  capacity          Int
+  amenities         String[]
+  latitude          Float?
+  longitude         Float?
+  active            Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  ministry          Ministry @relation(fields: [ministryId], references: [id], onDelete: Cascade)
+  events            Event[]
+  bookings          RoomBooking[]
+
+  @@unique([ministryId, name])
+  @@index([ministryId])
+}
+
+model RoomBooking {
+  id                String   @id @default(cuid())
+  ministryId        String
+  roomId            String
+  userId            String
+  startTime         DateTime
+  endTime           DateTime
+  purpose           BookingPurpose
+  attendeeCount     Int
+  notes             String?
+  status            BookingStatus @default(CONFIRMED)
+  cancelledAt       DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  ministry          Ministry @relation(fields: [ministryId], references: [id], onDelete: Cascade)
+  room              Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  bookedBy          User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([roomId, startTime, endTime])
+  @@index([ministryId])
+  @@index([roomId])
+  @@index([startTime])
+  @@index([userId])
+}
+
+enum BookingPurpose {
+  MEETING
+  TRAINING
+  CONFERENCE
+  WORKSHOP
+  INTERVIEW
+  OTHER
+}
+
+enum BookingStatus {
+  CONFIRMED
+  CANCELLED
+  TENTATIVE
+}
+
+// ============================================================================
+// NOTIFICATIONS
+// ============================================================================
+
+model Notification {
+  id                String   @id @default(cuid())
+  userId            String
+  ministryId        String
+  type              String
+  title             String
+  body              String   @db.Text
+  link              String?
+  read              Boolean  @default(false)
+  readAt            DateTime?
+  entityType        String?
+  entityId          String?
+  createdAt         DateTime @default(now())
+  expiresAt         DateTime @default(dbgenerated("now() + interval '30 days'"))
+
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ministry          Ministry @relation(fields: [ministryId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([read])
+  @@index([createdAt])
+}
+
+// ============================================================================
+// AUDIT LOGGING
+// ============================================================================
+
+model AuditLog {
+  id                String   @id @default(cuid())
+  ministryId        String
+  actorId           String?
+  action            String
+  actionCategory    String
+  entityType        String
+  entityId          String
+  entityName        String?
+  ipAddress         String?
+  userAgent         String?
+  requestId         String?  @unique
+  status            AuditStatus @default(SUCCESS)
+  description       String?
+  changes           Json?
+  metadata          Json?
+  createdAt         DateTime @default(now())
+
+  ministry          Ministry @relation(fields: [ministryId], references: [id], onDelete: Cascade)
+  actor             User?    @relation(fields: [actorId], references: [id])
+
+  @@index([ministryId])
+  @@index([actorId])
+  @@index([action])
+  @@index([createdAt])
+}
+
+enum AuditStatus {
+  SUCCESS
+  FAILURE
+  PARTIAL
+}
