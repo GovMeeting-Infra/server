@@ -17,7 +17,7 @@ model User {
   emailVerified  Boolean   @default(false)
   name           String
   image          String?
-  jobTitle       String
+  jobTitle       String?
   systemRole     SystemRole @default(STAFF)
   ministryId     String?
   active         Boolean   @default(true)

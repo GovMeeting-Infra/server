@@ -219,7 +219,7 @@ export class ReportsService {
         user: { select: { id: true, name: true, email: true } },
         event: { select: { id: true, title: true, startAt: true } },
       },
-      orderBy: { checkedInAt: 'desc' },
+      orderBy: { checkInAt: 'desc' },
     });
 
     const csvRows: string[][] = [
@@ -232,7 +232,7 @@ export class ReportsService {
         attendance.event.startAt.toISOString().split('T')[0],
         attendance.user.name,
         attendance.user.email,
-        attendance.checkedInAt.toISOString(),
+        attendance.checkInAt.toISOString(),
         attendance.withinGeofence ? 'Yes' : 'No',
       ]);
     }

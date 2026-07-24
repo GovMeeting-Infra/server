@@ -8,8 +8,16 @@ import { AuditModule } from '../audit/audit.module';
 
 @Module({
   imports: [PrismaModule, AuditModule],
-  providers: [CheckinService, RSVPService, QRTokenService],
+  providers: [
+    CheckinService,
+    RSVPService,
+    QRTokenService,
+  ],
   controllers: [CheckinController],
-  exports: [CheckinService, RSVPService, QRTokenService],
+  exports: [
+    CheckinService,
+    RSVPService,
+    QRTokenService,
+  ],
 })
 export class AttendanceModule {}

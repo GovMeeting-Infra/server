@@ -1,12 +1,18 @@
 import { betterAuth } from 'better-auth';
 import { admin } from 'better-auth/plugins';
 import { prismaAdapter } from 'better-auth/adapters/prisma';
+import { PrismaPg } from '@prisma/adapter-pg';
+import { Pool } from 'pg';
+import { PrismaClient } from '../../generated/prisma/client';
 
 let prisma: any;
 try {
-  const { PrismaClient } = require('@prisma/client');
-  prisma = new PrismaClient();
-} catch {
+  const connectionString = process.env.DATABASE_URL || 'postgresql://govmeeting:devpass@localhost:5432/govmeeting_dev';
+  const pool = new Pool({ connectionString });
+  const adapter = new PrismaPg(pool);
+  prisma = new (PrismaClient as any)({ adapter });
+} catch (error) {
+  console.error('Failed to initialize Prisma for BetterAuth:', error);
   prisma = null;
 }
 

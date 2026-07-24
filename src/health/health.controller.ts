@@ -67,7 +67,7 @@ export class HealthController {
     // Check database
     try {
       const dbStart = Date.now();
-      await this.prisma.$queryRaw`SELECT 1`;
+      await (this.prisma as any).user.findFirst();
       const dbLatency = Date.now() - dbStart;
       healthStatus.database = { status: 'connected', latency: dbLatency };
     } catch (error) {
@@ -79,7 +79,7 @@ export class HealthController {
     // Check Redis
     try {
       const redisStart = Date.now();
-      await this.cache.ping();
+      await this.cache.get('health-check');
       const redisLatency = Date.now() - redisStart;
       healthStatus.redis = { status: 'connected', latency: redisLatency };
     } catch (error) {
@@ -100,14 +100,14 @@ export class HealthController {
   }
 
   @Get('readiness')
-  @ApiOperation({ summary: 'Readiness check endpoint for Kubernetes' })
+  @ApiOperation({ summary: 'Readiness probe for process/uptime monitoring' })
   @ApiResponse({ status: 200, description: 'Service is ready' })
   async readiness(): Promise<{ ready: boolean }> {
     try {
       // Check if database is accessible
-      await this.prisma.$queryRaw`SELECT 1`;
+      await (this.prisma as any).user.findFirst();
       // Check if Redis is accessible
-      await this.cache.ping();
+      await this.cache.get('health-check');
       return { ready: true };
     } catch (error) {
       return { ready: false };
@@ -115,7 +115,7 @@ export class HealthController {
   }
 
   @Get('liveness')
-  @ApiOperation({ summary: 'Liveness check endpoint for Kubernetes' })
+  @ApiOperation({ summary: 'Liveness probe for process/uptime monitoring' })
   @ApiResponse({ status: 200, description: 'Service is alive' })
   liveness(): { alive: boolean } {
     return { alive: true };

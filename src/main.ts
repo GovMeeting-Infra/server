@@ -6,9 +6,11 @@ import * as promClient from 'prom-client';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
+  console.log('[Bootstrap] Starting...');
   const app = await NestFactory.create(AppModule, {
-    bodyParser: false,
+    bodyParser: true,
   });
+  console.log('[Bootstrap] AppModule created');
 
   app.use(helmet());
 
@@ -56,14 +58,16 @@ async function bootstrap() {
     res.on('finish', () => {
       const duration = (Date.now() - start) / 1000;
       const route = req.route?.path || req.url;
-      httpRequestDuration.labels(req.method, route, res.statusCode).observe(duration);
+      httpRequestDuration
+        .labels(req.method, route, res.statusCode)
+        .observe(duration);
       httpRequestTotal.labels(req.method, route, res.statusCode).inc();
     });
     next();
   });
 
   // Metrics endpoint
-  app.get('/api/v1/metrics', (req, res) => {
+  app.use('/api/v1/metrics', (req, res) => {
     res.set('Content-Type', promClient.register.contentType);
     res.end(promClient.register.metrics());
   });
@@ -78,9 +82,15 @@ async function bootstrap() {
   SwaggerModule.setup('api-docs', app, document);
 
   const port = parseInt(process.env.APP_PORT || '3000', 10);
+  console.log(`[Bootstrap] About to listen on port ${port}...`);
   await app.listen(port);
   console.log(`✅ API running on http://localhost:${port}`);
-  console.log(`📊 Prometheus metrics available at http://localhost:${port}/api/v1/metrics`);
+  console.log(
+    `📊 Prometheus metrics available at http://localhost:${port}/api/v1/metrics`,
+  );
 }
 
-bootstrap();
+bootstrap().catch((err) => {
+  console.error('❌ Failed to bootstrap:', err);
+  process.exit(1);
+});

@@ -28,7 +28,8 @@ import { HealthModule } from './health/health.module';
     ScheduleModule.forRoot(),
     BullModule.forRoot({
       connection: {
-        host: process.env.REDIS_URL?.split('//')[1]?.split(':')[0] || 'localhost',
+        host:
+          process.env.REDIS_URL?.split('//')[1]?.split(':')[0] || 'localhost',
         port: parseInt(process.env.REDIS_URL?.split(':')?.pop() || '6379', 10),
         password: process.env.REDIS_PASSWORD || undefined,
       },
