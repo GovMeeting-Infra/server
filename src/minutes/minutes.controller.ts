@@ -133,6 +133,7 @@ export class MinutesController {
       dto,
       user.id,
       user.ministryId,
+      user.systemRole,
     );
   }
 
