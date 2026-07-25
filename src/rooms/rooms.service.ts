@@ -68,7 +68,12 @@ export class RoomsService {
       orderBy: { name: 'asc' },
       include: {
         _count: {
-          select: { bookings: true, events: true },
+          // Cancelling a booking is a soft delete (status CANCELLED), so an
+          // unfiltered count would keep reporting cancelled bookings as live.
+          select: {
+            bookings: { where: { status: 'CONFIRMED' } },
+            events: true,
+          },
         },
       },
     });
@@ -107,7 +112,12 @@ export class RoomsService {
       where: { id: roomId },
       include: {
         _count: {
-          select: { bookings: true, events: true },
+          // Cancelling a booking is a soft delete (status CANCELLED), so an
+          // unfiltered count would keep reporting cancelled bookings as live.
+          select: {
+            bookings: { where: { status: 'CONFIRMED' } },
+            events: true,
+          },
         },
       },
     });
