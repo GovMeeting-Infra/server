@@ -34,12 +34,12 @@ export class RoomsController {
   // ========== ROOMS ==========
 
   @Post('admin/rooms')
-  @Roles('MINISTRY_ADMIN', 'SUPER_ADMIN')
+  @Roles('MINISTER', 'MINISTRY_ADMIN', 'SUPER_ADMIN')
   async createRoom(
     @Body() dto: CreateRoomDto,
     @CurrentUser() user: any,
   ) {
-    return this.roomsService.createRoom(dto, user.ministryId, user.id);
+    return this.roomsService.createRoom(dto, user.ministryId, user.id, user.systemRole);
   }
 
   @Get('rooms')
@@ -58,7 +58,7 @@ export class RoomsController {
   }
 
   @Patch('admin/rooms/:roomId')
-  @Roles('MINISTRY_ADMIN', 'SUPER_ADMIN')
+  @Roles('MINISTER', 'MINISTRY_ADMIN', 'SUPER_ADMIN')
   async updateRoom(
     @Param('roomId') roomId: string,
     @Body() dto: UpdateRoomDto,
@@ -69,7 +69,7 @@ export class RoomsController {
 
   @Delete('admin/rooms/:roomId')
   @HttpCode(204)
-  @Roles('MINISTRY_ADMIN', 'SUPER_ADMIN')
+  @Roles('MINISTER', 'MINISTRY_ADMIN', 'SUPER_ADMIN')
   async deactivateRoom(
     @Param('roomId') roomId: string,
     @CurrentUser() user: any,

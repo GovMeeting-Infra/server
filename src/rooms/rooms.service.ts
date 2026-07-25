@@ -24,11 +24,28 @@ export class RoomsService {
     dto: CreateRoomDto,
     ministryId: string,
     userId: string,
+    systemRole?: string,
   ) {
+    // Same shape as createEvent's override: only a super-admin may file the
+    // record under another ministry, and the target must exist.
+    const targetMinistryId =
+      systemRole === 'SUPER_ADMIN' && dto.ministryId ? dto.ministryId : ministryId;
+
+    if (systemRole === 'SUPER_ADMIN' && dto.ministryId) {
+      const ministry = await (this.prisma as any).ministry.findUnique({
+        where: { id: dto.ministryId },
+        select: { id: true },
+      });
+
+      if (!ministry) {
+        throw new NotFoundException(`Ministry ${dto.ministryId} not found`);
+      }
+    }
+
     try {
       const room = await (this.prisma as any).room.create({
         data: {
-          ministryId,
+          ministryId: targetMinistryId,
           name: dto.name,
           location: dto.location,
           capacity: dto.capacity,
@@ -45,7 +62,7 @@ export class RoomsService {
         entityId: room.id,
         entityName: room.name,
         status: 'SUCCESS',
-        ministryId,
+        ministryId: targetMinistryId,
         actorId: userId,
         description: `Created room: ${room.name}`,
       });
