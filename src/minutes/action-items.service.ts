@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
+import { CacheService } from '../cache/cache.service';
 import { CreateActionItemDto } from './dto/create-action-item.dto';
 import { UpdateActionItemDto, ActionItemStatusEnum } from './dto/update-action-item.dto';
 import { ministryScope, assertSameMinistry } from '../common/utils/ministry-scope.util';
@@ -18,6 +19,7 @@ export class ActionItemsService {
   constructor(
     private prisma: PrismaService,
     private audit: AuditService,
+    private cache: CacheService,
   ) {}
 
   async createActionItem(
@@ -82,6 +84,8 @@ export class ActionItemsService {
       actorId: userId,
       description: `Created action item: ${actionItem.title} for minutes of event: ${minutes.event.title}`,
     });
+
+    await this.cache.invalidateAnalytics();
 
     return actionItem;
   }
@@ -162,6 +166,8 @@ export class ActionItemsService {
       description: `Updated action item: ${actionItem.title}`,
       changes: dto as unknown as Record<string, unknown>,
     });
+
+    await this.cache.invalidateAnalytics();
 
     return updated;
   }

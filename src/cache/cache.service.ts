@@ -102,6 +102,19 @@ export class CacheService {
     }
   }
 
+  /**
+   * Clears every cached analytics dashboard.
+   *
+   * Analytics aggregates events, attendance, rooms, users and action items, so
+   * any of those changing makes every scope stale — including the super-admin's
+   * cross-ministry "all" entry, which is why this cannot be narrowed to the
+   * acting ministry. Called from the services that mutate those records;
+   * without it the reports page served hour-old numbers.
+   */
+  async invalidateAnalytics(): Promise<void> {
+    await this.invalidatePattern('reports:analytics:*');
+  }
+
   async clear(): Promise<void> {
     try {
       await this.client.flushDb();
