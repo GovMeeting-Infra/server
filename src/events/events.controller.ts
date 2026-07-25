@@ -39,6 +39,8 @@ export class EventsController {
     @Query('sortBy') sortBy?: string,
     @Query('order') order?: string,
     @Query('timeframe') timeframe?: string,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
   ) {
     return this.eventsService.listEvents(
       user.ministryId,
@@ -49,6 +51,8 @@ export class EventsController {
         sortBy,
         order,
         timeframe,
+        from,
+        to,
       },
     );
   }
