@@ -64,7 +64,7 @@ export class RoomsController {
     @Body() dto: UpdateRoomDto,
     @CurrentUser() user: any,
   ) {
-    return this.roomsService.updateRoom(roomId, dto, user.ministryId, user.id);
+    return this.roomsService.updateRoom(roomId, dto, user.ministryId, user.id, user.systemRole);
   }
 
   @Delete('admin/rooms/:roomId')
@@ -74,7 +74,7 @@ export class RoomsController {
     @Param('roomId') roomId: string,
     @CurrentUser() user: any,
   ) {
-    await this.roomsService.deactivateRoom(roomId, user.ministryId, user.id);
+    await this.roomsService.deactivateRoom(roomId, user.ministryId, user.id, user.systemRole);
   }
 
   @Get('rooms/:roomId/availability')
@@ -90,6 +90,7 @@ export class RoomsController {
       new Date(startTime),
       new Date(endTime),
       user.ministryId,
+      user.systemRole,
     );
   }
 
@@ -101,7 +102,7 @@ export class RoomsController {
     @Body() dto: BookRoomDto,
     @CurrentUser() user: any,
   ) {
-    return this.bookingsService.bookRoom(dto, user.id, user.ministryId);
+    return this.bookingsService.bookRoom(dto, user.id, user.ministryId, user.systemRole);
   }
 
   @Get('bookings/:bookingId')
@@ -110,7 +111,7 @@ export class RoomsController {
     @Param('bookingId') bookingId: string,
     @CurrentUser() user: any,
   ) {
-    return this.bookingsService.getBooking(bookingId, user.ministryId);
+    return this.bookingsService.getBooking(bookingId, user.ministryId, user.systemRole);
   }
 
   @Get('rooms/:roomId/bookings')
@@ -126,13 +127,14 @@ export class RoomsController {
       user.ministryId,
       startDate ? new Date(startDate) : undefined,
       endDate ? new Date(endDate) : undefined,
+      user.systemRole,
     );
   }
 
   @Get('my-bookings')
   @Roles('STAFF', 'MINISTRY_ADMIN', 'MINISTER', 'SUPER_ADMIN')
   async getMyBookings(@CurrentUser() user: any) {
-    return this.bookingsService.getBookingsByUser(user.id, user.ministryId);
+    return this.bookingsService.getBookingsByUser(user.id, user.ministryId, user.systemRole);
   }
 
   @Patch('bookings/:bookingId')
@@ -147,6 +149,7 @@ export class RoomsController {
       dto,
       user.id,
       user.ministryId,
+      user.systemRole,
     );
   }
 
@@ -157,6 +160,6 @@ export class RoomsController {
     @Param('bookingId') bookingId: string,
     @CurrentUser() user: any,
   ) {
-    return this.bookingsService.cancelBooking(bookingId, user.id, user.ministryId);
+    return this.bookingsService.cancelBooking(bookingId, user.id, user.ministryId, user.systemRole);
   }
 }

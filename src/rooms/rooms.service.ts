@@ -9,7 +9,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
 import { CreateRoomDto } from './dto/create-room.dto';
 import { UpdateRoomDto } from './dto/update-room.dto';
-import { ministryScope } from '../common/utils/ministry-scope.util';
+import { ministryScope, assertSameMinistry } from '../common/utils/ministry-scope.util';
 
 @Injectable()
 export class RoomsService {
@@ -126,9 +126,10 @@ export class RoomsService {
       throw new NotFoundException('Room not found');
     }
 
-    if (systemRole !== 'SUPER_ADMIN' && room.ministryId !== ministryId) {
-      throw new ForbiddenException('Cannot access room from another ministry');
-    }
+    assertSameMinistry(
+      { systemRole: systemRole ?? '', ministryId },
+      room.ministryId,
+    );
 
     return room;
   }
@@ -138,6 +139,7 @@ export class RoomsService {
     dto: UpdateRoomDto,
     ministryId: string,
     userId: string,
+    systemRole?: string,
   ) {
     const room = await (this.prisma as any).room.findUnique({
       where: { id: roomId },
@@ -147,9 +149,10 @@ export class RoomsService {
       throw new NotFoundException('Room not found');
     }
 
-    if (room.ministryId !== ministryId) {
-      throw new ForbiddenException('Cannot update room from another ministry');
-    }
+    assertSameMinistry(
+      { systemRole: systemRole ?? '', ministryId },
+      room.ministryId,
+    );
 
     const updated = await (this.prisma as any).room.update({
       where: { id: roomId },
@@ -183,6 +186,7 @@ export class RoomsService {
     roomId: string,
     ministryId: string,
     userId: string,
+    systemRole?: string,
   ) {
     const room = await (this.prisma as any).room.findUnique({
       where: { id: roomId },
@@ -192,9 +196,10 @@ export class RoomsService {
       throw new NotFoundException('Room not found');
     }
 
-    if (room.ministryId !== ministryId) {
-      throw new ForbiddenException('Cannot deactivate room from another ministry');
-    }
+    assertSameMinistry(
+      { systemRole: systemRole ?? '', ministryId },
+      room.ministryId,
+    );
 
     const updated = await (this.prisma as any).room.update({
       where: { id: roomId },
@@ -221,6 +226,7 @@ export class RoomsService {
     startTime: Date,
     endTime: Date,
     ministryId: string,
+    systemRole?: string,
   ) {
     const room = await (this.prisma as any).room.findUnique({
       where: { id: roomId },
@@ -230,9 +236,10 @@ export class RoomsService {
       throw new NotFoundException('Room not found');
     }
 
-    if (room.ministryId !== ministryId) {
-      throw new ForbiddenException('Cannot check availability for room from another ministry');
-    }
+    assertSameMinistry(
+      { systemRole: systemRole ?? '', ministryId },
+      room.ministryId,
+    );
 
     const conflicts = await (this.prisma as any).roomBooking.findMany({
       where: {
