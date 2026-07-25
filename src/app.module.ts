@@ -19,6 +19,7 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { HealthModule } from './health/health.module';
 import { UploadsModule } from './uploads/uploads.module';
 import { SearchModule } from './search/search.module';
+import { InvitesModule } from './invites/invites.module';
 import { SessionMiddleware } from './auth/middleware/session.middleware';
 
 @Global()
@@ -56,6 +57,7 @@ import { SessionMiddleware } from './auth/middleware/session.middleware';
     HealthModule,
     UploadsModule,
     SearchModule,
+    InvitesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
