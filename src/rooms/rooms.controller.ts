@@ -45,7 +45,7 @@ export class RoomsController {
   @Get('rooms')
   @Roles('STAFF', 'MINISTRY_ADMIN', 'MINISTER', 'SUPER_ADMIN')
   async getRooms(@CurrentUser() user: any) {
-    return this.roomsService.getRooms(user.ministryId);
+    return this.roomsService.getRooms(user.ministryId, user.systemRole);
   }
 
   @Get('rooms/:roomId')
@@ -54,7 +54,7 @@ export class RoomsController {
     @Param('roomId') roomId: string,
     @CurrentUser() user: any,
   ) {
-    return this.roomsService.getRoom(roomId, user.ministryId);
+    return this.roomsService.getRoom(roomId, user.ministryId, user.systemRole);
   }
 
   @Patch('admin/rooms/:roomId')

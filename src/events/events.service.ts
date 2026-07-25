@@ -261,6 +261,7 @@ export class EventsService {
       timeframe?: string;
       from?: string;
       to?: string;
+      roomId?: string;
     } = {},
   ) {
     const now = new Date();
@@ -284,6 +285,9 @@ export class EventsService {
       ...(options.isPublic !== undefined && { isPublic: options.isPublic }),
       ...timeframeWhere,
       ...(range && { startAt: range }),
+      // Lets the rooms pages ask "what is scheduled in this room", which is
+      // also how availability learns that an event occupies a slot.
+      ...(options.roomId && { roomId: options.roomId }),
     };
 
     const page = Math.max(1, options.page || 1);
@@ -305,7 +309,7 @@ export class EventsService {
     // paginated server-side, so a different sort is a different page of data.
     const cacheKey = options.timeframe
       ? null
-      : `events:list:${ministryId}:${page}:${options.isPublic || 'all'}:${sortBy}:${order}:${options.from ?? '-'}:${options.to ?? '-'}`;
+      : `events:list:${ministryId}:${page}:${options.isPublic || 'all'}:${sortBy}:${order}:${options.from ?? '-'}:${options.to ?? '-'}:${options.roomId ?? '-'}`;
 
     if (cacheKey) {
       const cached = await this.cache.get(cacheKey);
