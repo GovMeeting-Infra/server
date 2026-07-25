@@ -1,4 +1,13 @@
-import { IsOptional, IsString, IsDateString, IsBoolean, IsNumber, IsEnum } from 'class-validator';
+import {
+  IsOptional,
+  IsString,
+  IsDateString,
+  IsBoolean,
+  IsNumber,
+  IsEnum,
+  IsEmail,
+  IsUrl,
+} from 'class-validator';
 import { EventTypeEnum, EventScopeEnum, EventClassificationEnum } from './create-event.dto';
 
 export class UpdateEventDto {
@@ -57,4 +66,20 @@ export class UpdateEventDto {
   @IsOptional()
   @IsString()
   colorCategory?: string;
+
+  @IsOptional()
+  @IsString()
+  bannerImage?: string;
+
+  @IsOptional()
+  @IsEmail()
+  contactEmail?: string;
+
+  @IsOptional()
+  @IsString()
+  contactPhone?: string;
+
+  @IsOptional()
+  @IsUrl()
+  externalUrl?: string;
 }

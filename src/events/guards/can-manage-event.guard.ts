@@ -21,20 +21,32 @@ export class CanManageEventGuard implements CanActivate {
 
     const event = await (this.prisma as any).event.findUnique({
       where: { id: eventId },
-      select: { organizerId: true },
+      select: { organizerId: true, ministryId: true },
     });
 
     if (!event) {
       throw new ForbiddenException('Event not found');
     }
 
-    if (
-      user.systemRole !== 'SUPER_ADMIN' &&
-      event.organizerId !== user.id
-    ) {
-      throw new ForbiddenException('Not authorized to manage this event');
+    if (user.systemRole === 'SUPER_ADMIN') {
+      return true;
     }
 
-    return true;
+    if (event.organizerId === user.id) {
+      return true;
+    }
+
+    // Public activities have no organizer, so an identity check alone would
+    // lock everyone out of them. Ministry admins can manage those, within
+    // their own ministry.
+    if (
+      event.organizerId === null &&
+      ['MINISTER', 'MINISTRY_ADMIN'].includes(user.systemRole) &&
+      event.ministryId === user.ministryId
+    ) {
+      return true;
+    }
+
+    throw new ForbiddenException('Not authorized to manage this event');
   }
 }

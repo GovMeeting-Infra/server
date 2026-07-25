@@ -50,7 +50,8 @@ export type EventClassification = (typeof EventClassification)[keyof typeof Even
 
 export const EventStatus = {
   DRAFT: 'DRAFT',
-  PUBLISHED: 'PUBLISHED'
+  PUBLISHED: 'PUBLISHED',
+  CANCELLED: 'CANCELLED'
 } as const
 
 export type EventStatus = (typeof EventStatus)[keyof typeof EventStatus]

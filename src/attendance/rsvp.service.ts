@@ -24,7 +24,9 @@ export class RSVPService {
   }
 
   async respond(rsvpTokenHash: string, status: RSVPStatus) {
-    const attendee = await (this.prisma as any).eventAttendee.findUnique({
+    // rsvpTokenHash is indexed but not declared @unique, so findUnique throws
+    // at the client layer — look it up as a non-unique field.
+    const attendee = await (this.prisma as any).eventAttendee.findFirst({
       where: { rsvpTokenHash },
       include: { event: true, user: true },
     });

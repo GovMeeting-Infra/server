@@ -113,7 +113,12 @@ export class MinutesService {
       throw new NotFoundException('Event not found');
     }
 
-    const canEdit = await this.canEditMinutes(eventId, userId, userRole);
+    const canEdit = await this.canEditMinutes(
+      eventId,
+      userId,
+      userRole,
+      ministryId,
+    );
 
     if (!canEdit) {
       throw new ForbiddenException(
@@ -224,6 +229,7 @@ export class MinutesService {
     eventId: string,
     userId: string,
     userRole: string,
+    actorMinistryId?: string,
   ): Promise<boolean> {
     const event = await (this.prisma as any).event.findUnique({
       where: { id: eventId },
@@ -231,6 +237,17 @@ export class MinutesService {
     });
 
     if (!event) {
+      return false;
+    }
+
+    // Without this a ministry admin could edit another ministry's minutes —
+    // the role checks below are deliberately broad and carry no scope of their
+    // own.
+    if (
+      userRole !== 'SUPER_ADMIN' &&
+      actorMinistryId !== undefined &&
+      event.ministryId !== actorMinistryId
+    ) {
       return false;
     }
 

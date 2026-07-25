@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Post,
+  Delete,
   Body,
   Param,
   HttpCode,
@@ -34,13 +35,25 @@ export class CheckinController {
       eventId,
     );
 
-    const qrCodeUrl = `${process.env.APP_URL || 'http://localhost:3000'}/checkin/${token}`;
+    // Geofence entry is the alternative to scanning; the operator screen needs
+    // to know whether it is configured and how wide the radius is.
+    const event = await this.checkinService.getGeofence(eventId);
+
+    // Attendees scan this, so it must point at the web frontend that serves
+    // /checkin/[token] — not at APP_URL, which is this API's own origin.
+    const webUrl =
+      process.env.WEB_URL || process.env.NEXT_PUBLIC_WEB_URL || 'http://localhost:3000';
+    const qrCodeUrl = `${webUrl}/checkin/${token}`;
 
     return {
       token,
       qrCodeUrl,
       expiresAt,
       refreshAt: new Date(Date.now() + 4 * 60 * 1000),
+      venueLat: event?.venueLat ?? null,
+      venueLng: event?.venueLng ?? null,
+      geofenceRadius: event?.geofenceRadius ?? null,
+      geofenceEnabled: !!(event?.venueLat && event?.venueLng),
     };
   }
 
@@ -96,5 +109,33 @@ export class CheckinController {
   @Roles('SUPER_ADMIN', 'MINISTER', 'MINISTRY_ADMIN', 'STAFF')
   async getDeclinedAttendees(@Param('eventId') eventId: string) {
     return this.rsvpService.getAttendeesByStatus(eventId, 'DECLINED');
+  }
+
+  /**
+   * Who actually turned up. This is Attendance data (QR, manual or geo
+   * check-ins) and is distinct from the RSVP lists above.
+   */
+  @Get('events/:eventId/checkins')
+  @UseGuards(RolesGuard)
+  @Roles('SUPER_ADMIN', 'MINISTER', 'MINISTRY_ADMIN', 'STAFF')
+  async getCheckIns(@Param('eventId') eventId: string) {
+    return this.checkinService.listCheckIns(eventId);
+  }
+
+  @Delete('events/:eventId/checkins/:attendanceId')
+  @UseGuards(RolesGuard)
+  @Roles('SUPER_ADMIN', 'MINISTRY_ADMIN', 'STAFF')
+  @HttpCode(204)
+  async removeCheckIn(
+    @Param('eventId') eventId: string,
+    @Param('attendanceId') attendanceId: string,
+    @CurrentUser() user: any,
+  ) {
+    return this.checkinService.removeCheckIn(
+      eventId,
+      attendanceId,
+      user.id,
+      user.ministryId,
+    );
   }
 }

@@ -53,6 +53,10 @@ export type EventMinAggregateOutputType = {
   venueLat: number | null
   venueLng: number | null
   geofenceRadius: number | null
+  bannerImage: string | null
+  contactEmail: string | null
+  contactPhone: string | null
+  externalUrl: string | null
   status: $Enums.EventStatus | null
   publishedAt: Date | null
   ministryId: string | null
@@ -78,6 +82,10 @@ export type EventMaxAggregateOutputType = {
   venueLat: number | null
   venueLng: number | null
   geofenceRadius: number | null
+  bannerImage: string | null
+  contactEmail: string | null
+  contactPhone: string | null
+  externalUrl: string | null
   status: $Enums.EventStatus | null
   publishedAt: Date | null
   ministryId: string | null
@@ -103,6 +111,10 @@ export type EventCountAggregateOutputType = {
   venueLat: number
   venueLng: number
   geofenceRadius: number
+  bannerImage: number
+  contactEmail: number
+  contactPhone: number
+  externalUrl: number
   status: number
   publishedAt: number
   ministryId: number
@@ -142,6 +154,10 @@ export type EventMinAggregateInputType = {
   venueLat?: true
   venueLng?: true
   geofenceRadius?: true
+  bannerImage?: true
+  contactEmail?: true
+  contactPhone?: true
+  externalUrl?: true
   status?: true
   publishedAt?: true
   ministryId?: true
@@ -167,6 +183,10 @@ export type EventMaxAggregateInputType = {
   venueLat?: true
   venueLng?: true
   geofenceRadius?: true
+  bannerImage?: true
+  contactEmail?: true
+  contactPhone?: true
+  externalUrl?: true
   status?: true
   publishedAt?: true
   ministryId?: true
@@ -192,6 +212,10 @@ export type EventCountAggregateInputType = {
   venueLat?: true
   venueLng?: true
   geofenceRadius?: true
+  bannerImage?: true
+  contactEmail?: true
+  contactPhone?: true
+  externalUrl?: true
   status?: true
   publishedAt?: true
   ministryId?: true
@@ -304,6 +328,10 @@ export type EventGroupByOutputType = {
   venueLat: number | null
   venueLng: number | null
   geofenceRadius: number
+  bannerImage: string | null
+  contactEmail: string | null
+  contactPhone: string | null
+  externalUrl: string | null
   status: $Enums.EventStatus
   publishedAt: Date | null
   ministryId: string
@@ -352,6 +380,10 @@ export type EventWhereInput = {
   venueLat?: Prisma.FloatNullableFilter<"Event"> | number | null
   venueLng?: Prisma.FloatNullableFilter<"Event"> | number | null
   geofenceRadius?: Prisma.IntFilter<"Event"> | number
+  bannerImage?: Prisma.StringNullableFilter<"Event"> | string | null
+  contactEmail?: Prisma.StringNullableFilter<"Event"> | string | null
+  contactPhone?: Prisma.StringNullableFilter<"Event"> | string | null
+  externalUrl?: Prisma.StringNullableFilter<"Event"> | string | null
   status?: Prisma.EnumEventStatusFilter<"Event"> | $Enums.EventStatus
   publishedAt?: Prisma.DateTimeNullableFilter<"Event"> | Date | string | null
   ministryId?: Prisma.StringFilter<"Event"> | string
@@ -361,6 +393,7 @@ export type EventWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"Event"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Event"> | Date | string
   ministry?: Prisma.XOR<Prisma.MinistryScalarRelationFilter, Prisma.MinistryWhereInput>
+  invitedMinistries?: Prisma.MinistryListRelationFilter
   room?: Prisma.XOR<Prisma.RoomNullableScalarRelationFilter, Prisma.RoomWhereInput> | null
   organizer?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
   series?: Prisma.XOR<Prisma.EventSeriesNullableScalarRelationFilter, Prisma.EventSeriesWhereInput> | null
@@ -386,6 +419,10 @@ export type EventOrderByWithRelationInput = {
   venueLat?: Prisma.SortOrderInput | Prisma.SortOrder
   venueLng?: Prisma.SortOrderInput | Prisma.SortOrder
   geofenceRadius?: Prisma.SortOrder
+  bannerImage?: Prisma.SortOrderInput | Prisma.SortOrder
+  contactEmail?: Prisma.SortOrderInput | Prisma.SortOrder
+  contactPhone?: Prisma.SortOrderInput | Prisma.SortOrder
+  externalUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   publishedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   ministryId?: Prisma.SortOrder
@@ -395,6 +432,7 @@ export type EventOrderByWithRelationInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   ministry?: Prisma.MinistryOrderByWithRelationInput
+  invitedMinistries?: Prisma.MinistryOrderByRelationAggregateInput
   room?: Prisma.RoomOrderByWithRelationInput
   organizer?: Prisma.UserOrderByWithRelationInput
   series?: Prisma.EventSeriesOrderByWithRelationInput
@@ -423,6 +461,10 @@ export type EventWhereUniqueInput = Prisma.AtLeast<{
   venueLat?: Prisma.FloatNullableFilter<"Event"> | number | null
   venueLng?: Prisma.FloatNullableFilter<"Event"> | number | null
   geofenceRadius?: Prisma.IntFilter<"Event"> | number
+  bannerImage?: Prisma.StringNullableFilter<"Event"> | string | null
+  contactEmail?: Prisma.StringNullableFilter<"Event"> | string | null
+  contactPhone?: Prisma.StringNullableFilter<"Event"> | string | null
+  externalUrl?: Prisma.StringNullableFilter<"Event"> | string | null
   status?: Prisma.EnumEventStatusFilter<"Event"> | $Enums.EventStatus
   publishedAt?: Prisma.DateTimeNullableFilter<"Event"> | Date | string | null
   ministryId?: Prisma.StringFilter<"Event"> | string
@@ -432,6 +474,7 @@ export type EventWhereUniqueInput = Prisma.AtLeast<{
   createdAt?: Prisma.DateTimeFilter<"Event"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Event"> | Date | string
   ministry?: Prisma.XOR<Prisma.MinistryScalarRelationFilter, Prisma.MinistryWhereInput>
+  invitedMinistries?: Prisma.MinistryListRelationFilter
   room?: Prisma.XOR<Prisma.RoomNullableScalarRelationFilter, Prisma.RoomWhereInput> | null
   organizer?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
   series?: Prisma.XOR<Prisma.EventSeriesNullableScalarRelationFilter, Prisma.EventSeriesWhereInput> | null
@@ -457,6 +500,10 @@ export type EventOrderByWithAggregationInput = {
   venueLat?: Prisma.SortOrderInput | Prisma.SortOrder
   venueLng?: Prisma.SortOrderInput | Prisma.SortOrder
   geofenceRadius?: Prisma.SortOrder
+  bannerImage?: Prisma.SortOrderInput | Prisma.SortOrder
+  contactEmail?: Prisma.SortOrderInput | Prisma.SortOrder
+  contactPhone?: Prisma.SortOrderInput | Prisma.SortOrder
+  externalUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   publishedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   ministryId?: Prisma.SortOrder
@@ -490,6 +537,10 @@ export type EventScalarWhereWithAggregatesInput = {
   venueLat?: Prisma.FloatNullableWithAggregatesFilter<"Event"> | number | null
   venueLng?: Prisma.FloatNullableWithAggregatesFilter<"Event"> | number | null
   geofenceRadius?: Prisma.IntWithAggregatesFilter<"Event"> | number
+  bannerImage?: Prisma.StringNullableWithAggregatesFilter<"Event"> | string | null
+  contactEmail?: Prisma.StringNullableWithAggregatesFilter<"Event"> | string | null
+  contactPhone?: Prisma.StringNullableWithAggregatesFilter<"Event"> | string | null
+  externalUrl?: Prisma.StringNullableWithAggregatesFilter<"Event"> | string | null
   status?: Prisma.EnumEventStatusWithAggregatesFilter<"Event"> | $Enums.EventStatus
   publishedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Event"> | Date | string | null
   ministryId?: Prisma.StringWithAggregatesFilter<"Event"> | string
@@ -515,11 +566,16 @@ export type EventCreateInput = {
   venueLat?: number | null
   venueLng?: number | null
   geofenceRadius?: number
+  bannerImage?: string | null
+  contactEmail?: string | null
+  contactPhone?: string | null
+  externalUrl?: string | null
   status?: $Enums.EventStatus
   publishedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   ministry: Prisma.MinistryCreateNestedOneWithoutEventsInput
+  invitedMinistries?: Prisma.MinistryCreateNestedManyWithoutInvitedToEventsInput
   room?: Prisma.RoomCreateNestedOneWithoutEventsInput
   organizer?: Prisma.UserCreateNestedOneWithoutOrganizedEventsInput
   series?: Prisma.EventSeriesCreateNestedOneWithoutEventsInput
@@ -545,6 +601,10 @@ export type EventUncheckedCreateInput = {
   venueLat?: number | null
   venueLng?: number | null
   geofenceRadius?: number
+  bannerImage?: string | null
+  contactEmail?: string | null
+  contactPhone?: string | null
+  externalUrl?: string | null
   status?: $Enums.EventStatus
   publishedAt?: Date | string | null
   ministryId: string
@@ -553,6 +613,7 @@ export type EventUncheckedCreateInput = {
   roomId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  invitedMinistries?: Prisma.MinistryUncheckedCreateNestedManyWithoutInvitedToEventsInput
   coOrganizers?: Prisma.EventCoOrganizerUncheckedCreateNestedManyWithoutEventInput
   attendees?: Prisma.EventAttendeeUncheckedCreateNestedManyWithoutEventInput
   attendances?: Prisma.AttendanceUncheckedCreateNestedManyWithoutEventInput
@@ -575,11 +636,16 @@ export type EventUpdateInput = {
   venueLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   venueLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   geofenceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  externalUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumEventStatusFieldUpdateOperationsInput | $Enums.EventStatus
   publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   ministry?: Prisma.MinistryUpdateOneRequiredWithoutEventsNestedInput
+  invitedMinistries?: Prisma.MinistryUpdateManyWithoutInvitedToEventsNestedInput
   room?: Prisma.RoomUpdateOneWithoutEventsNestedInput
   organizer?: Prisma.UserUpdateOneWithoutOrganizedEventsNestedInput
   series?: Prisma.EventSeriesUpdateOneWithoutEventsNestedInput
@@ -605,6 +671,10 @@ export type EventUncheckedUpdateInput = {
   venueLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   venueLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   geofenceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  externalUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumEventStatusFieldUpdateOperationsInput | $Enums.EventStatus
   publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   ministryId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -613,6 +683,7 @@ export type EventUncheckedUpdateInput = {
   roomId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  invitedMinistries?: Prisma.MinistryUncheckedUpdateManyWithoutInvitedToEventsNestedInput
   coOrganizers?: Prisma.EventCoOrganizerUncheckedUpdateManyWithoutEventNestedInput
   attendees?: Prisma.EventAttendeeUncheckedUpdateManyWithoutEventNestedInput
   attendances?: Prisma.AttendanceUncheckedUpdateManyWithoutEventNestedInput
@@ -635,6 +706,10 @@ export type EventCreateManyInput = {
   venueLat?: number | null
   venueLng?: number | null
   geofenceRadius?: number
+  bannerImage?: string | null
+  contactEmail?: string | null
+  contactPhone?: string | null
+  externalUrl?: string | null
   status?: $Enums.EventStatus
   publishedAt?: Date | string | null
   ministryId: string
@@ -660,6 +735,10 @@ export type EventUpdateManyMutationInput = {
   venueLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   venueLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   geofenceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  externalUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumEventStatusFieldUpdateOperationsInput | $Enums.EventStatus
   publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -681,6 +760,10 @@ export type EventUncheckedUpdateManyInput = {
   venueLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   venueLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   geofenceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  externalUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumEventStatusFieldUpdateOperationsInput | $Enums.EventStatus
   publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   ministryId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -716,6 +799,10 @@ export type EventCountOrderByAggregateInput = {
   venueLat?: Prisma.SortOrder
   venueLng?: Prisma.SortOrder
   geofenceRadius?: Prisma.SortOrder
+  bannerImage?: Prisma.SortOrder
+  contactEmail?: Prisma.SortOrder
+  contactPhone?: Prisma.SortOrder
+  externalUrl?: Prisma.SortOrder
   status?: Prisma.SortOrder
   publishedAt?: Prisma.SortOrder
   ministryId?: Prisma.SortOrder
@@ -747,6 +834,10 @@ export type EventMaxOrderByAggregateInput = {
   venueLat?: Prisma.SortOrder
   venueLng?: Prisma.SortOrder
   geofenceRadius?: Prisma.SortOrder
+  bannerImage?: Prisma.SortOrder
+  contactEmail?: Prisma.SortOrder
+  contactPhone?: Prisma.SortOrder
+  externalUrl?: Prisma.SortOrder
   status?: Prisma.SortOrder
   publishedAt?: Prisma.SortOrder
   ministryId?: Prisma.SortOrder
@@ -772,6 +863,10 @@ export type EventMinOrderByAggregateInput = {
   venueLat?: Prisma.SortOrder
   venueLng?: Prisma.SortOrder
   geofenceRadius?: Prisma.SortOrder
+  bannerImage?: Prisma.SortOrder
+  contactEmail?: Prisma.SortOrder
+  contactPhone?: Prisma.SortOrder
+  externalUrl?: Prisma.SortOrder
   status?: Prisma.SortOrder
   publishedAt?: Prisma.SortOrder
   ministryId?: Prisma.SortOrder
@@ -842,10 +937,22 @@ export type EventCreateNestedManyWithoutMinistryInput = {
   connect?: Prisma.EventWhereUniqueInput | Prisma.EventWhereUniqueInput[]
 }
 
+export type EventCreateNestedManyWithoutInvitedMinistriesInput = {
+  create?: Prisma.XOR<Prisma.EventCreateWithoutInvitedMinistriesInput, Prisma.EventUncheckedCreateWithoutInvitedMinistriesInput> | Prisma.EventCreateWithoutInvitedMinistriesInput[] | Prisma.EventUncheckedCreateWithoutInvitedMinistriesInput[]
+  connectOrCreate?: Prisma.EventCreateOrConnectWithoutInvitedMinistriesInput | Prisma.EventCreateOrConnectWithoutInvitedMinistriesInput[]
+  connect?: Prisma.EventWhereUniqueInput | Prisma.EventWhereUniqueInput[]
+}
+
 export type EventUncheckedCreateNestedManyWithoutMinistryInput = {
   create?: Prisma.XOR<Prisma.EventCreateWithoutMinistryInput, Prisma.EventUncheckedCreateWithoutMinistryInput> | Prisma.EventCreateWithoutMinistryInput[] | Prisma.EventUncheckedCreateWithoutMinistryInput[]
   connectOrCreate?: Prisma.EventCreateOrConnectWithoutMinistryInput | Prisma.EventCreateOrConnectWithoutMinistryInput[]
   createMany?: Prisma.EventCreateManyMinistryInputEnvelope
+  connect?: Prisma.EventWhereUniqueInput | Prisma.EventWhereUniqueInput[]
+}
+
+export type EventUncheckedCreateNestedManyWithoutInvitedMinistriesInput = {
+  create?: Prisma.XOR<Prisma.EventCreateWithoutInvitedMinistriesInput, Prisma.EventUncheckedCreateWithoutInvitedMinistriesInput> | Prisma.EventCreateWithoutInvitedMinistriesInput[] | Prisma.EventUncheckedCreateWithoutInvitedMinistriesInput[]
+  connectOrCreate?: Prisma.EventCreateOrConnectWithoutInvitedMinistriesInput | Prisma.EventCreateOrConnectWithoutInvitedMinistriesInput[]
   connect?: Prisma.EventWhereUniqueInput | Prisma.EventWhereUniqueInput[]
 }
 
@@ -863,6 +970,19 @@ export type EventUpdateManyWithoutMinistryNestedInput = {
   deleteMany?: Prisma.EventScalarWhereInput | Prisma.EventScalarWhereInput[]
 }
 
+export type EventUpdateManyWithoutInvitedMinistriesNestedInput = {
+  create?: Prisma.XOR<Prisma.EventCreateWithoutInvitedMinistriesInput, Prisma.EventUncheckedCreateWithoutInvitedMinistriesInput> | Prisma.EventCreateWithoutInvitedMinistriesInput[] | Prisma.EventUncheckedCreateWithoutInvitedMinistriesInput[]
+  connectOrCreate?: Prisma.EventCreateOrConnectWithoutInvitedMinistriesInput | Prisma.EventCreateOrConnectWithoutInvitedMinistriesInput[]
+  upsert?: Prisma.EventUpsertWithWhereUniqueWithoutInvitedMinistriesInput | Prisma.EventUpsertWithWhereUniqueWithoutInvitedMinistriesInput[]
+  set?: Prisma.EventWhereUniqueInput | Prisma.EventWhereUniqueInput[]
+  disconnect?: Prisma.EventWhereUniqueInput | Prisma.EventWhereUniqueInput[]
+  delete?: Prisma.EventWhereUniqueInput | Prisma.EventWhereUniqueInput[]
+  connect?: Prisma.EventWhereUniqueInput | Prisma.EventWhereUniqueInput[]
+  update?: Prisma.EventUpdateWithWhereUniqueWithoutInvitedMinistriesInput | Prisma.EventUpdateWithWhereUniqueWithoutInvitedMinistriesInput[]
+  updateMany?: Prisma.EventUpdateManyWithWhereWithoutInvitedMinistriesInput | Prisma.EventUpdateManyWithWhereWithoutInvitedMinistriesInput[]
+  deleteMany?: Prisma.EventScalarWhereInput | Prisma.EventScalarWhereInput[]
+}
+
 export type EventUncheckedUpdateManyWithoutMinistryNestedInput = {
   create?: Prisma.XOR<Prisma.EventCreateWithoutMinistryInput, Prisma.EventUncheckedCreateWithoutMinistryInput> | Prisma.EventCreateWithoutMinistryInput[] | Prisma.EventUncheckedCreateWithoutMinistryInput[]
   connectOrCreate?: Prisma.EventCreateOrConnectWithoutMinistryInput | Prisma.EventCreateOrConnectWithoutMinistryInput[]
@@ -874,6 +994,19 @@ export type EventUncheckedUpdateManyWithoutMinistryNestedInput = {
   connect?: Prisma.EventWhereUniqueInput | Prisma.EventWhereUniqueInput[]
   update?: Prisma.EventUpdateWithWhereUniqueWithoutMinistryInput | Prisma.EventUpdateWithWhereUniqueWithoutMinistryInput[]
   updateMany?: Prisma.EventUpdateManyWithWhereWithoutMinistryInput | Prisma.EventUpdateManyWithWhereWithoutMinistryInput[]
+  deleteMany?: Prisma.EventScalarWhereInput | Prisma.EventScalarWhereInput[]
+}
+
+export type EventUncheckedUpdateManyWithoutInvitedMinistriesNestedInput = {
+  create?: Prisma.XOR<Prisma.EventCreateWithoutInvitedMinistriesInput, Prisma.EventUncheckedCreateWithoutInvitedMinistriesInput> | Prisma.EventCreateWithoutInvitedMinistriesInput[] | Prisma.EventUncheckedCreateWithoutInvitedMinistriesInput[]
+  connectOrCreate?: Prisma.EventCreateOrConnectWithoutInvitedMinistriesInput | Prisma.EventCreateOrConnectWithoutInvitedMinistriesInput[]
+  upsert?: Prisma.EventUpsertWithWhereUniqueWithoutInvitedMinistriesInput | Prisma.EventUpsertWithWhereUniqueWithoutInvitedMinistriesInput[]
+  set?: Prisma.EventWhereUniqueInput | Prisma.EventWhereUniqueInput[]
+  disconnect?: Prisma.EventWhereUniqueInput | Prisma.EventWhereUniqueInput[]
+  delete?: Prisma.EventWhereUniqueInput | Prisma.EventWhereUniqueInput[]
+  connect?: Prisma.EventWhereUniqueInput | Prisma.EventWhereUniqueInput[]
+  update?: Prisma.EventUpdateWithWhereUniqueWithoutInvitedMinistriesInput | Prisma.EventUpdateWithWhereUniqueWithoutInvitedMinistriesInput[]
+  updateMany?: Prisma.EventUpdateManyWithWhereWithoutInvitedMinistriesInput | Prisma.EventUpdateManyWithWhereWithoutInvitedMinistriesInput[]
   deleteMany?: Prisma.EventScalarWhereInput | Prisma.EventScalarWhereInput[]
 }
 
@@ -1070,11 +1203,16 @@ export type EventCreateWithoutOrganizerInput = {
   venueLat?: number | null
   venueLng?: number | null
   geofenceRadius?: number
+  bannerImage?: string | null
+  contactEmail?: string | null
+  contactPhone?: string | null
+  externalUrl?: string | null
   status?: $Enums.EventStatus
   publishedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   ministry: Prisma.MinistryCreateNestedOneWithoutEventsInput
+  invitedMinistries?: Prisma.MinistryCreateNestedManyWithoutInvitedToEventsInput
   room?: Prisma.RoomCreateNestedOneWithoutEventsInput
   series?: Prisma.EventSeriesCreateNestedOneWithoutEventsInput
   coOrganizers?: Prisma.EventCoOrganizerCreateNestedManyWithoutEventInput
@@ -1099,6 +1237,10 @@ export type EventUncheckedCreateWithoutOrganizerInput = {
   venueLat?: number | null
   venueLng?: number | null
   geofenceRadius?: number
+  bannerImage?: string | null
+  contactEmail?: string | null
+  contactPhone?: string | null
+  externalUrl?: string | null
   status?: $Enums.EventStatus
   publishedAt?: Date | string | null
   ministryId: string
@@ -1106,6 +1248,7 @@ export type EventUncheckedCreateWithoutOrganizerInput = {
   roomId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  invitedMinistries?: Prisma.MinistryUncheckedCreateNestedManyWithoutInvitedToEventsInput
   coOrganizers?: Prisma.EventCoOrganizerUncheckedCreateNestedManyWithoutEventInput
   attendees?: Prisma.EventAttendeeUncheckedCreateNestedManyWithoutEventInput
   attendances?: Prisma.AttendanceUncheckedCreateNestedManyWithoutEventInput
@@ -1157,6 +1300,10 @@ export type EventScalarWhereInput = {
   venueLat?: Prisma.FloatNullableFilter<"Event"> | number | null
   venueLng?: Prisma.FloatNullableFilter<"Event"> | number | null
   geofenceRadius?: Prisma.IntFilter<"Event"> | number
+  bannerImage?: Prisma.StringNullableFilter<"Event"> | string | null
+  contactEmail?: Prisma.StringNullableFilter<"Event"> | string | null
+  contactPhone?: Prisma.StringNullableFilter<"Event"> | string | null
+  externalUrl?: Prisma.StringNullableFilter<"Event"> | string | null
   status?: Prisma.EnumEventStatusFilter<"Event"> | $Enums.EventStatus
   publishedAt?: Prisma.DateTimeNullableFilter<"Event"> | Date | string | null
   ministryId?: Prisma.StringFilter<"Event"> | string
@@ -1182,10 +1329,15 @@ export type EventCreateWithoutMinistryInput = {
   venueLat?: number | null
   venueLng?: number | null
   geofenceRadius?: number
+  bannerImage?: string | null
+  contactEmail?: string | null
+  contactPhone?: string | null
+  externalUrl?: string | null
   status?: $Enums.EventStatus
   publishedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  invitedMinistries?: Prisma.MinistryCreateNestedManyWithoutInvitedToEventsInput
   room?: Prisma.RoomCreateNestedOneWithoutEventsInput
   organizer?: Prisma.UserCreateNestedOneWithoutOrganizedEventsInput
   series?: Prisma.EventSeriesCreateNestedOneWithoutEventsInput
@@ -1211,6 +1363,10 @@ export type EventUncheckedCreateWithoutMinistryInput = {
   venueLat?: number | null
   venueLng?: number | null
   geofenceRadius?: number
+  bannerImage?: string | null
+  contactEmail?: string | null
+  contactPhone?: string | null
+  externalUrl?: string | null
   status?: $Enums.EventStatus
   publishedAt?: Date | string | null
   organizerId?: string | null
@@ -1218,6 +1374,7 @@ export type EventUncheckedCreateWithoutMinistryInput = {
   roomId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  invitedMinistries?: Prisma.MinistryUncheckedCreateNestedManyWithoutInvitedToEventsInput
   coOrganizers?: Prisma.EventCoOrganizerUncheckedCreateNestedManyWithoutEventInput
   attendees?: Prisma.EventAttendeeUncheckedCreateNestedManyWithoutEventInput
   attendances?: Prisma.AttendanceUncheckedCreateNestedManyWithoutEventInput
@@ -1233,6 +1390,79 @@ export type EventCreateOrConnectWithoutMinistryInput = {
 export type EventCreateManyMinistryInputEnvelope = {
   data: Prisma.EventCreateManyMinistryInput | Prisma.EventCreateManyMinistryInput[]
   skipDuplicates?: boolean
+}
+
+export type EventCreateWithoutInvitedMinistriesInput = {
+  id?: string
+  title: string
+  description?: string | null
+  isPublic?: boolean
+  type?: $Enums.EventType
+  scope?: $Enums.EventScope | null
+  classification?: $Enums.EventClassification | null
+  colorCategory?: string | null
+  startAt: Date | string
+  endAt: Date | string
+  venueName?: string | null
+  venueLat?: number | null
+  venueLng?: number | null
+  geofenceRadius?: number
+  bannerImage?: string | null
+  contactEmail?: string | null
+  contactPhone?: string | null
+  externalUrl?: string | null
+  status?: $Enums.EventStatus
+  publishedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  ministry: Prisma.MinistryCreateNestedOneWithoutEventsInput
+  room?: Prisma.RoomCreateNestedOneWithoutEventsInput
+  organizer?: Prisma.UserCreateNestedOneWithoutOrganizedEventsInput
+  series?: Prisma.EventSeriesCreateNestedOneWithoutEventsInput
+  coOrganizers?: Prisma.EventCoOrganizerCreateNestedManyWithoutEventInput
+  attendees?: Prisma.EventAttendeeCreateNestedManyWithoutEventInput
+  attendances?: Prisma.AttendanceCreateNestedManyWithoutEventInput
+  minutes?: Prisma.MinutesCreateNestedOneWithoutEventInput
+  qrTokens?: Prisma.QRTokenCreateNestedManyWithoutEventInput
+}
+
+export type EventUncheckedCreateWithoutInvitedMinistriesInput = {
+  id?: string
+  title: string
+  description?: string | null
+  isPublic?: boolean
+  type?: $Enums.EventType
+  scope?: $Enums.EventScope | null
+  classification?: $Enums.EventClassification | null
+  colorCategory?: string | null
+  startAt: Date | string
+  endAt: Date | string
+  venueName?: string | null
+  venueLat?: number | null
+  venueLng?: number | null
+  geofenceRadius?: number
+  bannerImage?: string | null
+  contactEmail?: string | null
+  contactPhone?: string | null
+  externalUrl?: string | null
+  status?: $Enums.EventStatus
+  publishedAt?: Date | string | null
+  ministryId: string
+  organizerId?: string | null
+  seriesId?: string | null
+  roomId?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  coOrganizers?: Prisma.EventCoOrganizerUncheckedCreateNestedManyWithoutEventInput
+  attendees?: Prisma.EventAttendeeUncheckedCreateNestedManyWithoutEventInput
+  attendances?: Prisma.AttendanceUncheckedCreateNestedManyWithoutEventInput
+  minutes?: Prisma.MinutesUncheckedCreateNestedOneWithoutEventInput
+  qrTokens?: Prisma.QRTokenUncheckedCreateNestedManyWithoutEventInput
+}
+
+export type EventCreateOrConnectWithoutInvitedMinistriesInput = {
+  where: Prisma.EventWhereUniqueInput
+  create: Prisma.XOR<Prisma.EventCreateWithoutInvitedMinistriesInput, Prisma.EventUncheckedCreateWithoutInvitedMinistriesInput>
 }
 
 export type EventUpsertWithWhereUniqueWithoutMinistryInput = {
@@ -1251,6 +1481,22 @@ export type EventUpdateManyWithWhereWithoutMinistryInput = {
   data: Prisma.XOR<Prisma.EventUpdateManyMutationInput, Prisma.EventUncheckedUpdateManyWithoutMinistryInput>
 }
 
+export type EventUpsertWithWhereUniqueWithoutInvitedMinistriesInput = {
+  where: Prisma.EventWhereUniqueInput
+  update: Prisma.XOR<Prisma.EventUpdateWithoutInvitedMinistriesInput, Prisma.EventUncheckedUpdateWithoutInvitedMinistriesInput>
+  create: Prisma.XOR<Prisma.EventCreateWithoutInvitedMinistriesInput, Prisma.EventUncheckedCreateWithoutInvitedMinistriesInput>
+}
+
+export type EventUpdateWithWhereUniqueWithoutInvitedMinistriesInput = {
+  where: Prisma.EventWhereUniqueInput
+  data: Prisma.XOR<Prisma.EventUpdateWithoutInvitedMinistriesInput, Prisma.EventUncheckedUpdateWithoutInvitedMinistriesInput>
+}
+
+export type EventUpdateManyWithWhereWithoutInvitedMinistriesInput = {
+  where: Prisma.EventScalarWhereInput
+  data: Prisma.XOR<Prisma.EventUpdateManyMutationInput, Prisma.EventUncheckedUpdateManyWithoutInvitedMinistriesInput>
+}
+
 export type EventCreateWithoutSeriesInput = {
   id?: string
   title: string
@@ -1266,11 +1512,16 @@ export type EventCreateWithoutSeriesInput = {
   venueLat?: number | null
   venueLng?: number | null
   geofenceRadius?: number
+  bannerImage?: string | null
+  contactEmail?: string | null
+  contactPhone?: string | null
+  externalUrl?: string | null
   status?: $Enums.EventStatus
   publishedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   ministry: Prisma.MinistryCreateNestedOneWithoutEventsInput
+  invitedMinistries?: Prisma.MinistryCreateNestedManyWithoutInvitedToEventsInput
   room?: Prisma.RoomCreateNestedOneWithoutEventsInput
   organizer?: Prisma.UserCreateNestedOneWithoutOrganizedEventsInput
   coOrganizers?: Prisma.EventCoOrganizerCreateNestedManyWithoutEventInput
@@ -1295,6 +1546,10 @@ export type EventUncheckedCreateWithoutSeriesInput = {
   venueLat?: number | null
   venueLng?: number | null
   geofenceRadius?: number
+  bannerImage?: string | null
+  contactEmail?: string | null
+  contactPhone?: string | null
+  externalUrl?: string | null
   status?: $Enums.EventStatus
   publishedAt?: Date | string | null
   ministryId: string
@@ -1302,6 +1557,7 @@ export type EventUncheckedCreateWithoutSeriesInput = {
   roomId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  invitedMinistries?: Prisma.MinistryUncheckedCreateNestedManyWithoutInvitedToEventsInput
   coOrganizers?: Prisma.EventCoOrganizerUncheckedCreateNestedManyWithoutEventInput
   attendees?: Prisma.EventAttendeeUncheckedCreateNestedManyWithoutEventInput
   attendances?: Prisma.AttendanceUncheckedCreateNestedManyWithoutEventInput
@@ -1350,11 +1606,16 @@ export type EventCreateWithoutCoOrganizersInput = {
   venueLat?: number | null
   venueLng?: number | null
   geofenceRadius?: number
+  bannerImage?: string | null
+  contactEmail?: string | null
+  contactPhone?: string | null
+  externalUrl?: string | null
   status?: $Enums.EventStatus
   publishedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   ministry: Prisma.MinistryCreateNestedOneWithoutEventsInput
+  invitedMinistries?: Prisma.MinistryCreateNestedManyWithoutInvitedToEventsInput
   room?: Prisma.RoomCreateNestedOneWithoutEventsInput
   organizer?: Prisma.UserCreateNestedOneWithoutOrganizedEventsInput
   series?: Prisma.EventSeriesCreateNestedOneWithoutEventsInput
@@ -1379,6 +1640,10 @@ export type EventUncheckedCreateWithoutCoOrganizersInput = {
   venueLat?: number | null
   venueLng?: number | null
   geofenceRadius?: number
+  bannerImage?: string | null
+  contactEmail?: string | null
+  contactPhone?: string | null
+  externalUrl?: string | null
   status?: $Enums.EventStatus
   publishedAt?: Date | string | null
   ministryId: string
@@ -1387,6 +1652,7 @@ export type EventUncheckedCreateWithoutCoOrganizersInput = {
   roomId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  invitedMinistries?: Prisma.MinistryUncheckedCreateNestedManyWithoutInvitedToEventsInput
   attendees?: Prisma.EventAttendeeUncheckedCreateNestedManyWithoutEventInput
   attendances?: Prisma.AttendanceUncheckedCreateNestedManyWithoutEventInput
   minutes?: Prisma.MinutesUncheckedCreateNestedOneWithoutEventInput
@@ -1424,11 +1690,16 @@ export type EventUpdateWithoutCoOrganizersInput = {
   venueLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   venueLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   geofenceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  externalUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumEventStatusFieldUpdateOperationsInput | $Enums.EventStatus
   publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   ministry?: Prisma.MinistryUpdateOneRequiredWithoutEventsNestedInput
+  invitedMinistries?: Prisma.MinistryUpdateManyWithoutInvitedToEventsNestedInput
   room?: Prisma.RoomUpdateOneWithoutEventsNestedInput
   organizer?: Prisma.UserUpdateOneWithoutOrganizedEventsNestedInput
   series?: Prisma.EventSeriesUpdateOneWithoutEventsNestedInput
@@ -1453,6 +1724,10 @@ export type EventUncheckedUpdateWithoutCoOrganizersInput = {
   venueLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   venueLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   geofenceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  externalUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumEventStatusFieldUpdateOperationsInput | $Enums.EventStatus
   publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   ministryId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1461,6 +1736,7 @@ export type EventUncheckedUpdateWithoutCoOrganizersInput = {
   roomId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  invitedMinistries?: Prisma.MinistryUncheckedUpdateManyWithoutInvitedToEventsNestedInput
   attendees?: Prisma.EventAttendeeUncheckedUpdateManyWithoutEventNestedInput
   attendances?: Prisma.AttendanceUncheckedUpdateManyWithoutEventNestedInput
   minutes?: Prisma.MinutesUncheckedUpdateOneWithoutEventNestedInput
@@ -1482,11 +1758,16 @@ export type EventCreateWithoutAttendeesInput = {
   venueLat?: number | null
   venueLng?: number | null
   geofenceRadius?: number
+  bannerImage?: string | null
+  contactEmail?: string | null
+  contactPhone?: string | null
+  externalUrl?: string | null
   status?: $Enums.EventStatus
   publishedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   ministry: Prisma.MinistryCreateNestedOneWithoutEventsInput
+  invitedMinistries?: Prisma.MinistryCreateNestedManyWithoutInvitedToEventsInput
   room?: Prisma.RoomCreateNestedOneWithoutEventsInput
   organizer?: Prisma.UserCreateNestedOneWithoutOrganizedEventsInput
   series?: Prisma.EventSeriesCreateNestedOneWithoutEventsInput
@@ -1511,6 +1792,10 @@ export type EventUncheckedCreateWithoutAttendeesInput = {
   venueLat?: number | null
   venueLng?: number | null
   geofenceRadius?: number
+  bannerImage?: string | null
+  contactEmail?: string | null
+  contactPhone?: string | null
+  externalUrl?: string | null
   status?: $Enums.EventStatus
   publishedAt?: Date | string | null
   ministryId: string
@@ -1519,6 +1804,7 @@ export type EventUncheckedCreateWithoutAttendeesInput = {
   roomId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  invitedMinistries?: Prisma.MinistryUncheckedCreateNestedManyWithoutInvitedToEventsInput
   coOrganizers?: Prisma.EventCoOrganizerUncheckedCreateNestedManyWithoutEventInput
   attendances?: Prisma.AttendanceUncheckedCreateNestedManyWithoutEventInput
   minutes?: Prisma.MinutesUncheckedCreateNestedOneWithoutEventInput
@@ -1556,11 +1842,16 @@ export type EventUpdateWithoutAttendeesInput = {
   venueLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   venueLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   geofenceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  externalUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumEventStatusFieldUpdateOperationsInput | $Enums.EventStatus
   publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   ministry?: Prisma.MinistryUpdateOneRequiredWithoutEventsNestedInput
+  invitedMinistries?: Prisma.MinistryUpdateManyWithoutInvitedToEventsNestedInput
   room?: Prisma.RoomUpdateOneWithoutEventsNestedInput
   organizer?: Prisma.UserUpdateOneWithoutOrganizedEventsNestedInput
   series?: Prisma.EventSeriesUpdateOneWithoutEventsNestedInput
@@ -1585,6 +1876,10 @@ export type EventUncheckedUpdateWithoutAttendeesInput = {
   venueLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   venueLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   geofenceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  externalUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumEventStatusFieldUpdateOperationsInput | $Enums.EventStatus
   publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   ministryId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1593,6 +1888,7 @@ export type EventUncheckedUpdateWithoutAttendeesInput = {
   roomId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  invitedMinistries?: Prisma.MinistryUncheckedUpdateManyWithoutInvitedToEventsNestedInput
   coOrganizers?: Prisma.EventCoOrganizerUncheckedUpdateManyWithoutEventNestedInput
   attendances?: Prisma.AttendanceUncheckedUpdateManyWithoutEventNestedInput
   minutes?: Prisma.MinutesUncheckedUpdateOneWithoutEventNestedInput
@@ -1614,11 +1910,16 @@ export type EventCreateWithoutAttendancesInput = {
   venueLat?: number | null
   venueLng?: number | null
   geofenceRadius?: number
+  bannerImage?: string | null
+  contactEmail?: string | null
+  contactPhone?: string | null
+  externalUrl?: string | null
   status?: $Enums.EventStatus
   publishedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   ministry: Prisma.MinistryCreateNestedOneWithoutEventsInput
+  invitedMinistries?: Prisma.MinistryCreateNestedManyWithoutInvitedToEventsInput
   room?: Prisma.RoomCreateNestedOneWithoutEventsInput
   organizer?: Prisma.UserCreateNestedOneWithoutOrganizedEventsInput
   series?: Prisma.EventSeriesCreateNestedOneWithoutEventsInput
@@ -1643,6 +1944,10 @@ export type EventUncheckedCreateWithoutAttendancesInput = {
   venueLat?: number | null
   venueLng?: number | null
   geofenceRadius?: number
+  bannerImage?: string | null
+  contactEmail?: string | null
+  contactPhone?: string | null
+  externalUrl?: string | null
   status?: $Enums.EventStatus
   publishedAt?: Date | string | null
   ministryId: string
@@ -1651,6 +1956,7 @@ export type EventUncheckedCreateWithoutAttendancesInput = {
   roomId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  invitedMinistries?: Prisma.MinistryUncheckedCreateNestedManyWithoutInvitedToEventsInput
   coOrganizers?: Prisma.EventCoOrganizerUncheckedCreateNestedManyWithoutEventInput
   attendees?: Prisma.EventAttendeeUncheckedCreateNestedManyWithoutEventInput
   minutes?: Prisma.MinutesUncheckedCreateNestedOneWithoutEventInput
@@ -1688,11 +1994,16 @@ export type EventUpdateWithoutAttendancesInput = {
   venueLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   venueLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   geofenceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  externalUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumEventStatusFieldUpdateOperationsInput | $Enums.EventStatus
   publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   ministry?: Prisma.MinistryUpdateOneRequiredWithoutEventsNestedInput
+  invitedMinistries?: Prisma.MinistryUpdateManyWithoutInvitedToEventsNestedInput
   room?: Prisma.RoomUpdateOneWithoutEventsNestedInput
   organizer?: Prisma.UserUpdateOneWithoutOrganizedEventsNestedInput
   series?: Prisma.EventSeriesUpdateOneWithoutEventsNestedInput
@@ -1717,6 +2028,10 @@ export type EventUncheckedUpdateWithoutAttendancesInput = {
   venueLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   venueLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   geofenceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  externalUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumEventStatusFieldUpdateOperationsInput | $Enums.EventStatus
   publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   ministryId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1725,6 +2040,7 @@ export type EventUncheckedUpdateWithoutAttendancesInput = {
   roomId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  invitedMinistries?: Prisma.MinistryUncheckedUpdateManyWithoutInvitedToEventsNestedInput
   coOrganizers?: Prisma.EventCoOrganizerUncheckedUpdateManyWithoutEventNestedInput
   attendees?: Prisma.EventAttendeeUncheckedUpdateManyWithoutEventNestedInput
   minutes?: Prisma.MinutesUncheckedUpdateOneWithoutEventNestedInput
@@ -1746,11 +2062,16 @@ export type EventCreateWithoutQrTokensInput = {
   venueLat?: number | null
   venueLng?: number | null
   geofenceRadius?: number
+  bannerImage?: string | null
+  contactEmail?: string | null
+  contactPhone?: string | null
+  externalUrl?: string | null
   status?: $Enums.EventStatus
   publishedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   ministry: Prisma.MinistryCreateNestedOneWithoutEventsInput
+  invitedMinistries?: Prisma.MinistryCreateNestedManyWithoutInvitedToEventsInput
   room?: Prisma.RoomCreateNestedOneWithoutEventsInput
   organizer?: Prisma.UserCreateNestedOneWithoutOrganizedEventsInput
   series?: Prisma.EventSeriesCreateNestedOneWithoutEventsInput
@@ -1775,6 +2096,10 @@ export type EventUncheckedCreateWithoutQrTokensInput = {
   venueLat?: number | null
   venueLng?: number | null
   geofenceRadius?: number
+  bannerImage?: string | null
+  contactEmail?: string | null
+  contactPhone?: string | null
+  externalUrl?: string | null
   status?: $Enums.EventStatus
   publishedAt?: Date | string | null
   ministryId: string
@@ -1783,6 +2108,7 @@ export type EventUncheckedCreateWithoutQrTokensInput = {
   roomId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  invitedMinistries?: Prisma.MinistryUncheckedCreateNestedManyWithoutInvitedToEventsInput
   coOrganizers?: Prisma.EventCoOrganizerUncheckedCreateNestedManyWithoutEventInput
   attendees?: Prisma.EventAttendeeUncheckedCreateNestedManyWithoutEventInput
   attendances?: Prisma.AttendanceUncheckedCreateNestedManyWithoutEventInput
@@ -1820,11 +2146,16 @@ export type EventUpdateWithoutQrTokensInput = {
   venueLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   venueLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   geofenceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  externalUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumEventStatusFieldUpdateOperationsInput | $Enums.EventStatus
   publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   ministry?: Prisma.MinistryUpdateOneRequiredWithoutEventsNestedInput
+  invitedMinistries?: Prisma.MinistryUpdateManyWithoutInvitedToEventsNestedInput
   room?: Prisma.RoomUpdateOneWithoutEventsNestedInput
   organizer?: Prisma.UserUpdateOneWithoutOrganizedEventsNestedInput
   series?: Prisma.EventSeriesUpdateOneWithoutEventsNestedInput
@@ -1849,6 +2180,10 @@ export type EventUncheckedUpdateWithoutQrTokensInput = {
   venueLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   venueLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   geofenceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  externalUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumEventStatusFieldUpdateOperationsInput | $Enums.EventStatus
   publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   ministryId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1857,6 +2192,7 @@ export type EventUncheckedUpdateWithoutQrTokensInput = {
   roomId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  invitedMinistries?: Prisma.MinistryUncheckedUpdateManyWithoutInvitedToEventsNestedInput
   coOrganizers?: Prisma.EventCoOrganizerUncheckedUpdateManyWithoutEventNestedInput
   attendees?: Prisma.EventAttendeeUncheckedUpdateManyWithoutEventNestedInput
   attendances?: Prisma.AttendanceUncheckedUpdateManyWithoutEventNestedInput
@@ -1878,11 +2214,16 @@ export type EventCreateWithoutMinutesInput = {
   venueLat?: number | null
   venueLng?: number | null
   geofenceRadius?: number
+  bannerImage?: string | null
+  contactEmail?: string | null
+  contactPhone?: string | null
+  externalUrl?: string | null
   status?: $Enums.EventStatus
   publishedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   ministry: Prisma.MinistryCreateNestedOneWithoutEventsInput
+  invitedMinistries?: Prisma.MinistryCreateNestedManyWithoutInvitedToEventsInput
   room?: Prisma.RoomCreateNestedOneWithoutEventsInput
   organizer?: Prisma.UserCreateNestedOneWithoutOrganizedEventsInput
   series?: Prisma.EventSeriesCreateNestedOneWithoutEventsInput
@@ -1907,6 +2248,10 @@ export type EventUncheckedCreateWithoutMinutesInput = {
   venueLat?: number | null
   venueLng?: number | null
   geofenceRadius?: number
+  bannerImage?: string | null
+  contactEmail?: string | null
+  contactPhone?: string | null
+  externalUrl?: string | null
   status?: $Enums.EventStatus
   publishedAt?: Date | string | null
   ministryId: string
@@ -1915,6 +2260,7 @@ export type EventUncheckedCreateWithoutMinutesInput = {
   roomId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  invitedMinistries?: Prisma.MinistryUncheckedCreateNestedManyWithoutInvitedToEventsInput
   coOrganizers?: Prisma.EventCoOrganizerUncheckedCreateNestedManyWithoutEventInput
   attendees?: Prisma.EventAttendeeUncheckedCreateNestedManyWithoutEventInput
   attendances?: Prisma.AttendanceUncheckedCreateNestedManyWithoutEventInput
@@ -1952,11 +2298,16 @@ export type EventUpdateWithoutMinutesInput = {
   venueLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   venueLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   geofenceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  externalUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumEventStatusFieldUpdateOperationsInput | $Enums.EventStatus
   publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   ministry?: Prisma.MinistryUpdateOneRequiredWithoutEventsNestedInput
+  invitedMinistries?: Prisma.MinistryUpdateManyWithoutInvitedToEventsNestedInput
   room?: Prisma.RoomUpdateOneWithoutEventsNestedInput
   organizer?: Prisma.UserUpdateOneWithoutOrganizedEventsNestedInput
   series?: Prisma.EventSeriesUpdateOneWithoutEventsNestedInput
@@ -1981,6 +2332,10 @@ export type EventUncheckedUpdateWithoutMinutesInput = {
   venueLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   venueLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   geofenceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  externalUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumEventStatusFieldUpdateOperationsInput | $Enums.EventStatus
   publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   ministryId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1989,6 +2344,7 @@ export type EventUncheckedUpdateWithoutMinutesInput = {
   roomId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  invitedMinistries?: Prisma.MinistryUncheckedUpdateManyWithoutInvitedToEventsNestedInput
   coOrganizers?: Prisma.EventCoOrganizerUncheckedUpdateManyWithoutEventNestedInput
   attendees?: Prisma.EventAttendeeUncheckedUpdateManyWithoutEventNestedInput
   attendances?: Prisma.AttendanceUncheckedUpdateManyWithoutEventNestedInput
@@ -2010,11 +2366,16 @@ export type EventCreateWithoutRoomInput = {
   venueLat?: number | null
   venueLng?: number | null
   geofenceRadius?: number
+  bannerImage?: string | null
+  contactEmail?: string | null
+  contactPhone?: string | null
+  externalUrl?: string | null
   status?: $Enums.EventStatus
   publishedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   ministry: Prisma.MinistryCreateNestedOneWithoutEventsInput
+  invitedMinistries?: Prisma.MinistryCreateNestedManyWithoutInvitedToEventsInput
   organizer?: Prisma.UserCreateNestedOneWithoutOrganizedEventsInput
   series?: Prisma.EventSeriesCreateNestedOneWithoutEventsInput
   coOrganizers?: Prisma.EventCoOrganizerCreateNestedManyWithoutEventInput
@@ -2039,6 +2400,10 @@ export type EventUncheckedCreateWithoutRoomInput = {
   venueLat?: number | null
   venueLng?: number | null
   geofenceRadius?: number
+  bannerImage?: string | null
+  contactEmail?: string | null
+  contactPhone?: string | null
+  externalUrl?: string | null
   status?: $Enums.EventStatus
   publishedAt?: Date | string | null
   ministryId: string
@@ -2046,6 +2411,7 @@ export type EventUncheckedCreateWithoutRoomInput = {
   seriesId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  invitedMinistries?: Prisma.MinistryUncheckedCreateNestedManyWithoutInvitedToEventsInput
   coOrganizers?: Prisma.EventCoOrganizerUncheckedCreateNestedManyWithoutEventInput
   attendees?: Prisma.EventAttendeeUncheckedCreateNestedManyWithoutEventInput
   attendances?: Prisma.AttendanceUncheckedCreateNestedManyWithoutEventInput
@@ -2094,6 +2460,10 @@ export type EventCreateManyOrganizerInput = {
   venueLat?: number | null
   venueLng?: number | null
   geofenceRadius?: number
+  bannerImage?: string | null
+  contactEmail?: string | null
+  contactPhone?: string | null
+  externalUrl?: string | null
   status?: $Enums.EventStatus
   publishedAt?: Date | string | null
   ministryId: string
@@ -2118,11 +2488,16 @@ export type EventUpdateWithoutOrganizerInput = {
   venueLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   venueLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   geofenceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  externalUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumEventStatusFieldUpdateOperationsInput | $Enums.EventStatus
   publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   ministry?: Prisma.MinistryUpdateOneRequiredWithoutEventsNestedInput
+  invitedMinistries?: Prisma.MinistryUpdateManyWithoutInvitedToEventsNestedInput
   room?: Prisma.RoomUpdateOneWithoutEventsNestedInput
   series?: Prisma.EventSeriesUpdateOneWithoutEventsNestedInput
   coOrganizers?: Prisma.EventCoOrganizerUpdateManyWithoutEventNestedInput
@@ -2147,6 +2522,10 @@ export type EventUncheckedUpdateWithoutOrganizerInput = {
   venueLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   venueLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   geofenceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  externalUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumEventStatusFieldUpdateOperationsInput | $Enums.EventStatus
   publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   ministryId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -2154,6 +2533,7 @@ export type EventUncheckedUpdateWithoutOrganizerInput = {
   roomId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  invitedMinistries?: Prisma.MinistryUncheckedUpdateManyWithoutInvitedToEventsNestedInput
   coOrganizers?: Prisma.EventCoOrganizerUncheckedUpdateManyWithoutEventNestedInput
   attendees?: Prisma.EventAttendeeUncheckedUpdateManyWithoutEventNestedInput
   attendances?: Prisma.AttendanceUncheckedUpdateManyWithoutEventNestedInput
@@ -2176,6 +2556,10 @@ export type EventUncheckedUpdateManyWithoutOrganizerInput = {
   venueLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   venueLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   geofenceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  externalUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumEventStatusFieldUpdateOperationsInput | $Enums.EventStatus
   publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   ministryId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -2200,6 +2584,10 @@ export type EventCreateManyMinistryInput = {
   venueLat?: number | null
   venueLng?: number | null
   geofenceRadius?: number
+  bannerImage?: string | null
+  contactEmail?: string | null
+  contactPhone?: string | null
+  externalUrl?: string | null
   status?: $Enums.EventStatus
   publishedAt?: Date | string | null
   organizerId?: string | null
@@ -2224,10 +2612,15 @@ export type EventUpdateWithoutMinistryInput = {
   venueLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   venueLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   geofenceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  externalUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumEventStatusFieldUpdateOperationsInput | $Enums.EventStatus
   publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  invitedMinistries?: Prisma.MinistryUpdateManyWithoutInvitedToEventsNestedInput
   room?: Prisma.RoomUpdateOneWithoutEventsNestedInput
   organizer?: Prisma.UserUpdateOneWithoutOrganizedEventsNestedInput
   series?: Prisma.EventSeriesUpdateOneWithoutEventsNestedInput
@@ -2253,6 +2646,10 @@ export type EventUncheckedUpdateWithoutMinistryInput = {
   venueLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   venueLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   geofenceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  externalUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumEventStatusFieldUpdateOperationsInput | $Enums.EventStatus
   publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   organizerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2260,6 +2657,7 @@ export type EventUncheckedUpdateWithoutMinistryInput = {
   roomId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  invitedMinistries?: Prisma.MinistryUncheckedUpdateManyWithoutInvitedToEventsNestedInput
   coOrganizers?: Prisma.EventCoOrganizerUncheckedUpdateManyWithoutEventNestedInput
   attendees?: Prisma.EventAttendeeUncheckedUpdateManyWithoutEventNestedInput
   attendances?: Prisma.AttendanceUncheckedUpdateManyWithoutEventNestedInput
@@ -2282,8 +2680,109 @@ export type EventUncheckedUpdateManyWithoutMinistryInput = {
   venueLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   venueLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   geofenceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  externalUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumEventStatusFieldUpdateOperationsInput | $Enums.EventStatus
   publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  organizerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  seriesId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  roomId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type EventUpdateWithoutInvitedMinistriesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isPublic?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  type?: Prisma.EnumEventTypeFieldUpdateOperationsInput | $Enums.EventType
+  scope?: Prisma.NullableEnumEventScopeFieldUpdateOperationsInput | $Enums.EventScope | null
+  classification?: Prisma.NullableEnumEventClassificationFieldUpdateOperationsInput | $Enums.EventClassification | null
+  colorCategory?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  startAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  endAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  venueName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  venueLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  venueLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  geofenceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  externalUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumEventStatusFieldUpdateOperationsInput | $Enums.EventStatus
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  ministry?: Prisma.MinistryUpdateOneRequiredWithoutEventsNestedInput
+  room?: Prisma.RoomUpdateOneWithoutEventsNestedInput
+  organizer?: Prisma.UserUpdateOneWithoutOrganizedEventsNestedInput
+  series?: Prisma.EventSeriesUpdateOneWithoutEventsNestedInput
+  coOrganizers?: Prisma.EventCoOrganizerUpdateManyWithoutEventNestedInput
+  attendees?: Prisma.EventAttendeeUpdateManyWithoutEventNestedInput
+  attendances?: Prisma.AttendanceUpdateManyWithoutEventNestedInput
+  minutes?: Prisma.MinutesUpdateOneWithoutEventNestedInput
+  qrTokens?: Prisma.QRTokenUpdateManyWithoutEventNestedInput
+}
+
+export type EventUncheckedUpdateWithoutInvitedMinistriesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isPublic?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  type?: Prisma.EnumEventTypeFieldUpdateOperationsInput | $Enums.EventType
+  scope?: Prisma.NullableEnumEventScopeFieldUpdateOperationsInput | $Enums.EventScope | null
+  classification?: Prisma.NullableEnumEventClassificationFieldUpdateOperationsInput | $Enums.EventClassification | null
+  colorCategory?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  startAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  endAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  venueName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  venueLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  venueLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  geofenceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  externalUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumEventStatusFieldUpdateOperationsInput | $Enums.EventStatus
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  ministryId?: Prisma.StringFieldUpdateOperationsInput | string
+  organizerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  seriesId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  roomId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  coOrganizers?: Prisma.EventCoOrganizerUncheckedUpdateManyWithoutEventNestedInput
+  attendees?: Prisma.EventAttendeeUncheckedUpdateManyWithoutEventNestedInput
+  attendances?: Prisma.AttendanceUncheckedUpdateManyWithoutEventNestedInput
+  minutes?: Prisma.MinutesUncheckedUpdateOneWithoutEventNestedInput
+  qrTokens?: Prisma.QRTokenUncheckedUpdateManyWithoutEventNestedInput
+}
+
+export type EventUncheckedUpdateManyWithoutInvitedMinistriesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isPublic?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  type?: Prisma.EnumEventTypeFieldUpdateOperationsInput | $Enums.EventType
+  scope?: Prisma.NullableEnumEventScopeFieldUpdateOperationsInput | $Enums.EventScope | null
+  classification?: Prisma.NullableEnumEventClassificationFieldUpdateOperationsInput | $Enums.EventClassification | null
+  colorCategory?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  startAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  endAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  venueName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  venueLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  venueLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  geofenceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  externalUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumEventStatusFieldUpdateOperationsInput | $Enums.EventStatus
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  ministryId?: Prisma.StringFieldUpdateOperationsInput | string
   organizerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   seriesId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   roomId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2306,6 +2805,10 @@ export type EventCreateManySeriesInput = {
   venueLat?: number | null
   venueLng?: number | null
   geofenceRadius?: number
+  bannerImage?: string | null
+  contactEmail?: string | null
+  contactPhone?: string | null
+  externalUrl?: string | null
   status?: $Enums.EventStatus
   publishedAt?: Date | string | null
   ministryId: string
@@ -2330,11 +2833,16 @@ export type EventUpdateWithoutSeriesInput = {
   venueLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   venueLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   geofenceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  externalUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumEventStatusFieldUpdateOperationsInput | $Enums.EventStatus
   publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   ministry?: Prisma.MinistryUpdateOneRequiredWithoutEventsNestedInput
+  invitedMinistries?: Prisma.MinistryUpdateManyWithoutInvitedToEventsNestedInput
   room?: Prisma.RoomUpdateOneWithoutEventsNestedInput
   organizer?: Prisma.UserUpdateOneWithoutOrganizedEventsNestedInput
   coOrganizers?: Prisma.EventCoOrganizerUpdateManyWithoutEventNestedInput
@@ -2359,6 +2867,10 @@ export type EventUncheckedUpdateWithoutSeriesInput = {
   venueLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   venueLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   geofenceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  externalUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumEventStatusFieldUpdateOperationsInput | $Enums.EventStatus
   publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   ministryId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -2366,6 +2878,7 @@ export type EventUncheckedUpdateWithoutSeriesInput = {
   roomId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  invitedMinistries?: Prisma.MinistryUncheckedUpdateManyWithoutInvitedToEventsNestedInput
   coOrganizers?: Prisma.EventCoOrganizerUncheckedUpdateManyWithoutEventNestedInput
   attendees?: Prisma.EventAttendeeUncheckedUpdateManyWithoutEventNestedInput
   attendances?: Prisma.AttendanceUncheckedUpdateManyWithoutEventNestedInput
@@ -2388,6 +2901,10 @@ export type EventUncheckedUpdateManyWithoutSeriesInput = {
   venueLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   venueLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   geofenceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  externalUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumEventStatusFieldUpdateOperationsInput | $Enums.EventStatus
   publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   ministryId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -2412,6 +2929,10 @@ export type EventCreateManyRoomInput = {
   venueLat?: number | null
   venueLng?: number | null
   geofenceRadius?: number
+  bannerImage?: string | null
+  contactEmail?: string | null
+  contactPhone?: string | null
+  externalUrl?: string | null
   status?: $Enums.EventStatus
   publishedAt?: Date | string | null
   ministryId: string
@@ -2436,11 +2957,16 @@ export type EventUpdateWithoutRoomInput = {
   venueLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   venueLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   geofenceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  externalUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumEventStatusFieldUpdateOperationsInput | $Enums.EventStatus
   publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   ministry?: Prisma.MinistryUpdateOneRequiredWithoutEventsNestedInput
+  invitedMinistries?: Prisma.MinistryUpdateManyWithoutInvitedToEventsNestedInput
   organizer?: Prisma.UserUpdateOneWithoutOrganizedEventsNestedInput
   series?: Prisma.EventSeriesUpdateOneWithoutEventsNestedInput
   coOrganizers?: Prisma.EventCoOrganizerUpdateManyWithoutEventNestedInput
@@ -2465,6 +2991,10 @@ export type EventUncheckedUpdateWithoutRoomInput = {
   venueLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   venueLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   geofenceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  externalUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumEventStatusFieldUpdateOperationsInput | $Enums.EventStatus
   publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   ministryId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -2472,6 +3002,7 @@ export type EventUncheckedUpdateWithoutRoomInput = {
   seriesId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  invitedMinistries?: Prisma.MinistryUncheckedUpdateManyWithoutInvitedToEventsNestedInput
   coOrganizers?: Prisma.EventCoOrganizerUncheckedUpdateManyWithoutEventNestedInput
   attendees?: Prisma.EventAttendeeUncheckedUpdateManyWithoutEventNestedInput
   attendances?: Prisma.AttendanceUncheckedUpdateManyWithoutEventNestedInput
@@ -2494,6 +3025,10 @@ export type EventUncheckedUpdateManyWithoutRoomInput = {
   venueLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   venueLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   geofenceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  externalUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumEventStatusFieldUpdateOperationsInput | $Enums.EventStatus
   publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   ministryId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -2509,6 +3044,7 @@ export type EventUncheckedUpdateManyWithoutRoomInput = {
  */
 
 export type EventCountOutputType = {
+  invitedMinistries: number
   coOrganizers: number
   attendees: number
   attendances: number
@@ -2516,6 +3052,7 @@ export type EventCountOutputType = {
 }
 
 export type EventCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  invitedMinistries?: boolean | EventCountOutputTypeCountInvitedMinistriesArgs
   coOrganizers?: boolean | EventCountOutputTypeCountCoOrganizersArgs
   attendees?: boolean | EventCountOutputTypeCountAttendeesArgs
   attendances?: boolean | EventCountOutputTypeCountAttendancesArgs
@@ -2530,6 +3067,13 @@ export type EventCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extens
    * Select specific fields to fetch from the EventCountOutputType
    */
   select?: Prisma.EventCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * EventCountOutputType without action
+ */
+export type EventCountOutputTypeCountInvitedMinistriesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.MinistryWhereInput
 }
 
 /**
@@ -2576,6 +3120,10 @@ export type EventSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   venueLat?: boolean
   venueLng?: boolean
   geofenceRadius?: boolean
+  bannerImage?: boolean
+  contactEmail?: boolean
+  contactPhone?: boolean
+  externalUrl?: boolean
   status?: boolean
   publishedAt?: boolean
   ministryId?: boolean
@@ -2585,6 +3133,7 @@ export type EventSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   createdAt?: boolean
   updatedAt?: boolean
   ministry?: boolean | Prisma.MinistryDefaultArgs<ExtArgs>
+  invitedMinistries?: boolean | Prisma.Event$invitedMinistriesArgs<ExtArgs>
   room?: boolean | Prisma.Event$roomArgs<ExtArgs>
   organizer?: boolean | Prisma.Event$organizerArgs<ExtArgs>
   series?: boolean | Prisma.Event$seriesArgs<ExtArgs>
@@ -2611,6 +3160,10 @@ export type EventSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   venueLat?: boolean
   venueLng?: boolean
   geofenceRadius?: boolean
+  bannerImage?: boolean
+  contactEmail?: boolean
+  contactPhone?: boolean
+  externalUrl?: boolean
   status?: boolean
   publishedAt?: boolean
   ministryId?: boolean
@@ -2640,6 +3193,10 @@ export type EventSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   venueLat?: boolean
   venueLng?: boolean
   geofenceRadius?: boolean
+  bannerImage?: boolean
+  contactEmail?: boolean
+  contactPhone?: boolean
+  externalUrl?: boolean
   status?: boolean
   publishedAt?: boolean
   ministryId?: boolean
@@ -2669,6 +3226,10 @@ export type EventSelectScalar = {
   venueLat?: boolean
   venueLng?: boolean
   geofenceRadius?: boolean
+  bannerImage?: boolean
+  contactEmail?: boolean
+  contactPhone?: boolean
+  externalUrl?: boolean
   status?: boolean
   publishedAt?: boolean
   ministryId?: boolean
@@ -2679,9 +3240,10 @@ export type EventSelectScalar = {
   updatedAt?: boolean
 }
 
-export type EventOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "title" | "description" | "isPublic" | "type" | "scope" | "classification" | "colorCategory" | "startAt" | "endAt" | "venueName" | "venueLat" | "venueLng" | "geofenceRadius" | "status" | "publishedAt" | "ministryId" | "organizerId" | "seriesId" | "roomId" | "createdAt" | "updatedAt", ExtArgs["result"]["event"]>
+export type EventOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "title" | "description" | "isPublic" | "type" | "scope" | "classification" | "colorCategory" | "startAt" | "endAt" | "venueName" | "venueLat" | "venueLng" | "geofenceRadius" | "bannerImage" | "contactEmail" | "contactPhone" | "externalUrl" | "status" | "publishedAt" | "ministryId" | "organizerId" | "seriesId" | "roomId" | "createdAt" | "updatedAt", ExtArgs["result"]["event"]>
 export type EventInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   ministry?: boolean | Prisma.MinistryDefaultArgs<ExtArgs>
+  invitedMinistries?: boolean | Prisma.Event$invitedMinistriesArgs<ExtArgs>
   room?: boolean | Prisma.Event$roomArgs<ExtArgs>
   organizer?: boolean | Prisma.Event$organizerArgs<ExtArgs>
   series?: boolean | Prisma.Event$seriesArgs<ExtArgs>
@@ -2709,6 +3271,7 @@ export type $EventPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   name: "Event"
   objects: {
     ministry: Prisma.$MinistryPayload<ExtArgs>
+    invitedMinistries: Prisma.$MinistryPayload<ExtArgs>[]
     room: Prisma.$RoomPayload<ExtArgs> | null
     organizer: Prisma.$UserPayload<ExtArgs> | null
     series: Prisma.$EventSeriesPayload<ExtArgs> | null
@@ -2733,6 +3296,10 @@ export type $EventPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     venueLat: number | null
     venueLng: number | null
     geofenceRadius: number
+    bannerImage: string | null
+    contactEmail: string | null
+    contactPhone: string | null
+    externalUrl: string | null
     status: $Enums.EventStatus
     publishedAt: Date | null
     ministryId: string
@@ -3136,6 +3703,7 @@ readonly fields: EventFieldRefs;
 export interface Prisma__EventClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   ministry<T extends Prisma.MinistryDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.MinistryDefaultArgs<ExtArgs>>): Prisma.Prisma__MinistryClient<runtime.Types.Result.GetResult<Prisma.$MinistryPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  invitedMinistries<T extends Prisma.Event$invitedMinistriesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Event$invitedMinistriesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MinistryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   room<T extends Prisma.Event$roomArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Event$roomArgs<ExtArgs>>): Prisma.Prisma__RoomClient<runtime.Types.Result.GetResult<Prisma.$RoomPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   organizer<T extends Prisma.Event$organizerArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Event$organizerArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   series<T extends Prisma.Event$seriesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Event$seriesArgs<ExtArgs>>): Prisma.Prisma__EventSeriesClient<runtime.Types.Result.GetResult<Prisma.$EventSeriesPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
@@ -3187,6 +3755,10 @@ export interface EventFieldRefs {
   readonly venueLat: Prisma.FieldRef<"Event", 'Float'>
   readonly venueLng: Prisma.FieldRef<"Event", 'Float'>
   readonly geofenceRadius: Prisma.FieldRef<"Event", 'Int'>
+  readonly bannerImage: Prisma.FieldRef<"Event", 'String'>
+  readonly contactEmail: Prisma.FieldRef<"Event", 'String'>
+  readonly contactPhone: Prisma.FieldRef<"Event", 'String'>
+  readonly externalUrl: Prisma.FieldRef<"Event", 'String'>
   readonly status: Prisma.FieldRef<"Event", 'EventStatus'>
   readonly publishedAt: Prisma.FieldRef<"Event", 'DateTime'>
   readonly ministryId: Prisma.FieldRef<"Event", 'String'>
@@ -3593,6 +4165,30 @@ export type EventDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Interna
    * Limit how many Events to delete.
    */
   limit?: number
+}
+
+/**
+ * Event.invitedMinistries
+ */
+export type Event$invitedMinistriesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Ministry
+   */
+  select?: Prisma.MinistrySelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Ministry
+   */
+  omit?: Prisma.MinistryOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.MinistryInclude<ExtArgs> | null
+  where?: Prisma.MinistryWhereInput
+  orderBy?: Prisma.MinistryOrderByWithRelationInput | Prisma.MinistryOrderByWithRelationInput[]
+  cursor?: Prisma.MinistryWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.MinistryScalarFieldEnum | Prisma.MinistryScalarFieldEnum[]
 }
 
 /**
