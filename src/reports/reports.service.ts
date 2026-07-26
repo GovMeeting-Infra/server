@@ -336,17 +336,25 @@ export class ReportsService {
     });
 
     const csvRows: string[][] = [
-      ['Event', 'Date', 'User', 'Email', 'Checked In At', 'Geofence Verified'],
+      ['Event', 'Date', 'User', 'Email', 'Checked In At', 'Geofence Verified', 'Walk-in'],
     ];
 
     for (const attendance of attendances) {
       csvRows.push([
         attendance.event.title,
         attendance.event.startAt.toISOString().split('T')[0],
-        attendance.user.name,
-        attendance.user.email,
+        // Guests have no linked user, so fall back to what they signed with.
+        attendance.user?.name ?? attendance.guestName ?? attendance.signedName,
+        attendance.user?.email ?? attendance.guestEmail ?? '',
         attendance.checkInAt.toISOString(),
-        attendance.withinGeofence ? 'Yes' : 'No',
+        // null means no check-in area was set, which is not the same as
+        // failing the check.
+        attendance.withinGeofence === null
+          ? 'Not verified'
+          : attendance.withinGeofence
+            ? 'Yes'
+            : 'No',
+        attendance.isWalkIn ? 'Yes' : 'No',
       ]);
     }
 

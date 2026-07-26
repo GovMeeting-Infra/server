@@ -83,6 +83,27 @@ export class CacheService {
     return this.set(key, value, CACHE_TTL.DASHBOARD);
   }
 
+  /**
+   * Increment a counter, setting its TTL on first use, and return the new
+   * value. Backs rate limiting on the public check-in routes.
+   *
+   * Returns 0 when Redis is unreachable, which callers treat as "under the
+   * limit". Failing open is deliberate and matches the rest of this class: a
+   * Redis outage must not make it impossible to check in to a meeting.
+   */
+  async incr(key: string, ttlSeconds: number): Promise<number> {
+    try {
+      const count = await this.client.incr(key);
+      if (count === 1) {
+        await this.client.expire(key, ttlSeconds);
+      }
+      return count;
+    } catch (error) {
+      this.logger.error(`Cache incr error for key ${key}:`, error);
+      return 0;
+    }
+  }
+
   async delete(key: string): Promise<void> {
     try {
       await this.client.del(key);

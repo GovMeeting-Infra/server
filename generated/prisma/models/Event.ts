@@ -30,12 +30,18 @@ export type EventAvgAggregateOutputType = {
   venueLat: number | null
   venueLng: number | null
   geofenceRadius: number | null
+  checkInAnchorLat: number | null
+  checkInAnchorLng: number | null
+  checkInAnchorAccuracy: number | null
 }
 
 export type EventSumAggregateOutputType = {
   venueLat: number | null
   venueLng: number | null
   geofenceRadius: number | null
+  checkInAnchorLat: number | null
+  checkInAnchorLng: number | null
+  checkInAnchorAccuracy: number | null
 }
 
 export type EventMinAggregateOutputType = {
@@ -53,6 +59,12 @@ export type EventMinAggregateOutputType = {
   venueLat: number | null
   venueLng: number | null
   geofenceRadius: number | null
+  checkInAnchorLat: number | null
+  checkInAnchorLng: number | null
+  checkInAnchorAccuracy: number | null
+  checkInAnchorSetAt: Date | null
+  checkInAnchorSetById: string | null
+  allowGuestCheckIn: boolean | null
   bannerImage: string | null
   contactEmail: string | null
   contactPhone: string | null
@@ -82,6 +94,12 @@ export type EventMaxAggregateOutputType = {
   venueLat: number | null
   venueLng: number | null
   geofenceRadius: number | null
+  checkInAnchorLat: number | null
+  checkInAnchorLng: number | null
+  checkInAnchorAccuracy: number | null
+  checkInAnchorSetAt: Date | null
+  checkInAnchorSetById: string | null
+  allowGuestCheckIn: boolean | null
   bannerImage: string | null
   contactEmail: string | null
   contactPhone: string | null
@@ -111,6 +129,12 @@ export type EventCountAggregateOutputType = {
   venueLat: number
   venueLng: number
   geofenceRadius: number
+  checkInAnchorLat: number
+  checkInAnchorLng: number
+  checkInAnchorAccuracy: number
+  checkInAnchorSetAt: number
+  checkInAnchorSetById: number
+  allowGuestCheckIn: number
   bannerImage: number
   contactEmail: number
   contactPhone: number
@@ -131,12 +155,18 @@ export type EventAvgAggregateInputType = {
   venueLat?: true
   venueLng?: true
   geofenceRadius?: true
+  checkInAnchorLat?: true
+  checkInAnchorLng?: true
+  checkInAnchorAccuracy?: true
 }
 
 export type EventSumAggregateInputType = {
   venueLat?: true
   venueLng?: true
   geofenceRadius?: true
+  checkInAnchorLat?: true
+  checkInAnchorLng?: true
+  checkInAnchorAccuracy?: true
 }
 
 export type EventMinAggregateInputType = {
@@ -154,6 +184,12 @@ export type EventMinAggregateInputType = {
   venueLat?: true
   venueLng?: true
   geofenceRadius?: true
+  checkInAnchorLat?: true
+  checkInAnchorLng?: true
+  checkInAnchorAccuracy?: true
+  checkInAnchorSetAt?: true
+  checkInAnchorSetById?: true
+  allowGuestCheckIn?: true
   bannerImage?: true
   contactEmail?: true
   contactPhone?: true
@@ -183,6 +219,12 @@ export type EventMaxAggregateInputType = {
   venueLat?: true
   venueLng?: true
   geofenceRadius?: true
+  checkInAnchorLat?: true
+  checkInAnchorLng?: true
+  checkInAnchorAccuracy?: true
+  checkInAnchorSetAt?: true
+  checkInAnchorSetById?: true
+  allowGuestCheckIn?: true
   bannerImage?: true
   contactEmail?: true
   contactPhone?: true
@@ -212,6 +254,12 @@ export type EventCountAggregateInputType = {
   venueLat?: true
   venueLng?: true
   geofenceRadius?: true
+  checkInAnchorLat?: true
+  checkInAnchorLng?: true
+  checkInAnchorAccuracy?: true
+  checkInAnchorSetAt?: true
+  checkInAnchorSetById?: true
+  allowGuestCheckIn?: true
   bannerImage?: true
   contactEmail?: true
   contactPhone?: true
@@ -328,6 +376,12 @@ export type EventGroupByOutputType = {
   venueLat: number | null
   venueLng: number | null
   geofenceRadius: number
+  checkInAnchorLat: number | null
+  checkInAnchorLng: number | null
+  checkInAnchorAccuracy: number | null
+  checkInAnchorSetAt: Date | null
+  checkInAnchorSetById: string | null
+  allowGuestCheckIn: boolean
   bannerImage: string | null
   contactEmail: string | null
   contactPhone: string | null
@@ -380,6 +434,12 @@ export type EventWhereInput = {
   venueLat?: Prisma.FloatNullableFilter<"Event"> | number | null
   venueLng?: Prisma.FloatNullableFilter<"Event"> | number | null
   geofenceRadius?: Prisma.IntFilter<"Event"> | number
+  checkInAnchorLat?: Prisma.FloatNullableFilter<"Event"> | number | null
+  checkInAnchorLng?: Prisma.FloatNullableFilter<"Event"> | number | null
+  checkInAnchorAccuracy?: Prisma.IntNullableFilter<"Event"> | number | null
+  checkInAnchorSetAt?: Prisma.DateTimeNullableFilter<"Event"> | Date | string | null
+  checkInAnchorSetById?: Prisma.StringNullableFilter<"Event"> | string | null
+  allowGuestCheckIn?: Prisma.BoolFilter<"Event"> | boolean
   bannerImage?: Prisma.StringNullableFilter<"Event"> | string | null
   contactEmail?: Prisma.StringNullableFilter<"Event"> | string | null
   contactPhone?: Prisma.StringNullableFilter<"Event"> | string | null
@@ -419,6 +479,12 @@ export type EventOrderByWithRelationInput = {
   venueLat?: Prisma.SortOrderInput | Prisma.SortOrder
   venueLng?: Prisma.SortOrderInput | Prisma.SortOrder
   geofenceRadius?: Prisma.SortOrder
+  checkInAnchorLat?: Prisma.SortOrderInput | Prisma.SortOrder
+  checkInAnchorLng?: Prisma.SortOrderInput | Prisma.SortOrder
+  checkInAnchorAccuracy?: Prisma.SortOrderInput | Prisma.SortOrder
+  checkInAnchorSetAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  checkInAnchorSetById?: Prisma.SortOrderInput | Prisma.SortOrder
+  allowGuestCheckIn?: Prisma.SortOrder
   bannerImage?: Prisma.SortOrderInput | Prisma.SortOrder
   contactEmail?: Prisma.SortOrderInput | Prisma.SortOrder
   contactPhone?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -461,6 +527,12 @@ export type EventWhereUniqueInput = Prisma.AtLeast<{
   venueLat?: Prisma.FloatNullableFilter<"Event"> | number | null
   venueLng?: Prisma.FloatNullableFilter<"Event"> | number | null
   geofenceRadius?: Prisma.IntFilter<"Event"> | number
+  checkInAnchorLat?: Prisma.FloatNullableFilter<"Event"> | number | null
+  checkInAnchorLng?: Prisma.FloatNullableFilter<"Event"> | number | null
+  checkInAnchorAccuracy?: Prisma.IntNullableFilter<"Event"> | number | null
+  checkInAnchorSetAt?: Prisma.DateTimeNullableFilter<"Event"> | Date | string | null
+  checkInAnchorSetById?: Prisma.StringNullableFilter<"Event"> | string | null
+  allowGuestCheckIn?: Prisma.BoolFilter<"Event"> | boolean
   bannerImage?: Prisma.StringNullableFilter<"Event"> | string | null
   contactEmail?: Prisma.StringNullableFilter<"Event"> | string | null
   contactPhone?: Prisma.StringNullableFilter<"Event"> | string | null
@@ -500,6 +572,12 @@ export type EventOrderByWithAggregationInput = {
   venueLat?: Prisma.SortOrderInput | Prisma.SortOrder
   venueLng?: Prisma.SortOrderInput | Prisma.SortOrder
   geofenceRadius?: Prisma.SortOrder
+  checkInAnchorLat?: Prisma.SortOrderInput | Prisma.SortOrder
+  checkInAnchorLng?: Prisma.SortOrderInput | Prisma.SortOrder
+  checkInAnchorAccuracy?: Prisma.SortOrderInput | Prisma.SortOrder
+  checkInAnchorSetAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  checkInAnchorSetById?: Prisma.SortOrderInput | Prisma.SortOrder
+  allowGuestCheckIn?: Prisma.SortOrder
   bannerImage?: Prisma.SortOrderInput | Prisma.SortOrder
   contactEmail?: Prisma.SortOrderInput | Prisma.SortOrder
   contactPhone?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -537,6 +615,12 @@ export type EventScalarWhereWithAggregatesInput = {
   venueLat?: Prisma.FloatNullableWithAggregatesFilter<"Event"> | number | null
   venueLng?: Prisma.FloatNullableWithAggregatesFilter<"Event"> | number | null
   geofenceRadius?: Prisma.IntWithAggregatesFilter<"Event"> | number
+  checkInAnchorLat?: Prisma.FloatNullableWithAggregatesFilter<"Event"> | number | null
+  checkInAnchorLng?: Prisma.FloatNullableWithAggregatesFilter<"Event"> | number | null
+  checkInAnchorAccuracy?: Prisma.IntNullableWithAggregatesFilter<"Event"> | number | null
+  checkInAnchorSetAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Event"> | Date | string | null
+  checkInAnchorSetById?: Prisma.StringNullableWithAggregatesFilter<"Event"> | string | null
+  allowGuestCheckIn?: Prisma.BoolWithAggregatesFilter<"Event"> | boolean
   bannerImage?: Prisma.StringNullableWithAggregatesFilter<"Event"> | string | null
   contactEmail?: Prisma.StringNullableWithAggregatesFilter<"Event"> | string | null
   contactPhone?: Prisma.StringNullableWithAggregatesFilter<"Event"> | string | null
@@ -566,6 +650,12 @@ export type EventCreateInput = {
   venueLat?: number | null
   venueLng?: number | null
   geofenceRadius?: number
+  checkInAnchorLat?: number | null
+  checkInAnchorLng?: number | null
+  checkInAnchorAccuracy?: number | null
+  checkInAnchorSetAt?: Date | string | null
+  checkInAnchorSetById?: string | null
+  allowGuestCheckIn?: boolean
   bannerImage?: string | null
   contactEmail?: string | null
   contactPhone?: string | null
@@ -601,6 +691,12 @@ export type EventUncheckedCreateInput = {
   venueLat?: number | null
   venueLng?: number | null
   geofenceRadius?: number
+  checkInAnchorLat?: number | null
+  checkInAnchorLng?: number | null
+  checkInAnchorAccuracy?: number | null
+  checkInAnchorSetAt?: Date | string | null
+  checkInAnchorSetById?: string | null
+  allowGuestCheckIn?: boolean
   bannerImage?: string | null
   contactEmail?: string | null
   contactPhone?: string | null
@@ -636,6 +732,12 @@ export type EventUpdateInput = {
   venueLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   venueLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   geofenceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  checkInAnchorLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  checkInAnchorLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  checkInAnchorAccuracy?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  checkInAnchorSetAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  checkInAnchorSetById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  allowGuestCheckIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
   bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -671,6 +773,12 @@ export type EventUncheckedUpdateInput = {
   venueLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   venueLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   geofenceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  checkInAnchorLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  checkInAnchorLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  checkInAnchorAccuracy?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  checkInAnchorSetAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  checkInAnchorSetById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  allowGuestCheckIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
   bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -706,6 +814,12 @@ export type EventCreateManyInput = {
   venueLat?: number | null
   venueLng?: number | null
   geofenceRadius?: number
+  checkInAnchorLat?: number | null
+  checkInAnchorLng?: number | null
+  checkInAnchorAccuracy?: number | null
+  checkInAnchorSetAt?: Date | string | null
+  checkInAnchorSetById?: string | null
+  allowGuestCheckIn?: boolean
   bannerImage?: string | null
   contactEmail?: string | null
   contactPhone?: string | null
@@ -735,6 +849,12 @@ export type EventUpdateManyMutationInput = {
   venueLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   venueLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   geofenceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  checkInAnchorLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  checkInAnchorLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  checkInAnchorAccuracy?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  checkInAnchorSetAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  checkInAnchorSetById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  allowGuestCheckIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
   bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -760,6 +880,12 @@ export type EventUncheckedUpdateManyInput = {
   venueLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   venueLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   geofenceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  checkInAnchorLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  checkInAnchorLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  checkInAnchorAccuracy?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  checkInAnchorSetAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  checkInAnchorSetById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  allowGuestCheckIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
   bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -799,6 +925,12 @@ export type EventCountOrderByAggregateInput = {
   venueLat?: Prisma.SortOrder
   venueLng?: Prisma.SortOrder
   geofenceRadius?: Prisma.SortOrder
+  checkInAnchorLat?: Prisma.SortOrder
+  checkInAnchorLng?: Prisma.SortOrder
+  checkInAnchorAccuracy?: Prisma.SortOrder
+  checkInAnchorSetAt?: Prisma.SortOrder
+  checkInAnchorSetById?: Prisma.SortOrder
+  allowGuestCheckIn?: Prisma.SortOrder
   bannerImage?: Prisma.SortOrder
   contactEmail?: Prisma.SortOrder
   contactPhone?: Prisma.SortOrder
@@ -817,6 +949,9 @@ export type EventAvgOrderByAggregateInput = {
   venueLat?: Prisma.SortOrder
   venueLng?: Prisma.SortOrder
   geofenceRadius?: Prisma.SortOrder
+  checkInAnchorLat?: Prisma.SortOrder
+  checkInAnchorLng?: Prisma.SortOrder
+  checkInAnchorAccuracy?: Prisma.SortOrder
 }
 
 export type EventMaxOrderByAggregateInput = {
@@ -834,6 +969,12 @@ export type EventMaxOrderByAggregateInput = {
   venueLat?: Prisma.SortOrder
   venueLng?: Prisma.SortOrder
   geofenceRadius?: Prisma.SortOrder
+  checkInAnchorLat?: Prisma.SortOrder
+  checkInAnchorLng?: Prisma.SortOrder
+  checkInAnchorAccuracy?: Prisma.SortOrder
+  checkInAnchorSetAt?: Prisma.SortOrder
+  checkInAnchorSetById?: Prisma.SortOrder
+  allowGuestCheckIn?: Prisma.SortOrder
   bannerImage?: Prisma.SortOrder
   contactEmail?: Prisma.SortOrder
   contactPhone?: Prisma.SortOrder
@@ -863,6 +1004,12 @@ export type EventMinOrderByAggregateInput = {
   venueLat?: Prisma.SortOrder
   venueLng?: Prisma.SortOrder
   geofenceRadius?: Prisma.SortOrder
+  checkInAnchorLat?: Prisma.SortOrder
+  checkInAnchorLng?: Prisma.SortOrder
+  checkInAnchorAccuracy?: Prisma.SortOrder
+  checkInAnchorSetAt?: Prisma.SortOrder
+  checkInAnchorSetById?: Prisma.SortOrder
+  allowGuestCheckIn?: Prisma.SortOrder
   bannerImage?: Prisma.SortOrder
   contactEmail?: Prisma.SortOrder
   contactPhone?: Prisma.SortOrder
@@ -881,6 +1028,9 @@ export type EventSumOrderByAggregateInput = {
   venueLat?: Prisma.SortOrder
   venueLng?: Prisma.SortOrder
   geofenceRadius?: Prisma.SortOrder
+  checkInAnchorLat?: Prisma.SortOrder
+  checkInAnchorLng?: Prisma.SortOrder
+  checkInAnchorAccuracy?: Prisma.SortOrder
 }
 
 export type EventScalarRelationFilter = {
@@ -1023,6 +1173,14 @@ export type NullableEnumEventClassificationFieldUpdateOperationsInput = {
 }
 
 export type NullableFloatFieldUpdateOperationsInput = {
+  set?: number | null
+  increment?: number
+  decrement?: number
+  multiply?: number
+  divide?: number
+}
+
+export type NullableIntFieldUpdateOperationsInput = {
   set?: number | null
   increment?: number
   decrement?: number
@@ -1203,6 +1361,12 @@ export type EventCreateWithoutOrganizerInput = {
   venueLat?: number | null
   venueLng?: number | null
   geofenceRadius?: number
+  checkInAnchorLat?: number | null
+  checkInAnchorLng?: number | null
+  checkInAnchorAccuracy?: number | null
+  checkInAnchorSetAt?: Date | string | null
+  checkInAnchorSetById?: string | null
+  allowGuestCheckIn?: boolean
   bannerImage?: string | null
   contactEmail?: string | null
   contactPhone?: string | null
@@ -1237,6 +1401,12 @@ export type EventUncheckedCreateWithoutOrganizerInput = {
   venueLat?: number | null
   venueLng?: number | null
   geofenceRadius?: number
+  checkInAnchorLat?: number | null
+  checkInAnchorLng?: number | null
+  checkInAnchorAccuracy?: number | null
+  checkInAnchorSetAt?: Date | string | null
+  checkInAnchorSetById?: string | null
+  allowGuestCheckIn?: boolean
   bannerImage?: string | null
   contactEmail?: string | null
   contactPhone?: string | null
@@ -1300,6 +1470,12 @@ export type EventScalarWhereInput = {
   venueLat?: Prisma.FloatNullableFilter<"Event"> | number | null
   venueLng?: Prisma.FloatNullableFilter<"Event"> | number | null
   geofenceRadius?: Prisma.IntFilter<"Event"> | number
+  checkInAnchorLat?: Prisma.FloatNullableFilter<"Event"> | number | null
+  checkInAnchorLng?: Prisma.FloatNullableFilter<"Event"> | number | null
+  checkInAnchorAccuracy?: Prisma.IntNullableFilter<"Event"> | number | null
+  checkInAnchorSetAt?: Prisma.DateTimeNullableFilter<"Event"> | Date | string | null
+  checkInAnchorSetById?: Prisma.StringNullableFilter<"Event"> | string | null
+  allowGuestCheckIn?: Prisma.BoolFilter<"Event"> | boolean
   bannerImage?: Prisma.StringNullableFilter<"Event"> | string | null
   contactEmail?: Prisma.StringNullableFilter<"Event"> | string | null
   contactPhone?: Prisma.StringNullableFilter<"Event"> | string | null
@@ -1329,6 +1505,12 @@ export type EventCreateWithoutMinistryInput = {
   venueLat?: number | null
   venueLng?: number | null
   geofenceRadius?: number
+  checkInAnchorLat?: number | null
+  checkInAnchorLng?: number | null
+  checkInAnchorAccuracy?: number | null
+  checkInAnchorSetAt?: Date | string | null
+  checkInAnchorSetById?: string | null
+  allowGuestCheckIn?: boolean
   bannerImage?: string | null
   contactEmail?: string | null
   contactPhone?: string | null
@@ -1363,6 +1545,12 @@ export type EventUncheckedCreateWithoutMinistryInput = {
   venueLat?: number | null
   venueLng?: number | null
   geofenceRadius?: number
+  checkInAnchorLat?: number | null
+  checkInAnchorLng?: number | null
+  checkInAnchorAccuracy?: number | null
+  checkInAnchorSetAt?: Date | string | null
+  checkInAnchorSetById?: string | null
+  allowGuestCheckIn?: boolean
   bannerImage?: string | null
   contactEmail?: string | null
   contactPhone?: string | null
@@ -1407,6 +1595,12 @@ export type EventCreateWithoutInvitedMinistriesInput = {
   venueLat?: number | null
   venueLng?: number | null
   geofenceRadius?: number
+  checkInAnchorLat?: number | null
+  checkInAnchorLng?: number | null
+  checkInAnchorAccuracy?: number | null
+  checkInAnchorSetAt?: Date | string | null
+  checkInAnchorSetById?: string | null
+  allowGuestCheckIn?: boolean
   bannerImage?: string | null
   contactEmail?: string | null
   contactPhone?: string | null
@@ -1441,6 +1635,12 @@ export type EventUncheckedCreateWithoutInvitedMinistriesInput = {
   venueLat?: number | null
   venueLng?: number | null
   geofenceRadius?: number
+  checkInAnchorLat?: number | null
+  checkInAnchorLng?: number | null
+  checkInAnchorAccuracy?: number | null
+  checkInAnchorSetAt?: Date | string | null
+  checkInAnchorSetById?: string | null
+  allowGuestCheckIn?: boolean
   bannerImage?: string | null
   contactEmail?: string | null
   contactPhone?: string | null
@@ -1512,6 +1712,12 @@ export type EventCreateWithoutSeriesInput = {
   venueLat?: number | null
   venueLng?: number | null
   geofenceRadius?: number
+  checkInAnchorLat?: number | null
+  checkInAnchorLng?: number | null
+  checkInAnchorAccuracy?: number | null
+  checkInAnchorSetAt?: Date | string | null
+  checkInAnchorSetById?: string | null
+  allowGuestCheckIn?: boolean
   bannerImage?: string | null
   contactEmail?: string | null
   contactPhone?: string | null
@@ -1546,6 +1752,12 @@ export type EventUncheckedCreateWithoutSeriesInput = {
   venueLat?: number | null
   venueLng?: number | null
   geofenceRadius?: number
+  checkInAnchorLat?: number | null
+  checkInAnchorLng?: number | null
+  checkInAnchorAccuracy?: number | null
+  checkInAnchorSetAt?: Date | string | null
+  checkInAnchorSetById?: string | null
+  allowGuestCheckIn?: boolean
   bannerImage?: string | null
   contactEmail?: string | null
   contactPhone?: string | null
@@ -1606,6 +1818,12 @@ export type EventCreateWithoutCoOrganizersInput = {
   venueLat?: number | null
   venueLng?: number | null
   geofenceRadius?: number
+  checkInAnchorLat?: number | null
+  checkInAnchorLng?: number | null
+  checkInAnchorAccuracy?: number | null
+  checkInAnchorSetAt?: Date | string | null
+  checkInAnchorSetById?: string | null
+  allowGuestCheckIn?: boolean
   bannerImage?: string | null
   contactEmail?: string | null
   contactPhone?: string | null
@@ -1640,6 +1858,12 @@ export type EventUncheckedCreateWithoutCoOrganizersInput = {
   venueLat?: number | null
   venueLng?: number | null
   geofenceRadius?: number
+  checkInAnchorLat?: number | null
+  checkInAnchorLng?: number | null
+  checkInAnchorAccuracy?: number | null
+  checkInAnchorSetAt?: Date | string | null
+  checkInAnchorSetById?: string | null
+  allowGuestCheckIn?: boolean
   bannerImage?: string | null
   contactEmail?: string | null
   contactPhone?: string | null
@@ -1690,6 +1914,12 @@ export type EventUpdateWithoutCoOrganizersInput = {
   venueLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   venueLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   geofenceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  checkInAnchorLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  checkInAnchorLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  checkInAnchorAccuracy?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  checkInAnchorSetAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  checkInAnchorSetById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  allowGuestCheckIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
   bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1724,6 +1954,12 @@ export type EventUncheckedUpdateWithoutCoOrganizersInput = {
   venueLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   venueLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   geofenceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  checkInAnchorLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  checkInAnchorLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  checkInAnchorAccuracy?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  checkInAnchorSetAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  checkInAnchorSetById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  allowGuestCheckIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
   bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1758,6 +1994,12 @@ export type EventCreateWithoutAttendeesInput = {
   venueLat?: number | null
   venueLng?: number | null
   geofenceRadius?: number
+  checkInAnchorLat?: number | null
+  checkInAnchorLng?: number | null
+  checkInAnchorAccuracy?: number | null
+  checkInAnchorSetAt?: Date | string | null
+  checkInAnchorSetById?: string | null
+  allowGuestCheckIn?: boolean
   bannerImage?: string | null
   contactEmail?: string | null
   contactPhone?: string | null
@@ -1792,6 +2034,12 @@ export type EventUncheckedCreateWithoutAttendeesInput = {
   venueLat?: number | null
   venueLng?: number | null
   geofenceRadius?: number
+  checkInAnchorLat?: number | null
+  checkInAnchorLng?: number | null
+  checkInAnchorAccuracy?: number | null
+  checkInAnchorSetAt?: Date | string | null
+  checkInAnchorSetById?: string | null
+  allowGuestCheckIn?: boolean
   bannerImage?: string | null
   contactEmail?: string | null
   contactPhone?: string | null
@@ -1842,6 +2090,12 @@ export type EventUpdateWithoutAttendeesInput = {
   venueLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   venueLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   geofenceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  checkInAnchorLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  checkInAnchorLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  checkInAnchorAccuracy?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  checkInAnchorSetAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  checkInAnchorSetById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  allowGuestCheckIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
   bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1876,6 +2130,12 @@ export type EventUncheckedUpdateWithoutAttendeesInput = {
   venueLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   venueLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   geofenceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  checkInAnchorLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  checkInAnchorLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  checkInAnchorAccuracy?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  checkInAnchorSetAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  checkInAnchorSetById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  allowGuestCheckIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
   bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1910,6 +2170,12 @@ export type EventCreateWithoutAttendancesInput = {
   venueLat?: number | null
   venueLng?: number | null
   geofenceRadius?: number
+  checkInAnchorLat?: number | null
+  checkInAnchorLng?: number | null
+  checkInAnchorAccuracy?: number | null
+  checkInAnchorSetAt?: Date | string | null
+  checkInAnchorSetById?: string | null
+  allowGuestCheckIn?: boolean
   bannerImage?: string | null
   contactEmail?: string | null
   contactPhone?: string | null
@@ -1944,6 +2210,12 @@ export type EventUncheckedCreateWithoutAttendancesInput = {
   venueLat?: number | null
   venueLng?: number | null
   geofenceRadius?: number
+  checkInAnchorLat?: number | null
+  checkInAnchorLng?: number | null
+  checkInAnchorAccuracy?: number | null
+  checkInAnchorSetAt?: Date | string | null
+  checkInAnchorSetById?: string | null
+  allowGuestCheckIn?: boolean
   bannerImage?: string | null
   contactEmail?: string | null
   contactPhone?: string | null
@@ -1994,6 +2266,12 @@ export type EventUpdateWithoutAttendancesInput = {
   venueLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   venueLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   geofenceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  checkInAnchorLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  checkInAnchorLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  checkInAnchorAccuracy?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  checkInAnchorSetAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  checkInAnchorSetById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  allowGuestCheckIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
   bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2028,6 +2306,12 @@ export type EventUncheckedUpdateWithoutAttendancesInput = {
   venueLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   venueLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   geofenceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  checkInAnchorLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  checkInAnchorLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  checkInAnchorAccuracy?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  checkInAnchorSetAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  checkInAnchorSetById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  allowGuestCheckIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
   bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2062,6 +2346,12 @@ export type EventCreateWithoutQrTokensInput = {
   venueLat?: number | null
   venueLng?: number | null
   geofenceRadius?: number
+  checkInAnchorLat?: number | null
+  checkInAnchorLng?: number | null
+  checkInAnchorAccuracy?: number | null
+  checkInAnchorSetAt?: Date | string | null
+  checkInAnchorSetById?: string | null
+  allowGuestCheckIn?: boolean
   bannerImage?: string | null
   contactEmail?: string | null
   contactPhone?: string | null
@@ -2096,6 +2386,12 @@ export type EventUncheckedCreateWithoutQrTokensInput = {
   venueLat?: number | null
   venueLng?: number | null
   geofenceRadius?: number
+  checkInAnchorLat?: number | null
+  checkInAnchorLng?: number | null
+  checkInAnchorAccuracy?: number | null
+  checkInAnchorSetAt?: Date | string | null
+  checkInAnchorSetById?: string | null
+  allowGuestCheckIn?: boolean
   bannerImage?: string | null
   contactEmail?: string | null
   contactPhone?: string | null
@@ -2146,6 +2442,12 @@ export type EventUpdateWithoutQrTokensInput = {
   venueLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   venueLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   geofenceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  checkInAnchorLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  checkInAnchorLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  checkInAnchorAccuracy?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  checkInAnchorSetAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  checkInAnchorSetById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  allowGuestCheckIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
   bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2180,6 +2482,12 @@ export type EventUncheckedUpdateWithoutQrTokensInput = {
   venueLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   venueLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   geofenceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  checkInAnchorLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  checkInAnchorLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  checkInAnchorAccuracy?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  checkInAnchorSetAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  checkInAnchorSetById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  allowGuestCheckIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
   bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2214,6 +2522,12 @@ export type EventCreateWithoutMinutesInput = {
   venueLat?: number | null
   venueLng?: number | null
   geofenceRadius?: number
+  checkInAnchorLat?: number | null
+  checkInAnchorLng?: number | null
+  checkInAnchorAccuracy?: number | null
+  checkInAnchorSetAt?: Date | string | null
+  checkInAnchorSetById?: string | null
+  allowGuestCheckIn?: boolean
   bannerImage?: string | null
   contactEmail?: string | null
   contactPhone?: string | null
@@ -2248,6 +2562,12 @@ export type EventUncheckedCreateWithoutMinutesInput = {
   venueLat?: number | null
   venueLng?: number | null
   geofenceRadius?: number
+  checkInAnchorLat?: number | null
+  checkInAnchorLng?: number | null
+  checkInAnchorAccuracy?: number | null
+  checkInAnchorSetAt?: Date | string | null
+  checkInAnchorSetById?: string | null
+  allowGuestCheckIn?: boolean
   bannerImage?: string | null
   contactEmail?: string | null
   contactPhone?: string | null
@@ -2298,6 +2618,12 @@ export type EventUpdateWithoutMinutesInput = {
   venueLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   venueLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   geofenceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  checkInAnchorLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  checkInAnchorLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  checkInAnchorAccuracy?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  checkInAnchorSetAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  checkInAnchorSetById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  allowGuestCheckIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
   bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2332,6 +2658,12 @@ export type EventUncheckedUpdateWithoutMinutesInput = {
   venueLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   venueLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   geofenceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  checkInAnchorLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  checkInAnchorLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  checkInAnchorAccuracy?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  checkInAnchorSetAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  checkInAnchorSetById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  allowGuestCheckIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
   bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2366,6 +2698,12 @@ export type EventCreateWithoutRoomInput = {
   venueLat?: number | null
   venueLng?: number | null
   geofenceRadius?: number
+  checkInAnchorLat?: number | null
+  checkInAnchorLng?: number | null
+  checkInAnchorAccuracy?: number | null
+  checkInAnchorSetAt?: Date | string | null
+  checkInAnchorSetById?: string | null
+  allowGuestCheckIn?: boolean
   bannerImage?: string | null
   contactEmail?: string | null
   contactPhone?: string | null
@@ -2400,6 +2738,12 @@ export type EventUncheckedCreateWithoutRoomInput = {
   venueLat?: number | null
   venueLng?: number | null
   geofenceRadius?: number
+  checkInAnchorLat?: number | null
+  checkInAnchorLng?: number | null
+  checkInAnchorAccuracy?: number | null
+  checkInAnchorSetAt?: Date | string | null
+  checkInAnchorSetById?: string | null
+  allowGuestCheckIn?: boolean
   bannerImage?: string | null
   contactEmail?: string | null
   contactPhone?: string | null
@@ -2460,6 +2804,12 @@ export type EventCreateManyOrganizerInput = {
   venueLat?: number | null
   venueLng?: number | null
   geofenceRadius?: number
+  checkInAnchorLat?: number | null
+  checkInAnchorLng?: number | null
+  checkInAnchorAccuracy?: number | null
+  checkInAnchorSetAt?: Date | string | null
+  checkInAnchorSetById?: string | null
+  allowGuestCheckIn?: boolean
   bannerImage?: string | null
   contactEmail?: string | null
   contactPhone?: string | null
@@ -2488,6 +2838,12 @@ export type EventUpdateWithoutOrganizerInput = {
   venueLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   venueLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   geofenceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  checkInAnchorLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  checkInAnchorLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  checkInAnchorAccuracy?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  checkInAnchorSetAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  checkInAnchorSetById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  allowGuestCheckIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
   bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2522,6 +2878,12 @@ export type EventUncheckedUpdateWithoutOrganizerInput = {
   venueLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   venueLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   geofenceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  checkInAnchorLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  checkInAnchorLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  checkInAnchorAccuracy?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  checkInAnchorSetAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  checkInAnchorSetById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  allowGuestCheckIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
   bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2556,6 +2918,12 @@ export type EventUncheckedUpdateManyWithoutOrganizerInput = {
   venueLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   venueLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   geofenceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  checkInAnchorLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  checkInAnchorLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  checkInAnchorAccuracy?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  checkInAnchorSetAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  checkInAnchorSetById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  allowGuestCheckIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
   bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2584,6 +2952,12 @@ export type EventCreateManyMinistryInput = {
   venueLat?: number | null
   venueLng?: number | null
   geofenceRadius?: number
+  checkInAnchorLat?: number | null
+  checkInAnchorLng?: number | null
+  checkInAnchorAccuracy?: number | null
+  checkInAnchorSetAt?: Date | string | null
+  checkInAnchorSetById?: string | null
+  allowGuestCheckIn?: boolean
   bannerImage?: string | null
   contactEmail?: string | null
   contactPhone?: string | null
@@ -2612,6 +2986,12 @@ export type EventUpdateWithoutMinistryInput = {
   venueLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   venueLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   geofenceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  checkInAnchorLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  checkInAnchorLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  checkInAnchorAccuracy?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  checkInAnchorSetAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  checkInAnchorSetById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  allowGuestCheckIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
   bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2646,6 +3026,12 @@ export type EventUncheckedUpdateWithoutMinistryInput = {
   venueLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   venueLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   geofenceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  checkInAnchorLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  checkInAnchorLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  checkInAnchorAccuracy?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  checkInAnchorSetAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  checkInAnchorSetById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  allowGuestCheckIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
   bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2680,6 +3066,12 @@ export type EventUncheckedUpdateManyWithoutMinistryInput = {
   venueLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   venueLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   geofenceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  checkInAnchorLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  checkInAnchorLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  checkInAnchorAccuracy?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  checkInAnchorSetAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  checkInAnchorSetById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  allowGuestCheckIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
   bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2708,6 +3100,12 @@ export type EventUpdateWithoutInvitedMinistriesInput = {
   venueLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   venueLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   geofenceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  checkInAnchorLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  checkInAnchorLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  checkInAnchorAccuracy?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  checkInAnchorSetAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  checkInAnchorSetById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  allowGuestCheckIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
   bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2742,6 +3140,12 @@ export type EventUncheckedUpdateWithoutInvitedMinistriesInput = {
   venueLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   venueLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   geofenceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  checkInAnchorLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  checkInAnchorLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  checkInAnchorAccuracy?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  checkInAnchorSetAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  checkInAnchorSetById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  allowGuestCheckIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
   bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2776,6 +3180,12 @@ export type EventUncheckedUpdateManyWithoutInvitedMinistriesInput = {
   venueLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   venueLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   geofenceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  checkInAnchorLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  checkInAnchorLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  checkInAnchorAccuracy?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  checkInAnchorSetAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  checkInAnchorSetById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  allowGuestCheckIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
   bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2805,6 +3215,12 @@ export type EventCreateManySeriesInput = {
   venueLat?: number | null
   venueLng?: number | null
   geofenceRadius?: number
+  checkInAnchorLat?: number | null
+  checkInAnchorLng?: number | null
+  checkInAnchorAccuracy?: number | null
+  checkInAnchorSetAt?: Date | string | null
+  checkInAnchorSetById?: string | null
+  allowGuestCheckIn?: boolean
   bannerImage?: string | null
   contactEmail?: string | null
   contactPhone?: string | null
@@ -2833,6 +3249,12 @@ export type EventUpdateWithoutSeriesInput = {
   venueLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   venueLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   geofenceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  checkInAnchorLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  checkInAnchorLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  checkInAnchorAccuracy?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  checkInAnchorSetAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  checkInAnchorSetById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  allowGuestCheckIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
   bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2867,6 +3289,12 @@ export type EventUncheckedUpdateWithoutSeriesInput = {
   venueLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   venueLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   geofenceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  checkInAnchorLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  checkInAnchorLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  checkInAnchorAccuracy?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  checkInAnchorSetAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  checkInAnchorSetById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  allowGuestCheckIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
   bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2901,6 +3329,12 @@ export type EventUncheckedUpdateManyWithoutSeriesInput = {
   venueLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   venueLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   geofenceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  checkInAnchorLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  checkInAnchorLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  checkInAnchorAccuracy?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  checkInAnchorSetAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  checkInAnchorSetById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  allowGuestCheckIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
   bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2929,6 +3363,12 @@ export type EventCreateManyRoomInput = {
   venueLat?: number | null
   venueLng?: number | null
   geofenceRadius?: number
+  checkInAnchorLat?: number | null
+  checkInAnchorLng?: number | null
+  checkInAnchorAccuracy?: number | null
+  checkInAnchorSetAt?: Date | string | null
+  checkInAnchorSetById?: string | null
+  allowGuestCheckIn?: boolean
   bannerImage?: string | null
   contactEmail?: string | null
   contactPhone?: string | null
@@ -2957,6 +3397,12 @@ export type EventUpdateWithoutRoomInput = {
   venueLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   venueLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   geofenceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  checkInAnchorLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  checkInAnchorLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  checkInAnchorAccuracy?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  checkInAnchorSetAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  checkInAnchorSetById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  allowGuestCheckIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
   bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2991,6 +3437,12 @@ export type EventUncheckedUpdateWithoutRoomInput = {
   venueLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   venueLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   geofenceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  checkInAnchorLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  checkInAnchorLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  checkInAnchorAccuracy?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  checkInAnchorSetAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  checkInAnchorSetById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  allowGuestCheckIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
   bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3025,6 +3477,12 @@ export type EventUncheckedUpdateManyWithoutRoomInput = {
   venueLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   venueLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   geofenceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  checkInAnchorLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  checkInAnchorLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  checkInAnchorAccuracy?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  checkInAnchorSetAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  checkInAnchorSetById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  allowGuestCheckIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
   bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3120,6 +3578,12 @@ export type EventSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   venueLat?: boolean
   venueLng?: boolean
   geofenceRadius?: boolean
+  checkInAnchorLat?: boolean
+  checkInAnchorLng?: boolean
+  checkInAnchorAccuracy?: boolean
+  checkInAnchorSetAt?: boolean
+  checkInAnchorSetById?: boolean
+  allowGuestCheckIn?: boolean
   bannerImage?: boolean
   contactEmail?: boolean
   contactPhone?: boolean
@@ -3160,6 +3624,12 @@ export type EventSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   venueLat?: boolean
   venueLng?: boolean
   geofenceRadius?: boolean
+  checkInAnchorLat?: boolean
+  checkInAnchorLng?: boolean
+  checkInAnchorAccuracy?: boolean
+  checkInAnchorSetAt?: boolean
+  checkInAnchorSetById?: boolean
+  allowGuestCheckIn?: boolean
   bannerImage?: boolean
   contactEmail?: boolean
   contactPhone?: boolean
@@ -3193,6 +3663,12 @@ export type EventSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   venueLat?: boolean
   venueLng?: boolean
   geofenceRadius?: boolean
+  checkInAnchorLat?: boolean
+  checkInAnchorLng?: boolean
+  checkInAnchorAccuracy?: boolean
+  checkInAnchorSetAt?: boolean
+  checkInAnchorSetById?: boolean
+  allowGuestCheckIn?: boolean
   bannerImage?: boolean
   contactEmail?: boolean
   contactPhone?: boolean
@@ -3226,6 +3702,12 @@ export type EventSelectScalar = {
   venueLat?: boolean
   venueLng?: boolean
   geofenceRadius?: boolean
+  checkInAnchorLat?: boolean
+  checkInAnchorLng?: boolean
+  checkInAnchorAccuracy?: boolean
+  checkInAnchorSetAt?: boolean
+  checkInAnchorSetById?: boolean
+  allowGuestCheckIn?: boolean
   bannerImage?: boolean
   contactEmail?: boolean
   contactPhone?: boolean
@@ -3240,7 +3722,7 @@ export type EventSelectScalar = {
   updatedAt?: boolean
 }
 
-export type EventOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "title" | "description" | "isPublic" | "type" | "scope" | "classification" | "colorCategory" | "startAt" | "endAt" | "venueName" | "venueLat" | "venueLng" | "geofenceRadius" | "bannerImage" | "contactEmail" | "contactPhone" | "externalUrl" | "status" | "publishedAt" | "ministryId" | "organizerId" | "seriesId" | "roomId" | "createdAt" | "updatedAt", ExtArgs["result"]["event"]>
+export type EventOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "title" | "description" | "isPublic" | "type" | "scope" | "classification" | "colorCategory" | "startAt" | "endAt" | "venueName" | "venueLat" | "venueLng" | "geofenceRadius" | "checkInAnchorLat" | "checkInAnchorLng" | "checkInAnchorAccuracy" | "checkInAnchorSetAt" | "checkInAnchorSetById" | "allowGuestCheckIn" | "bannerImage" | "contactEmail" | "contactPhone" | "externalUrl" | "status" | "publishedAt" | "ministryId" | "organizerId" | "seriesId" | "roomId" | "createdAt" | "updatedAt", ExtArgs["result"]["event"]>
 export type EventInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   ministry?: boolean | Prisma.MinistryDefaultArgs<ExtArgs>
   invitedMinistries?: boolean | Prisma.Event$invitedMinistriesArgs<ExtArgs>
@@ -3296,6 +3778,12 @@ export type $EventPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     venueLat: number | null
     venueLng: number | null
     geofenceRadius: number
+    checkInAnchorLat: number | null
+    checkInAnchorLng: number | null
+    checkInAnchorAccuracy: number | null
+    checkInAnchorSetAt: Date | null
+    checkInAnchorSetById: string | null
+    allowGuestCheckIn: boolean
     bannerImage: string | null
     contactEmail: string | null
     contactPhone: string | null
@@ -3755,6 +4243,12 @@ export interface EventFieldRefs {
   readonly venueLat: Prisma.FieldRef<"Event", 'Float'>
   readonly venueLng: Prisma.FieldRef<"Event", 'Float'>
   readonly geofenceRadius: Prisma.FieldRef<"Event", 'Int'>
+  readonly checkInAnchorLat: Prisma.FieldRef<"Event", 'Float'>
+  readonly checkInAnchorLng: Prisma.FieldRef<"Event", 'Float'>
+  readonly checkInAnchorAccuracy: Prisma.FieldRef<"Event", 'Int'>
+  readonly checkInAnchorSetAt: Prisma.FieldRef<"Event", 'DateTime'>
+  readonly checkInAnchorSetById: Prisma.FieldRef<"Event", 'String'>
+  readonly allowGuestCheckIn: Prisma.FieldRef<"Event", 'Boolean'>
   readonly bannerImage: Prisma.FieldRef<"Event", 'String'>
   readonly contactEmail: Prisma.FieldRef<"Event", 'String'>
   readonly contactPhone: Prisma.FieldRef<"Event", 'String'>
