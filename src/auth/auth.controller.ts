@@ -11,6 +11,7 @@ import type { Response, Request } from 'express';
 import { AuthService } from './auth.service';
 import { SignInDto } from './dto/sign-in.dto';
 import { auth } from './auth.config';
+import { extractToken } from './extract-token';
 
 @Controller('api/v1/auth')
 export class AuthController {
@@ -40,23 +41,7 @@ export class AuthController {
 
   @Get('session')
   async getSession(@Req() req: Request) {
-    const authHeader = req.headers.authorization;
-    const cookie = req.headers.cookie;
-
-    let token: string | null = null;
-
-    if (authHeader?.startsWith('Bearer ')) {
-      token = authHeader.substring(7);
-    } else if (cookie) {
-      const cookieParts = cookie.split(';');
-      for (const part of cookieParts) {
-        const [key, value] = part.trim().split('=');
-        if (key === 'authToken' || key === '__session') {
-          token = value;
-          break;
-        }
-      }
-    }
+    const token = extractToken(req);
 
     if (!token) {
       return { authenticated: false };
@@ -75,8 +60,18 @@ export class AuthController {
   }
 
   @Post('sign-out')
-  async signOut(@Res() res: Response): Promise<void> {
-    res.clearCookie('authToken', { path: '/' });
+  async signOut(@Req() req: Request, @Res() res: Response): Promise<void> {
+    await this.authService.signOut(extractToken(req), req.ip || undefined);
+
+    // Attributes must mirror the sign-in cookie. A browser will not let a
+    // non-Secure Set-Cookie overwrite a Secure one, so clearing without them
+    // can leave the cookie sitting in the jar.
+    res.clearCookie('authToken', {
+      path: '/',
+      httpOnly: true,
+      secure: true,
+      sameSite: 'lax',
+    });
     res.json({ success: true, message: 'Signed out' });
   }
 }

@@ -1,6 +1,7 @@
 import { Injectable, NestMiddleware } from '@nestjs/common';
 import { NextFunction, Request, Response } from 'express';
 import { AuthService } from '../auth.service';
+import { extractToken } from '../extract-token';
 
 /**
  * Resolves the session token on every request and attaches the user to
@@ -31,24 +32,4 @@ export class SessionMiddleware implements NestMiddleware {
 
     next();
   }
-}
-
-/** Reads the bearer token, falling back to the authToken/__session cookie. */
-function extractToken(req: Request): string | null {
-  const authHeader = req.headers.authorization;
-  if (authHeader?.startsWith('Bearer ')) {
-    return authHeader.substring(7);
-  }
-
-  const cookie = req.headers.cookie;
-  if (!cookie) return null;
-
-  for (const part of cookie.split(';')) {
-    const [key, ...rest] = part.trim().split('=');
-    if (key === 'authToken' || key === '__session') {
-      return rest.join('=') || null;
-    }
-  }
-
-  return null;
 }

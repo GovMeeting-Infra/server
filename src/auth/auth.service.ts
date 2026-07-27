@@ -137,6 +137,44 @@ export class AuthService {
     );
   }
 
+  /**
+   * Invalidate a session server-side.
+   *
+   * Clearing the cookie alone is not signing out: getSession resolves the
+   * token against the Session table, so a token captured from a shared machine
+   * or a log kept working until it expired. Deleting the row is what actually
+   * ends the session.
+   *
+   * Idempotent — signing out twice, or with a token that is already gone, is
+   * a success, not an error.
+   */
+  async signOut(sessionToken: string | null, ipAddress?: string) {
+    if (!sessionToken) return { signedOut: false };
+
+    const session = await (this.prisma as any).session.findUnique({
+      where: { token: sessionToken },
+      select: { id: true, userId: true, user: { select: { ministryId: true } } },
+    });
+
+    if (!session) return { signedOut: false };
+
+    await (this.prisma as any).session.delete({ where: { id: session.id } });
+
+    await this.audit.log({
+      action: 'LOGOUT',
+      actionCategory: 'AUTH',
+      entityType: 'Session',
+      entityId: session.id,
+      status: 'SUCCESS',
+      ministryId: session.user?.ministryId ?? undefined,
+      actorId: session.userId,
+      description: 'User signed out',
+      ipAddress,
+    });
+
+    return { signedOut: true };
+  }
+
   async getSession(sessionToken: string) {
     try {
       const session = await (this.prisma as any).session.findUnique({
