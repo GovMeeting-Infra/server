@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { MinutesService } from './minutes.service';
 import { ActionItemsService } from './action-items.service';
 import { MinutesController } from './minutes.controller';
+import { MinutesListController } from './minutes-list.controller';
 import { ActionItemsController } from './action-items.controller';
 import { PrismaModule } from '../prisma/prisma.module';
 import { AuditModule } from '../audit/audit.module';
@@ -11,7 +12,7 @@ import { NotificationsModule } from '../notifications/notifications.module';
 @Module({
   imports: [PrismaModule, AuditModule, CacheModule, NotificationsModule],
   providers: [MinutesService, ActionItemsService],
-  controllers: [MinutesController, ActionItemsController],
+  controllers: [MinutesController, MinutesListController, ActionItemsController],
   exports: [MinutesService, ActionItemsService],
 })
 export class MinutesModule {}

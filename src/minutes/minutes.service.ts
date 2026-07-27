@@ -8,6 +8,7 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { ministryScope } from '../common/utils/ministry-scope.util';
 import { CreateMinutesDto } from './dto/create-minutes.dto';
 import { UpdateMinutesDto } from './dto/update-minutes.dto';
 
@@ -273,6 +274,70 @@ export class MinutesService {
     }
 
     return new Date() <= editWindowEnd;
+  }
+
+  /**
+   * Every minutes record the user may see, newest meeting first.
+   *
+   * Minutes were previously reachable only by navigating to their event, so
+   * there was no way to answer "which meetings still have no minutes written
+   * up". Scoped through the owning event's ministry, matching how search
+   * already treats minutes.
+   */
+  async listMinutes(
+    user: { systemRole: string; ministryId?: string | null },
+    opts: { q?: string; status?: string; skip?: number; take?: number } = {},
+  ) {
+    const take = Math.min(opts.take ?? 25, 100);
+    const skip = opts.skip ?? 0;
+    const term = opts.q?.trim();
+
+    const where: any = {
+      event: ministryScope(user),
+      ...(opts.status ? { status: opts.status } : {}),
+      ...(term
+        ? {
+            OR: [
+              { event: { title: { contains: term, mode: 'insensitive' } } },
+              { summary: { contains: term, mode: 'insensitive' } },
+              { body: { contains: term, mode: 'insensitive' } },
+            ],
+          }
+        : {}),
+    };
+
+    // The ministry scope has to survive the search OR above, which replaces the
+    // event filter when a term is present.
+    if (term) {
+      where.AND = [{ event: ministryScope(user) }];
+      delete where.event;
+    }
+
+    const [data, total] = await Promise.all([
+      (this.prisma as any).minutes.findMany({
+        where,
+        select: {
+          id: true,
+          status: true,
+          summary: true,
+          draftedAt: true,
+          publishedAt: true,
+          updatedAt: true,
+          event: {
+            select: { id: true, title: true, startAt: true, ministryId: true },
+          },
+          draftedBy: { select: { id: true, name: true } },
+          publishedBy: { select: { id: true, name: true } },
+          _count: { select: { actionItems: true } },
+        },
+        orderBy: { event: { startAt: 'desc' } },
+        skip,
+        take,
+      }),
+      (this.prisma as any).minutes.count({ where }),
+    ]);
+
+    return { data, total };
   }
 
   async getMinutes(eventId: string) {
