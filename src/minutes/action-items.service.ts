@@ -8,6 +8,7 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
 import { CacheService } from '../cache/cache.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { CreateActionItemDto } from './dto/create-action-item.dto';
 import { UpdateActionItemDto, ActionItemStatusEnum } from './dto/update-action-item.dto';
 import { ministryScope, assertSameMinistry } from '../common/utils/ministry-scope.util';
@@ -20,6 +21,7 @@ export class ActionItemsService {
     private prisma: PrismaService,
     private audit: AuditService,
     private cache: CacheService,
+    private notifications: NotificationsService,
   ) {}
 
   async createActionItem(
@@ -86,6 +88,10 @@ export class ActionItemsService {
     });
 
     await this.cache.invalidateAnalytics();
+
+    // No-ops when owner resolution found nobody, which is the common case
+    // today — the create form does not collect an owner.
+    await this.notifications.notifyActionItemAssigned(actionItem.id);
 
     return actionItem;
   }
@@ -168,6 +174,15 @@ export class ActionItemsService {
     });
 
     await this.cache.invalidateAnalytics();
+
+    // Only when the status actually moved, and never back to the person who
+    // moved it — telling someone what they just did is noise.
+    if (dto.status && actionItem.ownerId && actionItem.ownerId !== userId) {
+      await this.notifications.notifyActionItemStatusChanged(
+        actionItemId,
+        dto.status,
+      );
+    }
 
     return updated;
   }

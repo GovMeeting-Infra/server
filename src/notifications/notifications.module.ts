@@ -8,14 +8,10 @@ import { PrismaModule } from '../prisma/prisma.module';
 import { MailModule } from '../mail/mail.module';
 
 @Module({
-  imports: [
-    PrismaModule,
-    MailModule,
-    BullModule.registerQueue(
-      { name: 'email-queue' },
-      { name: 'notification-queue' },
-    ),
-  ],
+  // 'notification-queue' used to be registered here and injected by
+  // NotificationsService, but it had no processor and nothing ever added to it.
+  // In-app notifications are written directly; only email goes through a queue.
+  imports: [PrismaModule, MailModule, BullModule.registerQueue({ name: 'email-queue' })],
   providers: [NotificationsService, EmailProcessor, TasksService],
   controllers: [NotificationsController],
   exports: [NotificationsService, TasksService],

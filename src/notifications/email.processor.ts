@@ -3,6 +3,7 @@ import { Job } from 'bullmq';
 import { Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { MailService } from '../mail/mail.service';
+import { NotificationsService } from './notifications.service';
 import {
   actionItemReminderEmail,
   meetingReminderEmail,
@@ -33,6 +34,7 @@ export class EmailProcessor extends WorkerHost {
   constructor(
     private prisma: PrismaService,
     private mail: MailService,
+    private notifications: NotificationsService,
   ) {
     super();
   }
@@ -114,6 +116,15 @@ export class EmailProcessor extends WorkerHost {
         return { sent: 0, error: 'No owner assigned' };
       }
 
+      if (
+        !(await this.notifications.wantsEmail(
+          actionItem.owner.id,
+          'ACTION_ITEM_ASSIGNED',
+        ))
+      ) {
+        return { sent: 0, error: 'Muted by preference' };
+      }
+
       const result = await this.mail.send(
         actionItem.owner.email,
         actionItemReminderEmail({
@@ -157,6 +168,14 @@ export class EmailProcessor extends WorkerHost {
       if (!user) {
         this.logger.warn(`User ${userId} not found for reminder`);
         return { sent: 0, error: 'User not found' };
+      }
+
+      // The in-app copy is written regardless of the email outcome and applies
+      // its own preference check, so muting email does not mute the inbox.
+      await this.notifications.notifyMeetingReminder(eventId, userId);
+
+      if (!(await this.notifications.wantsEmail(userId, 'MEETING_REMINDER'))) {
+        return { sent: 0, error: 'Muted by preference' };
       }
 
       const result = await this.mail.send(

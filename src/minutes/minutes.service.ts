@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { CreateMinutesDto } from './dto/create-minutes.dto';
 import { UpdateMinutesDto } from './dto/update-minutes.dto';
 
@@ -18,6 +19,7 @@ export class MinutesService {
   constructor(
     private prisma: PrismaService,
     private audit: AuditService,
+    private notifications: NotificationsService,
   ) {}
 
   async draftMinutes(
@@ -220,7 +222,10 @@ export class MinutesService {
       description: `Published minutes for event: ${event.title}`,
     });
 
-    this.logger.log(`Minutes published for event ${eventId}, queueing notifications...`);
+    // Attendees who have muted minutes notifications are filtered out inside
+    // the service; this never throws, so a notification failure cannot undo a
+    // publish that already succeeded.
+    await this.notifications.notifyMinutesPublished(eventId);
 
     return published;
   }

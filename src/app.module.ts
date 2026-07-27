@@ -38,10 +38,9 @@ import { SessionMiddleware } from './auth/middleware/session.middleware';
         password: process.env.REDIS_PASSWORD || undefined,
       },
     }),
-    BullModule.registerQueue(
-      { name: 'email-queue' },
-      { name: 'notification-queue' },
-    ),
+    // 'notification-queue' was registered here too but had no processor and no
+    // producer. In-app notifications are written straight to the database.
+    BullModule.registerQueue({ name: 'email-queue' }),
     PrismaModule,
     AuditModule,
     AuthModule,
