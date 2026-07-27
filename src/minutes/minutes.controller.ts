@@ -70,6 +70,32 @@ export class MinutesController {
     return this.minutesService.publishMinutes(eventId, user.id, user.ministryId);
   }
 
+  /**
+   * File a record away early, or take one back out.
+   *
+   * Limited to the roles that may read archived records — filing something
+   * away that you then cannot open would make no sense.
+   */
+  @Post('minutes/archive')
+  @HttpCode(200)
+  @Roles('MINISTER', 'SUPER_ADMIN')
+  async archiveMinutes(
+    @Param('eventId') eventId: string,
+    @CurrentUser() user: any,
+  ) {
+    return this.minutesService.archiveMinutes(eventId, user);
+  }
+
+  @Post('minutes/restore')
+  @HttpCode(200)
+  @Roles('MINISTER', 'SUPER_ADMIN')
+  async restoreMinutes(
+    @Param('eventId') eventId: string,
+    @CurrentUser() user: any,
+  ) {
+    return this.minutesService.restoreMinutes(eventId, user);
+  }
+
   @Get('minutes')
   @Roles('STAFF', 'MINISTRY_ADMIN', 'MINISTER', 'SUPER_ADMIN')
   async getMinutes(

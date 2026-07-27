@@ -384,6 +384,9 @@ model Minutes {
   publishedById     String?
   publishedAt       DateTime?
   archivedAt        DateTime?
+  // Set when leadership deliberately restores an archived record, so the
+  // nightly retention job does not simply archive it again the same night.
+  archiveExempt     Boolean  @default(false)
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 

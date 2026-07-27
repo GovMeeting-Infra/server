@@ -2027,6 +2027,7 @@ export const MinutesScalarFieldEnum = {
   publishedById: 'publishedById',
   publishedAt: 'publishedAt',
   archivedAt: 'archivedAt',
+  archiveExempt: 'archiveExempt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

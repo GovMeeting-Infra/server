@@ -8,7 +8,10 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
 import { NotificationsService } from '../notifications/notifications.service';
-import { ministryScope } from '../common/utils/ministry-scope.util';
+import {
+  ministryScope,
+  assertSameMinistry,
+} from '../common/utils/ministry-scope.util';
 import { canReadArchived } from './archive.policy';
 import { CreateMinutesDto } from './dto/create-minutes.dto';
 import { UpdateMinutesDto } from './dto/update-minutes.dto';
@@ -376,6 +379,122 @@ export class MinutesService {
     ]);
 
     return { data, total };
+  }
+
+  /**
+   * Archive a published record ahead of the six-month retention point.
+   *
+   * Restricted to the same roles that may read archived records — it would be
+   * odd to let someone file a record away that they then cannot open.
+   */
+  async archiveMinutes(
+    eventId: string,
+    actor: { id: string; systemRole: string; ministryId?: string | null },
+  ) {
+    const { minutes, event } = await this.loadForArchival(eventId, actor);
+
+    if (minutes.status === 'ARCHIVED') {
+      throw new BadRequestException('These minutes are already archived');
+    }
+
+    // Only a published record is a record. Archiving a draft would freeze
+    // half-finished work, which is why the nightly job skips drafts too.
+    if (minutes.status !== 'PUBLISHED') {
+      throw new BadRequestException(
+        'Only published minutes can be archived',
+      );
+    }
+
+    const updated = await (this.prisma as any).minutes.update({
+      where: { id: minutes.id },
+      data: {
+        status: 'ARCHIVED',
+        archivedAt: new Date(),
+        // Clear any previous exemption, so a record archived by hand is
+        // treated the same as one the job archived.
+        archiveExempt: false,
+      },
+    });
+
+    await this.audit.log({
+      action: 'MINUTES_ARCHIVED',
+      actionCategory: 'MINUTES_MANAGEMENT',
+      entityType: 'Minutes',
+      entityId: minutes.id,
+      entityName: event.title,
+      status: 'SUCCESS',
+      ministryId: event.ministryId,
+      actorId: actor.id,
+      description: `Archived minutes for event: ${event.title}`,
+      metadata: { manual: true },
+    });
+
+    return updated;
+  }
+
+  /** Take a record back out of the archive, exempting it from the job. */
+  async restoreMinutes(
+    eventId: string,
+    actor: { id: string; systemRole: string; ministryId?: string | null },
+  ) {
+    const { minutes, event } = await this.loadForArchival(eventId, actor);
+
+    if (minutes.status !== 'ARCHIVED') {
+      throw new BadRequestException('These minutes are not archived');
+    }
+
+    const updated = await (this.prisma as any).minutes.update({
+      where: { id: minutes.id },
+      data: {
+        // The job only ever archives published records, so that is what a
+        // restored one goes back to.
+        status: 'PUBLISHED',
+        archivedAt: null,
+        archiveExempt: true,
+      },
+    });
+
+    await this.audit.log({
+      action: 'MINUTES_RESTORED',
+      actionCategory: 'MINUTES_MANAGEMENT',
+      entityType: 'Minutes',
+      entityId: minutes.id,
+      entityName: event.title,
+      status: 'SUCCESS',
+      ministryId: event.ministryId,
+      actorId: actor.id,
+      description: `Restored minutes from the archive for event: ${event.title}`,
+    });
+
+    return updated;
+  }
+
+  private async loadForArchival(
+    eventId: string,
+    actor: { systemRole: string; ministryId?: string | null },
+  ) {
+    const event = await (this.prisma as any).event.findUnique({
+      where: { id: eventId },
+      select: { id: true, title: true, ministryId: true },
+    });
+
+    if (!event) {
+      throw new NotFoundException('Event not found');
+    }
+
+    // A minister governs their own ministry's records, not everyone's.
+    assertSameMinistry(actor, event.ministryId);
+
+    const minutes = await (this.prisma as any).minutes.findUnique({
+      where: { eventId },
+      select: { id: true, status: true },
+    });
+
+    if (!minutes) {
+      throw new NotFoundException('Minutes not found');
+    }
+
+    return { minutes, event };
   }
 
   async getMinutes(eventId: string, systemRole?: string) {

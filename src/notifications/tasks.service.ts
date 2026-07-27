@@ -128,6 +128,9 @@ export class TasksService {
       const result = await (this.prisma as any).minutes.updateMany({
         where: {
           status: 'PUBLISHED',
+          // A record leadership deliberately restored stays out of the
+          // archive; without this the job would put it straight back tonight.
+          archiveExempt: false,
           event: { endAt: { lt: cutoff } },
         },
         data: { status: 'ARCHIVED', archivedAt: new Date() },

@@ -35,6 +35,7 @@ export type MinutesMinAggregateOutputType = {
   publishedById: string | null
   publishedAt: Date | null
   archivedAt: Date | null
+  archiveExempt: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -50,6 +51,7 @@ export type MinutesMaxAggregateOutputType = {
   publishedById: string | null
   publishedAt: Date | null
   archivedAt: Date | null
+  archiveExempt: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -65,6 +67,7 @@ export type MinutesCountAggregateOutputType = {
   publishedById: number
   publishedAt: number
   archivedAt: number
+  archiveExempt: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -82,6 +85,7 @@ export type MinutesMinAggregateInputType = {
   publishedById?: true
   publishedAt?: true
   archivedAt?: true
+  archiveExempt?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -97,6 +101,7 @@ export type MinutesMaxAggregateInputType = {
   publishedById?: true
   publishedAt?: true
   archivedAt?: true
+  archiveExempt?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -112,6 +117,7 @@ export type MinutesCountAggregateInputType = {
   publishedById?: true
   publishedAt?: true
   archivedAt?: true
+  archiveExempt?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -200,6 +206,7 @@ export type MinutesGroupByOutputType = {
   publishedById: string | null
   publishedAt: Date | null
   archivedAt: Date | null
+  archiveExempt: boolean
   createdAt: Date
   updatedAt: Date
   _count: MinutesCountAggregateOutputType | null
@@ -236,6 +243,7 @@ export type MinutesWhereInput = {
   publishedById?: Prisma.StringNullableFilter<"Minutes"> | string | null
   publishedAt?: Prisma.DateTimeNullableFilter<"Minutes"> | Date | string | null
   archivedAt?: Prisma.DateTimeNullableFilter<"Minutes"> | Date | string | null
+  archiveExempt?: Prisma.BoolFilter<"Minutes"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Minutes"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Minutes"> | Date | string
   event?: Prisma.XOR<Prisma.EventScalarRelationFilter, Prisma.EventWhereInput>
@@ -255,6 +263,7 @@ export type MinutesOrderByWithRelationInput = {
   publishedById?: Prisma.SortOrderInput | Prisma.SortOrder
   publishedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   archivedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  archiveExempt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   event?: Prisma.EventOrderByWithRelationInput
@@ -277,6 +286,7 @@ export type MinutesWhereUniqueInput = Prisma.AtLeast<{
   publishedById?: Prisma.StringNullableFilter<"Minutes"> | string | null
   publishedAt?: Prisma.DateTimeNullableFilter<"Minutes"> | Date | string | null
   archivedAt?: Prisma.DateTimeNullableFilter<"Minutes"> | Date | string | null
+  archiveExempt?: Prisma.BoolFilter<"Minutes"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Minutes"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Minutes"> | Date | string
   event?: Prisma.XOR<Prisma.EventScalarRelationFilter, Prisma.EventWhereInput>
@@ -296,6 +306,7 @@ export type MinutesOrderByWithAggregationInput = {
   publishedById?: Prisma.SortOrderInput | Prisma.SortOrder
   publishedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   archivedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  archiveExempt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.MinutesCountOrderByAggregateInput
@@ -317,6 +328,7 @@ export type MinutesScalarWhereWithAggregatesInput = {
   publishedById?: Prisma.StringNullableWithAggregatesFilter<"Minutes"> | string | null
   publishedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Minutes"> | Date | string | null
   archivedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Minutes"> | Date | string | null
+  archiveExempt?: Prisma.BoolWithAggregatesFilter<"Minutes"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Minutes"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Minutes"> | Date | string
 }
@@ -329,6 +341,7 @@ export type MinutesCreateInput = {
   draftedAt?: Date | string | null
   publishedAt?: Date | string | null
   archivedAt?: Date | string | null
+  archiveExempt?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   event: Prisma.EventCreateNestedOneWithoutMinutesInput
@@ -348,6 +361,7 @@ export type MinutesUncheckedCreateInput = {
   publishedById?: string | null
   publishedAt?: Date | string | null
   archivedAt?: Date | string | null
+  archiveExempt?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   actionItems?: Prisma.ActionItemUncheckedCreateNestedManyWithoutMinutesInput
@@ -361,6 +375,7 @@ export type MinutesUpdateInput = {
   draftedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archiveExempt?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   event?: Prisma.EventUpdateOneRequiredWithoutMinutesNestedInput
@@ -380,6 +395,7 @@ export type MinutesUncheckedUpdateInput = {
   publishedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archiveExempt?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   actionItems?: Prisma.ActionItemUncheckedUpdateManyWithoutMinutesNestedInput
@@ -396,6 +412,7 @@ export type MinutesCreateManyInput = {
   publishedById?: string | null
   publishedAt?: Date | string | null
   archivedAt?: Date | string | null
+  archiveExempt?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -408,6 +425,7 @@ export type MinutesUpdateManyMutationInput = {
   draftedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archiveExempt?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -423,6 +441,7 @@ export type MinutesUncheckedUpdateManyInput = {
   publishedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archiveExempt?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -453,6 +472,7 @@ export type MinutesCountOrderByAggregateInput = {
   publishedById?: Prisma.SortOrder
   publishedAt?: Prisma.SortOrder
   archivedAt?: Prisma.SortOrder
+  archiveExempt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -468,6 +488,7 @@ export type MinutesMaxOrderByAggregateInput = {
   publishedById?: Prisma.SortOrder
   publishedAt?: Prisma.SortOrder
   archivedAt?: Prisma.SortOrder
+  archiveExempt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -483,6 +504,7 @@ export type MinutesMinOrderByAggregateInput = {
   publishedById?: Prisma.SortOrder
   publishedAt?: Prisma.SortOrder
   archivedAt?: Prisma.SortOrder
+  archiveExempt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -634,6 +656,7 @@ export type MinutesCreateWithoutDraftedByInput = {
   draftedAt?: Date | string | null
   publishedAt?: Date | string | null
   archivedAt?: Date | string | null
+  archiveExempt?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   event: Prisma.EventCreateNestedOneWithoutMinutesInput
@@ -651,6 +674,7 @@ export type MinutesUncheckedCreateWithoutDraftedByInput = {
   publishedById?: string | null
   publishedAt?: Date | string | null
   archivedAt?: Date | string | null
+  archiveExempt?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   actionItems?: Prisma.ActionItemUncheckedCreateNestedManyWithoutMinutesInput
@@ -674,6 +698,7 @@ export type MinutesCreateWithoutPublishedByInput = {
   draftedAt?: Date | string | null
   publishedAt?: Date | string | null
   archivedAt?: Date | string | null
+  archiveExempt?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   event: Prisma.EventCreateNestedOneWithoutMinutesInput
@@ -691,6 +716,7 @@ export type MinutesUncheckedCreateWithoutPublishedByInput = {
   draftedAt?: Date | string | null
   publishedAt?: Date | string | null
   archivedAt?: Date | string | null
+  archiveExempt?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   actionItems?: Prisma.ActionItemUncheckedCreateNestedManyWithoutMinutesInput
@@ -736,6 +762,7 @@ export type MinutesScalarWhereInput = {
   publishedById?: Prisma.StringNullableFilter<"Minutes"> | string | null
   publishedAt?: Prisma.DateTimeNullableFilter<"Minutes"> | Date | string | null
   archivedAt?: Prisma.DateTimeNullableFilter<"Minutes"> | Date | string | null
+  archiveExempt?: Prisma.BoolFilter<"Minutes"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Minutes"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Minutes"> | Date | string
 }
@@ -764,6 +791,7 @@ export type MinutesCreateWithoutEventInput = {
   draftedAt?: Date | string | null
   publishedAt?: Date | string | null
   archivedAt?: Date | string | null
+  archiveExempt?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   draftedBy?: Prisma.UserCreateNestedOneWithoutMinutesDraftedInput
@@ -781,6 +809,7 @@ export type MinutesUncheckedCreateWithoutEventInput = {
   publishedById?: string | null
   publishedAt?: Date | string | null
   archivedAt?: Date | string | null
+  archiveExempt?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   actionItems?: Prisma.ActionItemUncheckedCreateNestedManyWithoutMinutesInput
@@ -810,6 +839,7 @@ export type MinutesUpdateWithoutEventInput = {
   draftedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archiveExempt?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   draftedBy?: Prisma.UserUpdateOneWithoutMinutesDraftedNestedInput
@@ -827,6 +857,7 @@ export type MinutesUncheckedUpdateWithoutEventInput = {
   publishedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archiveExempt?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   actionItems?: Prisma.ActionItemUncheckedUpdateManyWithoutMinutesNestedInput
@@ -840,6 +871,7 @@ export type MinutesCreateWithoutActionItemsInput = {
   draftedAt?: Date | string | null
   publishedAt?: Date | string | null
   archivedAt?: Date | string | null
+  archiveExempt?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   event: Prisma.EventCreateNestedOneWithoutMinutesInput
@@ -858,6 +890,7 @@ export type MinutesUncheckedCreateWithoutActionItemsInput = {
   publishedById?: string | null
   publishedAt?: Date | string | null
   archivedAt?: Date | string | null
+  archiveExempt?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -886,6 +919,7 @@ export type MinutesUpdateWithoutActionItemsInput = {
   draftedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archiveExempt?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   event?: Prisma.EventUpdateOneRequiredWithoutMinutesNestedInput
@@ -904,6 +938,7 @@ export type MinutesUncheckedUpdateWithoutActionItemsInput = {
   publishedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archiveExempt?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -918,6 +953,7 @@ export type MinutesCreateManyDraftedByInput = {
   publishedById?: string | null
   publishedAt?: Date | string | null
   archivedAt?: Date | string | null
+  archiveExempt?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -932,6 +968,7 @@ export type MinutesCreateManyPublishedByInput = {
   draftedAt?: Date | string | null
   publishedAt?: Date | string | null
   archivedAt?: Date | string | null
+  archiveExempt?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -944,6 +981,7 @@ export type MinutesUpdateWithoutDraftedByInput = {
   draftedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archiveExempt?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   event?: Prisma.EventUpdateOneRequiredWithoutMinutesNestedInput
@@ -961,6 +999,7 @@ export type MinutesUncheckedUpdateWithoutDraftedByInput = {
   publishedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archiveExempt?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   actionItems?: Prisma.ActionItemUncheckedUpdateManyWithoutMinutesNestedInput
@@ -976,6 +1015,7 @@ export type MinutesUncheckedUpdateManyWithoutDraftedByInput = {
   publishedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archiveExempt?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -988,6 +1028,7 @@ export type MinutesUpdateWithoutPublishedByInput = {
   draftedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archiveExempt?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   event?: Prisma.EventUpdateOneRequiredWithoutMinutesNestedInput
@@ -1005,6 +1046,7 @@ export type MinutesUncheckedUpdateWithoutPublishedByInput = {
   draftedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archiveExempt?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   actionItems?: Prisma.ActionItemUncheckedUpdateManyWithoutMinutesNestedInput
@@ -1020,6 +1062,7 @@ export type MinutesUncheckedUpdateManyWithoutPublishedByInput = {
   draftedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archiveExempt?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1066,6 +1109,7 @@ export type MinutesSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   publishedById?: boolean
   publishedAt?: boolean
   archivedAt?: boolean
+  archiveExempt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   event?: boolean | Prisma.EventDefaultArgs<ExtArgs>
@@ -1086,6 +1130,7 @@ export type MinutesSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   publishedById?: boolean
   publishedAt?: boolean
   archivedAt?: boolean
+  archiveExempt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   event?: boolean | Prisma.EventDefaultArgs<ExtArgs>
@@ -1104,6 +1149,7 @@ export type MinutesSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   publishedById?: boolean
   publishedAt?: boolean
   archivedAt?: boolean
+  archiveExempt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   event?: boolean | Prisma.EventDefaultArgs<ExtArgs>
@@ -1122,11 +1168,12 @@ export type MinutesSelectScalar = {
   publishedById?: boolean
   publishedAt?: boolean
   archivedAt?: boolean
+  archiveExempt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type MinutesOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "eventId" | "body" | "summary" | "status" | "draftedById" | "draftedAt" | "publishedById" | "publishedAt" | "archivedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["minutes"]>
+export type MinutesOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "eventId" | "body" | "summary" | "status" | "draftedById" | "draftedAt" | "publishedById" | "publishedAt" | "archivedAt" | "archiveExempt" | "createdAt" | "updatedAt", ExtArgs["result"]["minutes"]>
 export type MinutesInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   event?: boolean | Prisma.EventDefaultArgs<ExtArgs>
   draftedBy?: boolean | Prisma.Minutes$draftedByArgs<ExtArgs>
@@ -1164,6 +1211,7 @@ export type $MinutesPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     publishedById: string | null
     publishedAt: Date | null
     archivedAt: Date | null
+    archiveExempt: boolean
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["minutes"]>
@@ -1603,6 +1651,7 @@ export interface MinutesFieldRefs {
   readonly publishedById: Prisma.FieldRef<"Minutes", 'String'>
   readonly publishedAt: Prisma.FieldRef<"Minutes", 'DateTime'>
   readonly archivedAt: Prisma.FieldRef<"Minutes", 'DateTime'>
+  readonly archiveExempt: Prisma.FieldRef<"Minutes", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"Minutes", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Minutes", 'DateTime'>
 }
