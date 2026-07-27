@@ -174,9 +174,16 @@ export class EventsController {
     return this.eventsService.cancelEvent(id, user.id, user.ministryId, user.systemRole);
   }
 
+  /**
+   * STAFF is included because the real rule lives in the service: only the
+   * event's own organizer may add a co-organizer. Excluding staff here meant a
+   * staff member who organizes a meeting could name co-organizers while
+   * creating it and then never again — and CanManageEventGuard already keeps
+   * them out of other people's events.
+   */
   @Post(':id/co-organizers')
   @UseGuards(CanManageEventGuard)
-  @Roles('SUPER_ADMIN', 'MINISTER', 'MINISTRY_ADMIN')
+  @Roles('SUPER_ADMIN', 'MINISTER', 'MINISTRY_ADMIN', 'STAFF')
   addCoOrganizer(
     @Param('id') id: string,
     @Body() { userId }: { userId: string },
