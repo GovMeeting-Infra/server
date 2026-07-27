@@ -3,6 +3,7 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { Queue } from 'bullmq';
 import { InjectQueue } from '@nestjs/bullmq';
 import { PrismaService } from '../prisma/prisma.service';
+import { archiveCutoff } from '../minutes/archive.policy';
 
 @Injectable()
 export class TasksService {
@@ -107,6 +108,38 @@ export class TasksService {
       }
     } catch (error) {
       this.logger.error('Error in meeting reminders cron', error);
+    }
+  }
+
+  /**
+   * Archives published minutes once their meeting is old enough.
+   *
+   * Only PUBLISHED records are touched. A six-month-old draft is abandoned
+   * work rather than a record, and archiving would freeze it read-only and
+   * hide it from the person still meaning to finish it.
+   */
+  @Cron(CronExpression.EVERY_DAY_AT_1AM)
+  async archiveOldMinutes() {
+    this.logger.log('Starting minutes archiving cron job...');
+
+    try {
+      const cutoff = archiveCutoff();
+
+      const result = await (this.prisma as any).minutes.updateMany({
+        where: {
+          status: 'PUBLISHED',
+          event: { endAt: { lt: cutoff } },
+        },
+        data: { status: 'ARCHIVED', archivedAt: new Date() },
+      });
+
+      if (result.count > 0) {
+        this.logger.log(
+          `Archived ${result.count} minutes for meetings before ${cutoff.toISOString()}`,
+        );
+      }
+    } catch (error) {
+      this.logger.error('Error in minutes archiving cron', error);
     }
   }
 

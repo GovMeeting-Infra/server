@@ -9,6 +9,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { ministryScope } from '../common/utils/ministry-scope.util';
+import { canReadArchived } from './archive.policy';
 import { CreateMinutesDto } from './dto/create-minutes.dto';
 import { UpdateMinutesDto } from './dto/update-minutes.dto';
 
@@ -116,6 +117,23 @@ export class MinutesService {
       throw new NotFoundException('Event not found');
     }
 
+    const minutes = await (this.prisma as any).minutes.findUnique({
+      where: { eventId },
+    });
+
+    if (!minutes) {
+      throw new NotFoundException('Minutes not found');
+    }
+
+    // Checked before the generic refusal below so the caller is told the real
+    // reason. An archived record is frozen permanently, which is quite
+    // different from an edit window that a ministry admin can still override.
+    if (minutes.status === 'ARCHIVED') {
+      throw new ForbiddenException(
+        'These minutes have been archived and can no longer be changed',
+      );
+    }
+
     const canEdit = await this.canEditMinutes(
       eventId,
       userId,
@@ -127,14 +145,6 @@ export class MinutesService {
       throw new ForbiddenException(
         'Edit window expired (2 days after event)',
       );
-    }
-
-    const minutes = await (this.prisma as any).minutes.findUnique({
-      where: { eventId },
-    });
-
-    if (!minutes) {
-      throw new NotFoundException('Minutes not found');
     }
 
     const updated = await (this.prisma as any).minutes.update({
@@ -194,6 +204,12 @@ export class MinutesService {
       throw new NotFoundException('Minutes not found');
     }
 
+    if (minutes.status === 'ARCHIVED') {
+      throw new ForbiddenException(
+        'These minutes have been archived and can no longer be changed',
+      );
+    }
+
     if (!minutes.body?.trim()) {
       throw new BadRequestException('Minutes body cannot be empty');
     }
@@ -246,6 +262,18 @@ export class MinutesService {
       return false;
     }
 
+    // An archived record is frozen for everyone, including leadership. That is
+    // the point of archiving it — checked before any role logic so no override
+    // below can reopen it.
+    const existing = await (this.prisma as any).minutes.findUnique({
+      where: { eventId },
+      select: { status: true },
+    });
+
+    if (existing?.status === 'ARCHIVED') {
+      return false;
+    }
+
     // Without this a ministry admin could edit another ministry's minutes —
     // the role checks below are deliberately broad and carry no scope of their
     // own.
@@ -292,9 +320,19 @@ export class MinutesService {
     const skip = opts.skip ?? 0;
     const term = opts.q?.trim();
 
+    // Archived records are leadership-only, and are kept out of the default
+    // listing even for them so the page stays about current business.
+    const mayReadArchived = canReadArchived(user.systemRole);
+    const archiveFilter =
+      opts.status === 'ARCHIVED' && mayReadArchived
+        ? { status: 'ARCHIVED' }
+        : { status: { not: 'ARCHIVED' } };
+
     const where: any = {
       event: ministryScope(user),
-      ...(opts.status ? { status: opts.status } : {}),
+      ...(opts.status && opts.status !== 'ARCHIVED'
+        ? { status: opts.status }
+        : archiveFilter),
       ...(term
         ? {
             OR: [
@@ -340,7 +378,7 @@ export class MinutesService {
     return { data, total };
   }
 
-  async getMinutes(eventId: string) {
+  async getMinutes(eventId: string, systemRole?: string) {
     const minutes = await (this.prisma as any).minutes.findUnique({
       where: { eventId },
       include: {
@@ -353,6 +391,13 @@ export class MinutesService {
     });
 
     if (!minutes) {
+      throw new NotFoundException('Minutes not found');
+    }
+
+    // Archived records are readable only by ministry leadership. Reported as
+    // not-found rather than forbidden: whether an archived record exists is
+    // itself part of what is being withheld.
+    if (minutes.status === 'ARCHIVED' && !canReadArchived(systemRole)) {
       throw new NotFoundException('Minutes not found');
     }
 

@@ -72,8 +72,11 @@ export class MinutesController {
 
   @Get('minutes')
   @Roles('STAFF', 'MINISTRY_ADMIN', 'MINISTER', 'SUPER_ADMIN')
-  async getMinutes(@Param('eventId') eventId: string) {
-    return this.minutesService.getMinutes(eventId);
+  async getMinutes(
+    @Param('eventId') eventId: string,
+    @CurrentUser() user: any,
+  ) {
+    return this.minutesService.getMinutes(eventId, user?.systemRole);
   }
 
   /**

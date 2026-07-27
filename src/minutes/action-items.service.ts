@@ -39,6 +39,13 @@ export class ActionItemsService {
       throw new NotFoundException('Minutes not found');
     }
 
+    // The record is frozen, so nothing new can be attached to it.
+    if (minutes.status === 'ARCHIVED') {
+      throw new ForbiddenException(
+        'These minutes have been archived and can no longer be changed',
+      );
+    }
+
     let ownerId: string | null = null;
     let ownerName = dto.ownerName ?? null;
 

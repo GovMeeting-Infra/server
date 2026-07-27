@@ -27,9 +27,15 @@ export class MinutesListController {
   ) {
     return this.minutesService.listMinutes(user, {
       q,
-      // Anything else is ignored rather than rejected, so a stale bookmark
-      // shows everything instead of erroring.
-      status: status === 'DRAFT' || status === 'PUBLISHED' ? status : undefined,
+      // ARCHIVED must be allowed through: the service decides whether this
+      // caller may see archived records. Dropping it here made the filter
+      // silently fall back to the default and return current records instead.
+      // Anything unrecognised is ignored rather than rejected, so a stale
+      // bookmark shows everything instead of erroring.
+      status:
+        status === 'DRAFT' || status === 'PUBLISHED' || status === 'ARCHIVED'
+          ? status
+          : undefined,
       skip: skip ? parseInt(skip, 10) || 0 : 0,
       take: take ? parseInt(take, 10) || 25 : 25,
     });
