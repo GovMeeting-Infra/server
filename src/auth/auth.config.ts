@@ -39,8 +39,12 @@ export const auth: any = betterAuth({
     },
   },
   session: {
-    expiresIn: parseInt(process.env.SESSION_INACTIVITY_TIMEOUT_SECONDS || '1800', 10),
-    updateAge: parseInt(process.env.SESSION_INACTIVITY_TIMEOUT_SECONDS || '1800', 10),
+    // Used only when better-auth first creates the row at sign-in. The sliding
+    // extension afterwards is ours, in AuthService.getSession — better-auth's
+    // own session route is never called, so updateAge below has no effect and
+    // is kept only to mirror expiresIn.
+    expiresIn: parseInt(process.env.SESSION_INACTIVITY_TIMEOUT_SECONDS || '43200', 10),
+    updateAge: parseInt(process.env.SESSION_INACTIVITY_TIMEOUT_SECONDS || '43200', 10),
   },
   emailAndPassword: {
     enabled: true,

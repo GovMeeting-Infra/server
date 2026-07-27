@@ -9,6 +9,18 @@ import { AuditService } from '../audit/audit.service';
 import { SignInDto } from './dto/sign-in.dto';
 import { auth } from './auth.config';
 
+/**
+ * How long a session survives without activity. Must match auth.config.ts,
+ * which better-auth uses when it first creates the row.
+ */
+export const SESSION_TTL_SECONDS = parseInt(
+  process.env.SESSION_INACTIVITY_TIMEOUT_SECONDS || '43200',
+  10,
+);
+
+/** Don't rewrite the row for every request in a burst. */
+const EXTEND_THROTTLE_MS = 60 * 1000;
+
 @Injectable()
 export class AuthService {
   private logger = new Logger('AuthService');
@@ -186,8 +198,29 @@ export class AuthService {
         return null;
       }
 
-      if (new Date(session.expiresAt) < new Date()) {
+      const now = new Date();
+
+      if (new Date(session.expiresAt) < now) {
         return null;
+      }
+
+      // Slide the window forward on activity. Without this the timeout is
+      // absolute — someone working continuously was signed out a fixed period
+      // after signing in, despite the setting being named for inactivity.
+      //
+      // Throttled because SessionMiddleware runs on every single request:
+      // extending only once the window has moved on by more than a minute
+      // turns one UPDATE per request into one per minute of activity.
+      const ttlMs = SESSION_TTL_SECONDS * 1000;
+      const freshExpiry = new Date(now.getTime() + ttlMs);
+      const elapsedSinceExtension =
+        freshExpiry.getTime() - new Date(session.expiresAt).getTime();
+
+      if (elapsedSinceExtension > EXTEND_THROTTLE_MS) {
+        await (this.prisma as any).session.update({
+          where: { id: session.id },
+          data: { expiresAt: freshExpiry, updatedAt: now },
+        });
       }
 
       return {

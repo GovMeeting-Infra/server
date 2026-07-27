@@ -147,6 +147,38 @@ export function inviteEmail({
   };
 }
 
+export function passwordResetEmail({
+  name,
+  link,
+  expiresInMinutes,
+}: {
+  name: string;
+  link: string;
+  expiresInMinutes: number;
+}): EmailBody {
+  const intro = `${name}, we received a request to reset the password on your Smart Meeting account.`;
+  const footnote = `This link expires in ${expiresInMinutes} minutes and can only be used once. If you did not ask to reset your password you can ignore this email — your current password still works and nothing has changed.`;
+
+  return {
+    subject: 'Reset your Smart Meeting password',
+    html: layout({
+      heading: 'Reset your password',
+      intro,
+      actionLabel: 'Choose a new password',
+      actionUrl: link,
+      footnote,
+    }),
+    text: [
+      intro,
+      '',
+      'Choose a new password using the link below:',
+      link,
+      '',
+      footnote,
+    ].join('\n'),
+  };
+}
+
 export function actionItemReminderEmail({
   name,
   title,

@@ -171,6 +171,119 @@ export class MeService {
   }
 
   /** Upsert-backed so a user with no preferences row gets defaults, not a 404. */
+  /**
+   * Everything the platform holds about the requester, for the data-export
+   * button in Settings.
+   *
+   * Scoped hard to this one user: their own record, their own attendance, the
+   * action items assigned to them, and the meetings they organized or attended.
+   * Related rows are reduced to what identifies the meeting — exporting an
+   * event must not hand over its other attendees.
+   */
+  async exportMyData(userId: string) {
+    const [user, attendance, actionItems, organized, attended, notifications] =
+      await Promise.all([
+        (this.prisma as any).user.findUnique({
+          where: { id: userId },
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            jobTitle: true,
+            image: true,
+            systemRole: true,
+            active: true,
+            lastLoginAt: true,
+            createdAt: true,
+            updatedAt: true,
+            ministry: { select: { id: true, name: true } },
+            preferences: true,
+          },
+        }),
+        (this.prisma as any).attendance.findMany({
+          where: { userId },
+          select: {
+            id: true,
+            signedName: true,
+            checkInAt: true,
+            checkInMethod: true,
+            withinGeofence: true,
+            gpsAccuracy: true,
+            ipAddress: true,
+            userAgent: true,
+            event: { select: { id: true, title: true, startAt: true } },
+          },
+          orderBy: { checkInAt: 'desc' },
+        }),
+        (this.prisma as any).actionItem.findMany({
+          where: { ownerId: userId },
+          select: {
+            id: true,
+            title: true,
+            description: true,
+            status: true,
+            dueDate: true,
+            completedAt: true,
+            createdAt: true,
+          },
+          orderBy: { createdAt: 'desc' },
+        }),
+        (this.prisma as any).event.findMany({
+          where: { organizerId: userId },
+          select: { id: true, title: true, startAt: true, endAt: true, status: true },
+          orderBy: { startAt: 'desc' },
+        }),
+        (this.prisma as any).eventAttendee.findMany({
+          where: { userId },
+          select: {
+            status: true,
+            respondedAt: true,
+            event: { select: { id: true, title: true, startAt: true } },
+          },
+          orderBy: { createdAt: 'desc' },
+        }),
+        (this.prisma as any).notification.findMany({
+          where: { userId },
+          select: {
+            type: true,
+            title: true,
+            body: true,
+            read: true,
+            createdAt: true,
+          },
+          orderBy: { createdAt: 'desc' },
+        }),
+      ]);
+
+    if (!user) throw new NotFoundException('User not found');
+
+    await this.audit.log({
+      action: 'DATA_EXPORTED',
+      actionCategory: 'USER_MANAGEMENT',
+      entityType: 'User',
+      entityId: userId,
+      entityName: user.email,
+      status: 'SUCCESS',
+      ministryId: user.ministry?.id,
+      actorId: userId,
+      description: 'Exported their own personal data',
+    });
+
+    return {
+      exportedAt: new Date().toISOString(),
+      // Signatures and stored coordinates are deliberately excluded: the
+      // coordinates are encrypted at rest and a signature image is of no use
+      // outside the record it authenticates.
+      note: 'Personal data held by the Smart Meeting platform for this account.',
+      profile: user,
+      attendance,
+      actionItems,
+      eventsOrganized: organized,
+      eventsInvitedTo: attended,
+      notifications,
+    };
+  }
+
   async getPreferences(userId: string) {
     return (this.prisma as any).userPreferences.upsert({
       where: { userId },

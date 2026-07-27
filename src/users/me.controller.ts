@@ -6,7 +6,9 @@ import {
   Body,
   UseGuards,
   HttpCode,
+  Res,
 } from '@nestjs/common';
+import type { Response } from 'express';
 import { MeService } from './me.service';
 import { UpdateMeDto } from './dto/update-me.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
@@ -29,6 +31,21 @@ export class MeController {
   @Roles('SUPER_ADMIN', 'MINISTER', 'MINISTRY_ADMIN', 'STAFF')
   getProfile(@CurrentUser() user: any) {
     return this.meService.getProfile(user.id);
+  }
+
+  /** Everything held about the caller, as a downloadable file. */
+  @Get('export')
+  @Roles('SUPER_ADMIN', 'MINISTER', 'MINISTRY_ADMIN', 'STAFF')
+  async exportData(@CurrentUser() user: any, @Res() res: Response) {
+    const data = await this.meService.exportMyData(user.id);
+    const stamp = new Date().toISOString().slice(0, 10);
+
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="smart-meeting-data-${stamp}.json"`,
+    );
+    res.send(JSON.stringify(data, null, 2));
   }
 
   @Patch()

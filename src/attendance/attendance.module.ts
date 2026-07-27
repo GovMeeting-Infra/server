@@ -6,7 +6,7 @@ import { CheckinController } from './checkin.controller';
 import { PrismaModule } from '../prisma/prisma.module';
 import { AuditModule } from '../audit/audit.module';
 import { CacheModule } from '../cache/cache.module';
-import { CheckInRateLimitGuard } from './guards/check-in-rate-limit.guard';
+import { RateLimitGuard } from '../common/guards/rate-limit.guard';
 
 @Module({
   // CacheModule backs the rate limiter on the public check-in routes.
@@ -15,7 +15,7 @@ import { CheckInRateLimitGuard } from './guards/check-in-rate-limit.guard';
     CheckinService,
     RSVPService,
     QRTokenService,
-    CheckInRateLimitGuard,
+    RateLimitGuard,
   ],
   controllers: [CheckinController],
   exports: [
