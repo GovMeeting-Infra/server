@@ -5,10 +5,12 @@ import { NotificationsController } from './notifications.controller';
 import { EmailProcessor } from './email.processor';
 import { TasksService } from './tasks.service';
 import { PrismaModule } from '../prisma/prisma.module';
+import { MailModule } from '../mail/mail.module';
 
 @Module({
   imports: [
     PrismaModule,
+    MailModule,
     BullModule.registerQueue(
       { name: 'email-queue' },
       { name: 'notification-queue' },

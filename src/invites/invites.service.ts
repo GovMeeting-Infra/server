@@ -8,6 +8,8 @@ import { createHash, randomBytes } from 'crypto';
 import { hashPassword } from 'better-auth/crypto';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
+import { MailService } from '../mail/mail.service';
+import { inviteEmail } from '../mail/templates';
 import { v4 as uuid } from 'uuid';
 
 const INVITE_TTL_DAYS = 7;
@@ -28,6 +30,7 @@ export class InvitesService {
   constructor(
     private prisma: PrismaService,
     private audit: AuditService,
+    private mail: MailService,
   ) {}
 
   /** Only the hash is stored, so a database read cannot yield a usable link. */
@@ -80,21 +83,32 @@ export class InvitesService {
       description: `Issued account invitation for ${user.email}`,
     });
 
-    // No mail sender exists in this codebase yet — email.processor.ts only
-    // logs. Recording the intent here means wiring a real sender later needs
-    // no change at the call sites; the returned link is how the invite
-    // actually reaches the user today.
-    this.logger.log(
-      `Invitation issued for ${user.email}; email delivery is not configured, link returned to the inviting admin`,
+    const link = this.linkFor(token);
+
+    // Sent inline rather than queued so the caller learns the real outcome and
+    // the admin can be told truthfully whether to hand the link over. Never
+    // throws, so a mail failure cannot undo an account that already exists.
+    const delivery = await this.mail.send(
+      user.email,
+      inviteEmail({ name: user.name, link, expiresInDays: INVITE_TTL_DAYS }),
     );
+
+    if (!delivery.sent) {
+      this.logger.warn(
+        `Invitation for ${user.email} was not emailed (${delivery.error}); the link is returned to the inviting admin instead`,
+      );
+    }
 
     return {
       userId,
       email: user.email,
       name: user.name,
-      link: this.linkFor(token),
+      link,
       expiresInDays: INVITE_TTL_DAYS,
-      emailSent: false,
+      emailSent: delivery.sent,
+      // Surfaced so the admin screen can say why, rather than assuming the
+      // server simply has no mailer configured.
+      emailError: delivery.error ?? null,
     };
   }
 

@@ -1,0 +1,240 @@
+/**
+ * Email bodies.
+ *
+ * Pure functions with no Nest and no network, so they can be unit-tested
+ * directly. Every builder returns both an HTML and a plain-text form — some
+ * government mail clients strip HTML entirely, and a text alternative also
+ * keeps the message out of spam folders.
+ *
+ * The HTML is deliberately table-based with inline styles: mail clients drop
+ * <style> blocks and do not implement flexbox or grid.
+ */
+
+export interface EmailBody {
+  subject: string;
+  html: string;
+  text: string;
+}
+
+const NAVY = '#003580';
+const GREEN = '#007236';
+
+/**
+ * Anything interpolated into the HTML goes through here. Names and event
+ * titles are user-supplied, and an unescaped one would inject markup straight
+ * into someone's inbox.
+ */
+export function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function layout({
+  heading,
+  intro,
+  bodyHtml,
+  actionLabel,
+  actionUrl,
+  footnote,
+}: {
+  heading: string;
+  intro: string;
+  bodyHtml?: string;
+  actionLabel?: string;
+  actionUrl?: string;
+  footnote?: string;
+}): string {
+  return `<!doctype html>
+<html lang="en">
+<body style="margin:0;padding:0;background-color:#f6faff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f6faff;padding:24px 12px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background-color:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #e2e8f0;">
+          <tr>
+            <td style="background:linear-gradient(135deg,${NAVY} 0%,${GREEN} 100%);background-color:${NAVY};padding:28px 32px;">
+              <p style="margin:0;color:#ffffff;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;opacity:0.75;">Smart Meeting</p>
+              <h1 style="margin:6px 0 0;color:#ffffff;font-size:22px;font-weight:700;">${escapeHtml(heading)}</h1>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:32px;">
+              <p style="margin:0 0 16px;color:#334155;font-size:15px;line-height:1.6;">${escapeHtml(intro)}</p>
+              ${bodyHtml ?? ''}
+              ${
+                actionUrl && actionLabel
+                  ? `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:24px 0;">
+                <tr><td style="border-radius:12px;background-color:${NAVY};">
+                  <a href="${actionUrl}" style="display:inline-block;padding:13px 28px;color:#ffffff;font-size:15px;font-weight:600;text-decoration:none;border-radius:12px;">${escapeHtml(actionLabel)}</a>
+                </td></tr>
+              </table>
+              <p style="margin:0 0 8px;color:#64748b;font-size:13px;line-height:1.6;">If the button does not work, copy this address into your browser:</p>
+              <p style="margin:0;color:${NAVY};font-size:13px;word-break:break-all;">${actionUrl}</p>`
+                  : ''
+              }
+              ${
+                footnote
+                  ? `<p style="margin:24px 0 0;color:#64748b;font-size:13px;line-height:1.6;">${escapeHtml(footnote)}</p>`
+                  : ''
+              }
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:18px 32px;background-color:#f8fafc;border-top:1px solid #e2e8f0;">
+              <p style="margin:0;color:#94a3b8;font-size:12px;line-height:1.5;">This is an automated message from the Smart Meeting platform. Please do not reply to it.</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+}
+
+/** Only the date part; these emails never need a time zone argument. */
+function formatDate(value: Date | string): string {
+  const d = typeof value === 'string' ? new Date(value) : value;
+  return d.toLocaleDateString('en-GB', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
+}
+
+function formatDateTime(value: Date | string): string {
+  const d = typeof value === 'string' ? new Date(value) : value;
+  return `${formatDate(d)} at ${d.toLocaleTimeString('en-GB', {
+    hour: '2-digit',
+    minute: '2-digit',
+  })}`;
+}
+
+export function inviteEmail({
+  name,
+  link,
+  expiresInDays,
+}: {
+  name: string;
+  link: string;
+  expiresInDays: number;
+}): EmailBody {
+  const intro = `${name}, an account has been created for you on Smart Meeting, the government meeting and attendance platform.`;
+  const footnote = `This link can only be used once and expires in ${expiresInDays} days. If it has expired, ask the administrator who created your account to send a new one. If you were not expecting this email, you can ignore it.`;
+
+  return {
+    subject: 'Set up your Smart Meeting account',
+    html: layout({
+      heading: 'Set up your account',
+      intro,
+      actionLabel: 'Set your password',
+      actionUrl: link,
+      footnote,
+    }),
+    text: [
+      intro,
+      '',
+      'Set your password using the link below:',
+      link,
+      '',
+      footnote,
+    ].join('\n'),
+  };
+}
+
+export function actionItemReminderEmail({
+  name,
+  title,
+  dueDate,
+  eventTitle,
+}: {
+  name: string;
+  title: string;
+  dueDate: Date | string | null;
+  eventTitle?: string | null;
+}): EmailBody {
+  const due = dueDate ? formatDate(dueDate) : 'soon';
+  const intro = `${name}, an action item assigned to you is due ${due}.`;
+  const rows = [
+    `<p style="margin:0 0 6px;color:#0f172a;font-size:15px;font-weight:600;">${escapeHtml(title)}</p>`,
+    eventTitle
+      ? `<p style="margin:0;color:#64748b;font-size:13px;">From: ${escapeHtml(eventTitle)}</p>`
+      : '',
+    `<p style="margin:8px 0 0;color:#64748b;font-size:13px;">Due: ${escapeHtml(due)}</p>`,
+  ].join('');
+
+  return {
+    subject: `Action item due ${due}: ${title}`,
+    html: layout({
+      heading: 'Action item due soon',
+      intro,
+      bodyHtml: `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:8px 0;background-color:#fff8e5;border:1px solid #fde8a6;border-radius:12px;">
+        <tr><td style="padding:16px 18px;">${rows}</td></tr>
+      </table>`,
+      footnote:
+        'Update the status on the Action Items board once the work is done.',
+    }),
+    text: [
+      intro,
+      '',
+      title,
+      eventTitle ? `From: ${eventTitle}` : '',
+      `Due: ${due}`,
+      '',
+      'Update the status on the Action Items board once the work is done.',
+    ]
+      .filter(Boolean)
+      .join('\n'),
+  };
+}
+
+export function meetingReminderEmail({
+  name,
+  eventTitle,
+  startAt,
+  venueName,
+}: {
+  name: string;
+  eventTitle: string;
+  startAt: Date | string;
+  venueName?: string | null;
+}): EmailBody {
+  const when = formatDateTime(startAt);
+  const intro = `${name}, this is a reminder that ${eventTitle} starts shortly.`;
+  const rows = [
+    `<p style="margin:0 0 6px;color:#0f172a;font-size:15px;font-weight:600;">${escapeHtml(eventTitle)}</p>`,
+    `<p style="margin:0;color:#64748b;font-size:13px;">When: ${escapeHtml(when)}</p>`,
+    venueName
+      ? `<p style="margin:6px 0 0;color:#64748b;font-size:13px;">Where: ${escapeHtml(venueName)}</p>`
+      : '',
+  ].join('');
+
+  return {
+    subject: `Reminder: ${eventTitle} starts soon`,
+    html: layout({
+      heading: 'Your meeting starts soon',
+      intro,
+      bodyHtml: `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:8px 0;background-color:#edf3fd;border:1px solid #c9d9f2;border-radius:12px;">
+        <tr><td style="padding:16px 18px;">${rows}</td></tr>
+      </table>`,
+      footnote:
+        'Check in at the venue by scanning the QR code the organizer displays.',
+    }),
+    text: [
+      intro,
+      '',
+      eventTitle,
+      `When: ${when}`,
+      venueName ? `Where: ${venueName}` : '',
+      '',
+      'Check in at the venue by scanning the QR code the organizer displays.',
+    ]
+      .filter(Boolean)
+      .join('\n'),
+  };
+}

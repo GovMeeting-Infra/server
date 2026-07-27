@@ -61,9 +61,14 @@ export class TasksService {
       const upcomingEvents = await (this.prisma as any).event.findMany({
         where: {
           startAt: { gte: now, lte: in1h },
+          // Without this, drafts and cancelled meetings send reminders too.
+          status: 'PUBLISHED',
         },
         include: {
           attendees: {
+            // Someone who declined should not be chased. Everyone else,
+            // including people who never answered, still gets the nudge.
+            where: { status: { not: 'DECLINED' } },
             include: { user: true },
           },
         },
@@ -78,10 +83,20 @@ export class TasksService {
       for (const event of upcomingEvents) {
         for (const attendee of event.attendees) {
           if (attendee.user) {
-            await this.emailQueue.add('send-meeting-reminder', {
-              eventId: event.id,
-              userId: attendee.user.id,
-            });
+            // This cron runs every 10 minutes over a one-hour window, so the
+            // same attendee matches roughly six times per meeting. A stable
+            // jobId makes the repeats no-ops: BullMQ ignores an add for an id
+            // it already holds. Retaining completed jobs for two hours keeps
+            // the id alive across the whole window.
+            await this.emailQueue.add(
+              'send-meeting-reminder',
+              { eventId: event.id, userId: attendee.user.id },
+              {
+                jobId: `meeting-reminder:${event.id}:${attendee.user.id}`,
+                removeOnComplete: { age: 2 * 60 * 60 },
+                removeOnFail: { age: 2 * 60 * 60 },
+              },
+            );
             queuedCount++;
           }
         }
