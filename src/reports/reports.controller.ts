@@ -37,7 +37,7 @@ export class ReportsController {
     @Response() res: ExpressResponse,
   ) {
     try {
-      const csv = await this.reportsService.exportToCSV(user.ministryId);
+      const csv = await this.reportsService.exportToCSV(user);
       res.send(csv);
     } catch (error) {
       this.logger.error('Error exporting events CSV', error);
@@ -54,7 +54,7 @@ export class ReportsController {
     @Response() res: ExpressResponse,
   ) {
     try {
-      const csv = await this.reportsService.exportAttendanceToCSV(user.ministryId);
+      const csv = await this.reportsService.exportAttendanceToCSV(user);
       res.send(csv);
     } catch (error) {
       this.logger.error('Error exporting attendance CSV', error);
@@ -71,7 +71,7 @@ export class ReportsController {
     @Response() res: ExpressResponse,
   ) {
     try {
-      const csv = await this.reportsService.exportActionItemsToCSV(user.ministryId);
+      const csv = await this.reportsService.exportActionItemsToCSV(user);
       res.send(csv);
     } catch (error) {
       this.logger.error('Error exporting action items CSV', error);
