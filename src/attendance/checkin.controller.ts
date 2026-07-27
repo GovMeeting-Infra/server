@@ -15,6 +15,7 @@ import { RSVPService } from './rsvp.service';
 import { CheckInDto } from './dto/check-in.dto';
 import { GuestCheckInDto } from './dto/guest-check-in.dto';
 import { GenerateCheckInCodeDto } from './dto/generate-check-in-code.dto';
+import { ManualCheckInDto } from './dto/manual-check-in.dto';
 import { RSVPDto } from './dto/rsvp.dto';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -127,24 +128,27 @@ export class CheckinController {
     return this.checkinService.guestCheckIn(token, dto, requestMeta(req));
   }
 
+  /**
+   * Check someone in at the desk. CanManageEventGuard is what confines this to
+   * the event's own people — the role list alone let any staff member check
+   * anyone into any ministry's event.
+   */
   @Post('checkin/:eventId/manual')
-  @UseGuards(RolesGuard)
-  @Roles('SUPER_ADMIN', 'MINISTRY_ADMIN', 'STAFF')
+  @UseGuards(RolesGuard, CanManageEventGuard)
+  @AllowCoOrganizers()
+  @Roles(...CODE_ROLES)
   @HttpCode(200)
   async manualCheckIn(
     @Param('eventId') eventId: string,
-    @Body() dto: { userId: string; signedName: string; signature: string },
+    @Body() dto: ManualCheckInDto,
     @CurrentUser() user: any,
+    @Req() req: any,
   ) {
     return this.checkinService.manualCheckIn(
       eventId,
-      dto.userId,
-      {
-        signedName: dto.signedName,
-        signature: dto.signature,
-      },
+      dto,
       user.id,
-      user.ministryId,
+      requestMeta(req),
     );
   }
 

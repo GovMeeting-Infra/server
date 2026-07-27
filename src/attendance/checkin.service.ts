@@ -13,6 +13,7 @@ import { QRTokenService } from './qr-token.service';
 import { CheckInDto } from './dto/check-in.dto';
 import { GuestCheckInDto } from './dto/guest-check-in.dto';
 import { GenerateCheckInCodeDto } from './dto/generate-check-in-code.dto';
+import { ManualCheckInDto } from './dto/manual-check-in.dto';
 import { haversineDistance } from './geofence.util';
 import {
   GEOFENCE_RADIUS_METERS,
@@ -626,23 +627,37 @@ export class CheckinService {
 
   async manualCheckIn(
     eventId: string,
-    userId: string,
-    dto: { signedName: string; signature: string },
+    dto: ManualCheckInDto,
     staffId: string,
-    ministryId: string,
+    meta: RequestMeta = {},
   ) {
     const event = await (this.prisma as any).event.findUnique({
       where: { id: eventId },
+      select: { id: true, title: true, status: true, endAt: true, ministryId: true },
     });
 
     if (!event) {
       throw new NotFoundException('Event not found');
     }
+    if (event.status === 'CANCELLED') {
+      throw new BadRequestException('This event has been cancelled');
+    }
+
+    // The attendee may legitimately belong to another ministry — events can
+    // invite them — so this checks only that the account is real and usable.
+    // Who may operate this desk is settled by CanManageEventGuard.
+    const target = await (this.prisma as any).user.findFirst({
+      where: { id: dto.userId, active: true, deletedAt: null },
+      select: { id: true, name: true },
+    });
+    if (!target) {
+      throw new NotFoundException('No active user with that ID');
+    }
 
     // findFirst, not findUnique on the compound key: userId is nullable now, so
     // the compound-unique input no longer accepts it cleanly.
     const existing = await (this.prisma as any).attendance.findFirst({
-      where: { eventId, userId },
+      where: { eventId, userId: target.id },
     });
 
     if (existing) {
@@ -652,13 +667,15 @@ export class CheckinService {
     const attendance = await (this.prisma as any).attendance.create({
       data: {
         eventId,
-        userId,
-        signedName: dto.signedName,
+        userId: target.id,
+        signedName: dto.signedName.trim(),
         signature: dto.signature,
         checkInMethod: 'MANUAL',
         // Staff vouched for them in person; there is no location reading to
         // judge, so this is recorded as unverified rather than true.
         withinGeofence: null,
+        ipAddress: meta.ipAddress ?? null,
+        userAgent: meta.userAgent ?? null,
       },
     });
 
@@ -669,9 +686,15 @@ export class CheckinService {
       entityId: attendance.id,
       entityName: attendance.signedName,
       status: 'SUCCESS',
-      ministryId,
+      // The event's ministry, not the caller's: the record belongs to the
+      // meeting, and taking it from the actor misfiled every cross-ministry
+      // check-in.
+      ministryId: event.ministryId,
       actorId: staffId,
       description: `Staff check-in: ${attendance.signedName} to event: ${event.title}`,
+      metadata: { eventId, targetUserId: target.id },
+      ipAddress: meta.ipAddress,
+      userAgent: meta.userAgent,
     });
 
     return attendance;
