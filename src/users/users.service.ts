@@ -16,6 +16,7 @@ import {
 import { auth } from '../auth/auth.config';
 import { hashPassword } from 'better-auth/crypto';
 import { v4 as uuid } from 'uuid';
+import { InvitesService } from '../invites/invites.service';
 
 @Injectable()
 export class UsersService {
@@ -24,7 +25,46 @@ export class UsersService {
   constructor(
     private prisma: PrismaService,
     private audit: AuditService,
+    private invites: InvitesService,
   ) {}
+
+
+  /** Roles that may administer other users. */
+  private static readonly ADMIN_ROLES = ['SUPER_ADMIN', 'MINISTRY_ADMIN', 'MINISTER'];
+
+  /**
+   * Authorizes acting on another user.
+   *
+   * The previous checks passed a hard-coded systemRole: 'SUPER_ADMIN' into
+   * assertSameMinistry, which made the helper exempt every caller and turned
+   * the ministry boundary into a no-op — a ministry admin could act on another
+   * ministry's users. This uses the actor's real role.
+   */
+  private assertCanManage(
+    target: { systemRole: string; ministryId: string | null },
+    actorRole: string,
+    actorMinistryId?: string,
+  ) {
+    if (actorRole !== 'SUPER_ADMIN') {
+      if (target.systemRole === 'SUPER_ADMIN') {
+        throw new ForbiddenException('Cannot act on a super-admin');
+      }
+      assertSameMinistry(
+        { systemRole: actorRole, ministryId: actorMinistryId },
+        target.ministryId ?? '',
+      );
+    }
+  }
+
+  /** A ministry admin must not be able to mint a peer above themselves. */
+  private assertCanAssignRole(role: string, actorRole: string) {
+    if (role === 'SUPER_ADMIN' && actorRole !== 'SUPER_ADMIN') {
+      throw new ForbiddenException('Only a super-admin can assign SUPER_ADMIN');
+    }
+    if (role === 'MINISTER' && actorRole !== 'SUPER_ADMIN') {
+      throw new ForbiddenException('Only a super-admin can assign MINISTER');
+    }
+  }
 
   async create(
     dto: CreateUserDto,
@@ -38,9 +78,6 @@ export class UsersService {
       );
     }
 
-    const tempPassword = this.generateTempPassword();
-    const hashedPassword = await hashPassword(tempPassword);
-
     try {
       const user = await (this.prisma as any).user.create({
         data: {
@@ -53,14 +90,8 @@ export class UsersService {
         },
       });
 
-      await (this.prisma as any).account.create({
-        data: {
-          userId: user.id,
-          accountId: uuid(),
-          providerId: 'credential',
-          password: hashedPassword,
-        },
-      });
+      // No credential row is created: the user sets their own password from
+      // the invitation link, so no administrator ever handles it.
 
       await (this.prisma as any).userPreferences.create({
         data: {
@@ -80,12 +111,18 @@ export class UsersService {
         description: `Created user: ${user.email}`,
       });
 
+      const invite = await this.invites.issue(
+        user.id,
+        userId,
+        userMinistryId || 'SYSTEM',
+      );
+
       return {
         id: user.id,
         email: user.email,
         name: user.name,
         systemRole: user.systemRole,
-        tempPassword,
+        invite,
       };
     } catch (error: any) {
       if (error.code === 'P2002') {
@@ -95,13 +132,32 @@ export class UsersService {
     }
   }
 
-  async findAll(user: { systemRole: string; ministryId?: string }) {
-    const where = ministryScope(user);
+  async findAll(
+    user: { systemRole: string; ministryId?: string },
+    filters: { q?: string; role?: string; ministryId?: string } = {},
+  ) {
+    const isSuperAdmin = user.systemRole === 'SUPER_ADMIN';
+    const scope = ministryScope(user);
+    const q = filters.q?.trim();
 
     return (this.prisma as any).user.findMany({
       where: {
-        ...where,
-        deletedAt: null,
+        ...scope,
+        // Super-admins are never listed as manageable rows.
+        systemRole: filters.role ? filters.role : { not: 'SUPER_ADMIN' },
+        // Soft-deleted users are only visible to super-admins.
+        ...(isSuperAdmin ? {} : { deletedAt: null }),
+        ...(isSuperAdmin && filters.ministryId
+          ? { ministryId: filters.ministryId }
+          : {}),
+        ...(q
+          ? {
+              OR: [
+                { name: { contains: q, mode: 'insensitive' } },
+                { email: { contains: q, mode: 'insensitive' } },
+              ],
+            }
+          : {}),
       },
       select: {
         id: true,
@@ -111,6 +167,7 @@ export class UsersService {
         systemRole: true,
         ministryId: true,
         active: true,
+        deletedAt: true,
         createdAt: true,
       },
       orderBy: { email: 'asc' },
@@ -143,6 +200,7 @@ export class UsersService {
     dto: UpdateUserRoleDto,
     actorId: string,
     actorMinistryId?: string,
+    actorRole = 'SUPER_ADMIN',
   ) {
     const user = await (this.prisma as any).user.findUnique({
       where: { id },
@@ -152,10 +210,8 @@ export class UsersService {
       throw new NotFoundException(`User ${id} not found`);
     }
 
-    assertSameMinistry(
-      { systemRole: 'SUPER_ADMIN', ministryId: actorMinistryId },
-      user.ministryId,
-    );
+    this.assertCanManage(user, actorRole, actorMinistryId);
+    this.assertCanAssignRole(dto.systemRole, actorRole);
 
     const updated = await (this.prisma as any).user.update({
       where: { id },
@@ -183,10 +239,75 @@ export class UsersService {
     return updated;
   }
 
-  async deactivate(
+  /**
+   * Admin edit of another user's details. Email is deliberately excluded: it
+   * is the login identity and is domain-gated at creation.
+   */
+  async updateDetails(
+    id: string,
+    dto: { name?: string; jobTitle?: string },
+    actorId: string,
+    actorMinistryId?: string,
+    actorRole = 'SUPER_ADMIN',
+  ) {
+    const user = await (this.prisma as any).user.findUnique({ where: { id } });
+
+    if (!user) {
+      throw new NotFoundException(`User ${id} not found`);
+    }
+
+    this.assertCanManage(user, actorRole, actorMinistryId);
+
+    const updated = await (this.prisma as any).user.update({
+      where: { id },
+      data: {
+        ...(dto.name !== undefined && { name: dto.name }),
+        ...(dto.jobTitle !== undefined && { jobTitle: dto.jobTitle }),
+      },
+      select: { id: true, email: true, name: true, jobTitle: true },
+    });
+
+    await this.audit.log({
+      action: 'USER_UPDATED',
+      actionCategory: 'USER_MANAGEMENT',
+      entityType: 'User',
+      entityId: id,
+      entityName: updated.email,
+      status: 'SUCCESS',
+      ministryId: actorMinistryId || 'SYSTEM',
+      actorId,
+      description: `Updated user details: ${updated.email}`,
+      changes: dto as Record<string, unknown>,
+    });
+
+    return updated;
+  }
+
+  /** Re-issues an invitation for a user who hasn't set a password yet. */
+  async reissueInvite(
     id: string,
     actorId: string,
     actorMinistryId?: string,
+    actorRole = 'SUPER_ADMIN',
+  ) {
+    const user = await (this.prisma as any).user.findUnique({ where: { id } });
+
+    if (!user) {
+      throw new NotFoundException(`User ${id} not found`);
+    }
+
+    this.assertCanManage(user, actorRole, actorMinistryId);
+
+    return this.invites.issue(id, actorId, actorMinistryId || 'SYSTEM');
+  }
+
+  /** Reversible access toggle. Replaces the previous one-way deactivate. */
+  async setActive(
+    id: string,
+    active: boolean,
+    actorId: string,
+    actorMinistryId?: string,
+    actorRole = 'SUPER_ADMIN',
   ) {
     const user = await (this.prisma as any).user.findUnique({
       where: { id },
@@ -196,14 +317,11 @@ export class UsersService {
       throw new NotFoundException(`User ${id} not found`);
     }
 
-    assertSameMinistry(
-      { systemRole: 'SUPER_ADMIN', ministryId: actorMinistryId },
-      user.ministryId,
-    );
+    this.assertCanManage(user, actorRole, actorMinistryId);
 
     const updated = await (this.prisma as any).user.update({
       where: { id },
-      data: { active: false },
+      data: { active },
       select: {
         id: true,
         email: true,
@@ -212,7 +330,7 @@ export class UsersService {
     });
 
     await this.audit.log({
-      action: 'USER_DEACTIVATED',
+      action: active ? 'USER_REACTIVATED' : 'USER_DEACTIVATED',
       actionCategory: 'USER_MANAGEMENT',
       entityType: 'User',
       entityId: user.id,
@@ -220,14 +338,19 @@ export class UsersService {
       status: 'SUCCESS',
       ministryId: actorMinistryId || 'SYSTEM',
       actorId,
-      description: `Deactivated user: ${user.email}`,
-      changes: { active: false },
+      description: `${active ? 'Reactivated' : 'Deactivated'} user: ${user.email}`,
+      changes: { active },
     });
 
     return updated;
   }
 
-  async anonymize(id: string, actorId: string, actorMinistryId?: string) {
+  async anonymize(
+    id: string,
+    actorId: string,
+    actorMinistryId?: string,
+    actorRole = 'SUPER_ADMIN',
+  ) {
     const user = await (this.prisma as any).user.findUnique({
       where: { id },
     });
@@ -236,10 +359,7 @@ export class UsersService {
       throw new NotFoundException(`User ${id} not found`);
     }
 
-    assertSameMinistry(
-      { systemRole: 'SUPER_ADMIN', ministryId: actorMinistryId },
-      user.ministryId,
-    );
+    this.assertCanManage(user, actorRole, actorMinistryId);
 
     const anonEmail = `anonymous-${uuid()}@ministry.local`;
 
