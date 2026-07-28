@@ -4,11 +4,16 @@ import {
   ExecutionContext,
   ForbiddenException,
 } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
 import { PrismaService } from '../../prisma/prisma.service';
+import { ALLOW_CO_ORGANIZERS } from '../decorators/allow-co-organizers.decorator';
 
 @Injectable()
 export class CanManageEventGuard implements CanActivate {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private reflector: Reflector,
+  ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
@@ -19,9 +24,21 @@ export class CanManageEventGuard implements CanActivate {
       throw new ForbiddenException('Missing user or event ID');
     }
 
+    // Off unless the handler opts in, so delete/publish/cancel keep their
+    // narrower rule.
+    const allowCoOrganizers =
+      this.reflector.get<boolean>(ALLOW_CO_ORGANIZERS, context.getHandler()) ===
+      true;
+
     const event = await (this.prisma as any).event.findUnique({
       where: { id: eventId },
-      select: { organizerId: true, ministryId: true },
+      select: {
+        organizerId: true,
+        ministryId: true,
+        ...(allowCoOrganizers && {
+          coOrganizers: { select: { userId: true } },
+        }),
+      },
     });
 
     if (!event) {
@@ -33,6 +50,13 @@ export class CanManageEventGuard implements CanActivate {
     }
 
     if (event.organizerId === user.id) {
+      return true;
+    }
+
+    if (
+      allowCoOrganizers &&
+      event.coOrganizers?.some((c: { userId: string }) => c.userId === user.id)
+    ) {
       return true;
     }
 

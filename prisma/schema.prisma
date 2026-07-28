@@ -167,9 +167,24 @@ model Event {
   startAt                 DateTime
   endAt                   DateTime
   venueName               String?
+  // venueLat/venueLng/geofenceRadius predate organizer-anchored check-in and are
+  // vestigial for that flow: in practice they were never filled in, which is why
+  // the geofence never engaged. The live fence is checkInAnchor* below, captured
+  // from the organizer's device when they generate the QR code.
   venueLat                Float?
   venueLng                Float?
   geofenceRadius          Int      @default(100)
+  // Check-in area, anchored once at first QR generation and reused unchanged by
+  // every rotating token so the fence cannot drift. Radius is a server constant
+  // (GEOFENCE_RADIUS_METERS), not a column.
+  checkInAnchorLat        Float?
+  checkInAnchorLng        Float?
+  checkInAnchorAccuracy   Int?
+  checkInAnchorSetAt      DateTime?
+  // Audit breadcrumb only — deliberately not a relation, which would force a
+  // back-relation on User and an FK for something never joined on.
+  checkInAnchorSetById    String?
+  allowGuestCheckIn       Boolean  @default(true)
   bannerImage             String?
   contactEmail            String?
   contactPhone            String?
@@ -301,23 +316,34 @@ enum AttendeeStatus {
 model Attendance {
   id                String   @id @default(cuid())
   eventId           String
-  userId            String
+  // Null for guests, who have no account. Staff rows always carry a userId.
+  userId            String?
+  guestName         String?
+  guestEmail        String?
+  // A guest with no matching EventAttendee invite for this event.
+  isWalkIn          Boolean  @default(false)
   signedName        String
   signature         String   @db.Text
   checkInAt         DateTime @default(now())
   checkInMethod     CheckInMethod
   lat               String?
   lng               String?
+  // Metres, rounded on write — the browser reports a float.
   gpsAccuracy       Int?
+  // null means "not verified" (no anchor set), distinct from false.
   withinGeofence    Boolean?
   mockLocationFlag  Boolean  @default(false)
   ipAddress         String?
   userAgent         String?
 
   event             Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  // Postgres treats NULLs as distinct in a unique index, so these coexist:
+  // guest rows (userId null) never collide on the first, staff rows
+  // (guestEmail null) never collide on the second.
   @@unique([eventId, userId])
+  @@unique([eventId, guestEmail])
   @@index([eventId])
   @@index([userId])
   @@index([checkInAt])

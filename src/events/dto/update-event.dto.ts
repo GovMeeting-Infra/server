@@ -60,6 +60,10 @@ export class UpdateEventDto {
   geofenceRadius?: number;
 
   @IsOptional()
+  @IsBoolean()
+  allowGuestCheckIn?: boolean;
+
+  @IsOptional()
   @IsString()
   roomId?: string;
 

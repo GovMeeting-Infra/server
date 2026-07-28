@@ -5,86 +5,150 @@ import {
   Delete,
   Body,
   Param,
+  Req,
   HttpCode,
+  UnauthorizedException,
   UseGuards,
-  Optional,
 } from '@nestjs/common';
 import { CheckinService } from './checkin.service';
 import { RSVPService } from './rsvp.service';
-import { QRTokenService } from './qr-token.service';
 import { CheckInDto } from './dto/check-in.dto';
+import { GuestCheckInDto } from './dto/guest-check-in.dto';
+import { GenerateCheckInCodeDto } from './dto/generate-check-in-code.dto';
+import { ManualCheckInDto } from './dto/manual-check-in.dto';
 import { RSVPDto } from './dto/rsvp.dto';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { CanManageEventGuard } from '../events/guards/can-manage-event.guard';
+import { AllowCoOrganizers } from '../events/decorators/allow-co-organizers.decorator';
+import { CheckInRateLimitGuard } from './guards/check-in-rate-limit.guard';
+import { RateLimit } from './decorators/rate-limit.decorator';
+
+const CODE_ROLES = [
+  'SUPER_ADMIN',
+  'MINISTER',
+  'MINISTRY_ADMIN',
+  'STAFF',
+] as const;
+
+/** Client IP and user agent, for the attendance audit trail. */
+function requestMeta(req: any) {
+  return {
+    ipAddress: req.ip || req.socket?.remoteAddress || undefined,
+    userAgent: (req.headers?.['user-agent'] as string | undefined)?.slice(0, 512),
+  };
+}
 
 @Controller('api/v1')
 export class CheckinController {
   constructor(
     private checkinService: CheckinService,
     private rsvpService: RSVPService,
-    private qrTokenService: QRTokenService,
   ) {}
 
+  /**
+   * Current code, if one has been generated. Deliberately a pure read: this is
+   * polled by the host screen, and minting here is what previously produced an
+   * endless stream of tokens from an idle browser tab.
+   */
   @Get('checkin-code/:eventId')
   @UseGuards(RolesGuard, CanManageEventGuard)
-  @Roles('SUPER_ADMIN', 'MINISTER', 'MINISTRY_ADMIN', 'STAFF')
+  @AllowCoOrganizers()
+  @Roles(...CODE_ROLES)
   async getQRCode(@Param('eventId') eventId: string) {
-    const { token, expiresAt } = await this.qrTokenService.getActiveToken(
-      eventId,
-    );
-
-    // Geofence entry is the alternative to scanning; the operator screen needs
-    // to know whether it is configured and how wide the radius is.
-    const event = await this.checkinService.getGeofence(eventId);
-
-    // Attendees scan this, so it must point at the web frontend that serves
-    // /checkin/[token] — not at APP_URL, which is this API's own origin.
-    const webUrl =
-      process.env.WEB_URL || process.env.NEXT_PUBLIC_WEB_URL || 'http://localhost:3000';
-    const qrCodeUrl = `${webUrl}/checkin/${token}`;
-
-    return {
-      token,
-      qrCodeUrl,
-      expiresAt,
-      refreshAt: new Date(Date.now() + 4 * 60 * 1000),
-      venueLat: event?.venueLat ?? null,
-      venueLng: event?.venueLng ?? null,
-      geofenceRadius: event?.geofenceRadius ?? null,
-      geofenceEnabled: !!(event?.venueLat && event?.venueLng),
-    };
+    return this.checkinService.getCheckInCode(eventId);
   }
 
+  /** Generate or rotate the code, and capture the check-in area. */
+  @Post('checkin-code/:eventId')
+  @UseGuards(RolesGuard, CanManageEventGuard)
+  @AllowCoOrganizers()
+  @Roles(...CODE_ROLES)
+  @HttpCode(200)
+  async generateQRCode(
+    @Param('eventId') eventId: string,
+    @Body() dto: GenerateCheckInCodeDto,
+    @CurrentUser() user: any,
+  ) {
+    return this.checkinService.issueCheckInCode(eventId, dto, user);
+  }
+
+  /** Expire every live code, closing check-in. */
+  @Delete('checkin-code/:eventId')
+  @UseGuards(RolesGuard, CanManageEventGuard)
+  @AllowCoOrganizers()
+  @Roles(...CODE_ROLES)
+  @HttpCode(204)
+  async closeCheckIn(
+    @Param('eventId') eventId: string,
+    @CurrentUser() user: any,
+  ) {
+    return this.checkinService.closeCheckIn(eventId, user);
+  }
+
+  /**
+   * What the scanned code can do right now. Public and read-only — the
+   * check-in page calls it before showing anything.
+   */
+  @Get('checkin/:token/context')
+  @UseGuards(CheckInRateLimitGuard)
+  @RateLimit({ perIp: 60, windowSeconds: 60 })
+  async checkInContext(@Param('token') token: string) {
+    return this.checkinService.getCheckInContext(token);
+  }
+
+  /** Check-in by a signed-in member of staff. */
   @Post('checkin/:token')
+  @UseGuards(CheckInRateLimitGuard)
+  @RateLimit({ perIp: 10, perToken: 30, windowSeconds: 60 })
   @HttpCode(200)
   async checkIn(
     @Param('token') token: string,
     @Body() dto: CheckInDto,
-    @Optional() @CurrentUser() user?: any,
+    @Req() req: any,
+    @CurrentUser() user?: any,
   ) {
-    return this.checkinService.checkIn(token, dto, user?.id);
+    if (!user?.id) {
+      throw new UnauthorizedException('Sign in to check in');
+    }
+    return this.checkinService.checkIn(token, dto, user, requestMeta(req));
   }
 
+  /** Check-in by someone without an account. */
+  @Post('checkin/:token/guest')
+  @UseGuards(CheckInRateLimitGuard)
+  @RateLimit({ perIp: 10, perToken: 30, windowSeconds: 60 })
+  @HttpCode(200)
+  async guestCheckIn(
+    @Param('token') token: string,
+    @Body() dto: GuestCheckInDto,
+    @Req() req: any,
+  ) {
+    return this.checkinService.guestCheckIn(token, dto, requestMeta(req));
+  }
+
+  /**
+   * Check someone in at the desk. CanManageEventGuard is what confines this to
+   * the event's own people — the role list alone let any staff member check
+   * anyone into any ministry's event.
+   */
   @Post('checkin/:eventId/manual')
-  @UseGuards(RolesGuard)
-  @Roles('SUPER_ADMIN', 'MINISTRY_ADMIN', 'STAFF')
+  @UseGuards(RolesGuard, CanManageEventGuard)
+  @AllowCoOrganizers()
+  @Roles(...CODE_ROLES)
   @HttpCode(200)
   async manualCheckIn(
     @Param('eventId') eventId: string,
-    @Body() dto: { userId: string; signedName: string; signature: string },
+    @Body() dto: ManualCheckInDto,
     @CurrentUser() user: any,
+    @Req() req: any,
   ) {
     return this.checkinService.manualCheckIn(
       eventId,
-      dto.userId,
-      {
-        signedName: dto.signedName,
-        signature: dto.signature,
-      },
+      dto,
       user.id,
-      user.ministryId,
+      requestMeta(req),
     );
   }
 
@@ -99,14 +163,14 @@ export class CheckinController {
 
   @Get('events/:eventId/attendees/confirmed')
   @UseGuards(RolesGuard)
-  @Roles('SUPER_ADMIN', 'MINISTER', 'MINISTRY_ADMIN', 'STAFF')
+  @Roles(...CODE_ROLES)
   async getConfirmedAttendees(@Param('eventId') eventId: string) {
     return this.rsvpService.getAttendeesByStatus(eventId, 'CONFIRMED');
   }
 
   @Get('events/:eventId/attendees/declined')
   @UseGuards(RolesGuard)
-  @Roles('SUPER_ADMIN', 'MINISTER', 'MINISTRY_ADMIN', 'STAFF')
+  @Roles(...CODE_ROLES)
   async getDeclinedAttendees(@Param('eventId') eventId: string) {
     return this.rsvpService.getAttendeesByStatus(eventId, 'DECLINED');
   }
@@ -117,7 +181,7 @@ export class CheckinController {
    */
   @Get('events/:eventId/checkins')
   @UseGuards(RolesGuard)
-  @Roles('SUPER_ADMIN', 'MINISTER', 'MINISTRY_ADMIN', 'STAFF')
+  @Roles(...CODE_ROLES)
   async getCheckIns(@Param('eventId') eventId: string) {
     return this.checkinService.listCheckIns(eventId);
   }

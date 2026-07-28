@@ -14,6 +14,10 @@ async function bootstrap() {
 
   app.use(helmet());
 
+  // nginx terminates TLS and forwards X-Forwarded-For; without this req.ip is
+  // the proxy, and the IP recorded against every check-in would be useless.
+  app.getHttpAdapter().getInstance().set('trust proxy', 1);
+
   app.enableVersioning({
     type: VersioningType.URI,
   });

@@ -78,6 +78,14 @@ export class CreateEventDto {
   @IsNumber()
   geofenceRadius?: number;
 
+  /**
+   * Whether people without an account may check in with name, email and
+   * signature. Defaults to true at the database level.
+   */
+  @IsOptional()
+  @IsBoolean()
+  allowGuestCheckIn?: boolean;
+
   @IsOptional()
   @IsString()
   roomId?: string;
