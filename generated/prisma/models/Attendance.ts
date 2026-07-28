@@ -259,7 +259,7 @@ export type AttendanceGroupByOutputType = {
   guestEmail: string | null
   isWalkIn: boolean
   signedName: string
-  signature: string
+  signature: string | null
   checkInAt: Date
   checkInMethod: $Enums.CheckInMethod
   lat: string | null
@@ -302,7 +302,7 @@ export type AttendanceWhereInput = {
   guestEmail?: Prisma.StringNullableFilter<"Attendance"> | string | null
   isWalkIn?: Prisma.BoolFilter<"Attendance"> | boolean
   signedName?: Prisma.StringFilter<"Attendance"> | string
-  signature?: Prisma.StringFilter<"Attendance"> | string
+  signature?: Prisma.StringNullableFilter<"Attendance"> | string | null
   checkInAt?: Prisma.DateTimeFilter<"Attendance"> | Date | string
   checkInMethod?: Prisma.EnumCheckInMethodFilter<"Attendance"> | $Enums.CheckInMethod
   lat?: Prisma.StringNullableFilter<"Attendance"> | string | null
@@ -324,7 +324,7 @@ export type AttendanceOrderByWithRelationInput = {
   guestEmail?: Prisma.SortOrderInput | Prisma.SortOrder
   isWalkIn?: Prisma.SortOrder
   signedName?: Prisma.SortOrder
-  signature?: Prisma.SortOrder
+  signature?: Prisma.SortOrderInput | Prisma.SortOrder
   checkInAt?: Prisma.SortOrder
   checkInMethod?: Prisma.SortOrder
   lat?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -351,7 +351,7 @@ export type AttendanceWhereUniqueInput = Prisma.AtLeast<{
   guestEmail?: Prisma.StringNullableFilter<"Attendance"> | string | null
   isWalkIn?: Prisma.BoolFilter<"Attendance"> | boolean
   signedName?: Prisma.StringFilter<"Attendance"> | string
-  signature?: Prisma.StringFilter<"Attendance"> | string
+  signature?: Prisma.StringNullableFilter<"Attendance"> | string | null
   checkInAt?: Prisma.DateTimeFilter<"Attendance"> | Date | string
   checkInMethod?: Prisma.EnumCheckInMethodFilter<"Attendance"> | $Enums.CheckInMethod
   lat?: Prisma.StringNullableFilter<"Attendance"> | string | null
@@ -373,7 +373,7 @@ export type AttendanceOrderByWithAggregationInput = {
   guestEmail?: Prisma.SortOrderInput | Prisma.SortOrder
   isWalkIn?: Prisma.SortOrder
   signedName?: Prisma.SortOrder
-  signature?: Prisma.SortOrder
+  signature?: Prisma.SortOrderInput | Prisma.SortOrder
   checkInAt?: Prisma.SortOrder
   checkInMethod?: Prisma.SortOrder
   lat?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -401,7 +401,7 @@ export type AttendanceScalarWhereWithAggregatesInput = {
   guestEmail?: Prisma.StringNullableWithAggregatesFilter<"Attendance"> | string | null
   isWalkIn?: Prisma.BoolWithAggregatesFilter<"Attendance"> | boolean
   signedName?: Prisma.StringWithAggregatesFilter<"Attendance"> | string
-  signature?: Prisma.StringWithAggregatesFilter<"Attendance"> | string
+  signature?: Prisma.StringNullableWithAggregatesFilter<"Attendance"> | string | null
   checkInAt?: Prisma.DateTimeWithAggregatesFilter<"Attendance"> | Date | string
   checkInMethod?: Prisma.EnumCheckInMethodWithAggregatesFilter<"Attendance"> | $Enums.CheckInMethod
   lat?: Prisma.StringNullableWithAggregatesFilter<"Attendance"> | string | null
@@ -419,7 +419,7 @@ export type AttendanceCreateInput = {
   guestEmail?: string | null
   isWalkIn?: boolean
   signedName: string
-  signature: string
+  signature?: string | null
   checkInAt?: Date | string
   checkInMethod: $Enums.CheckInMethod
   lat?: string | null
@@ -441,7 +441,7 @@ export type AttendanceUncheckedCreateInput = {
   guestEmail?: string | null
   isWalkIn?: boolean
   signedName: string
-  signature: string
+  signature?: string | null
   checkInAt?: Date | string
   checkInMethod: $Enums.CheckInMethod
   lat?: string | null
@@ -459,7 +459,7 @@ export type AttendanceUpdateInput = {
   guestEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isWalkIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
   signedName?: Prisma.StringFieldUpdateOperationsInput | string
-  signature?: Prisma.StringFieldUpdateOperationsInput | string
+  signature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checkInAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   checkInMethod?: Prisma.EnumCheckInMethodFieldUpdateOperationsInput | $Enums.CheckInMethod
   lat?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -481,7 +481,7 @@ export type AttendanceUncheckedUpdateInput = {
   guestEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isWalkIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
   signedName?: Prisma.StringFieldUpdateOperationsInput | string
-  signature?: Prisma.StringFieldUpdateOperationsInput | string
+  signature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checkInAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   checkInMethod?: Prisma.EnumCheckInMethodFieldUpdateOperationsInput | $Enums.CheckInMethod
   lat?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -501,7 +501,7 @@ export type AttendanceCreateManyInput = {
   guestEmail?: string | null
   isWalkIn?: boolean
   signedName: string
-  signature: string
+  signature?: string | null
   checkInAt?: Date | string
   checkInMethod: $Enums.CheckInMethod
   lat?: string | null
@@ -519,7 +519,7 @@ export type AttendanceUpdateManyMutationInput = {
   guestEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isWalkIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
   signedName?: Prisma.StringFieldUpdateOperationsInput | string
-  signature?: Prisma.StringFieldUpdateOperationsInput | string
+  signature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checkInAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   checkInMethod?: Prisma.EnumCheckInMethodFieldUpdateOperationsInput | $Enums.CheckInMethod
   lat?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -539,7 +539,7 @@ export type AttendanceUncheckedUpdateManyInput = {
   guestEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isWalkIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
   signedName?: Prisma.StringFieldUpdateOperationsInput | string
-  signature?: Prisma.StringFieldUpdateOperationsInput | string
+  signature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checkInAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   checkInMethod?: Prisma.EnumCheckInMethodFieldUpdateOperationsInput | $Enums.CheckInMethod
   lat?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -737,7 +737,7 @@ export type AttendanceCreateWithoutUserInput = {
   guestEmail?: string | null
   isWalkIn?: boolean
   signedName: string
-  signature: string
+  signature?: string | null
   checkInAt?: Date | string
   checkInMethod: $Enums.CheckInMethod
   lat?: string | null
@@ -757,7 +757,7 @@ export type AttendanceUncheckedCreateWithoutUserInput = {
   guestEmail?: string | null
   isWalkIn?: boolean
   signedName: string
-  signature: string
+  signature?: string | null
   checkInAt?: Date | string
   checkInMethod: $Enums.CheckInMethod
   lat?: string | null
@@ -806,7 +806,7 @@ export type AttendanceScalarWhereInput = {
   guestEmail?: Prisma.StringNullableFilter<"Attendance"> | string | null
   isWalkIn?: Prisma.BoolFilter<"Attendance"> | boolean
   signedName?: Prisma.StringFilter<"Attendance"> | string
-  signature?: Prisma.StringFilter<"Attendance"> | string
+  signature?: Prisma.StringNullableFilter<"Attendance"> | string | null
   checkInAt?: Prisma.DateTimeFilter<"Attendance"> | Date | string
   checkInMethod?: Prisma.EnumCheckInMethodFilter<"Attendance"> | $Enums.CheckInMethod
   lat?: Prisma.StringNullableFilter<"Attendance"> | string | null
@@ -824,7 +824,7 @@ export type AttendanceCreateWithoutEventInput = {
   guestEmail?: string | null
   isWalkIn?: boolean
   signedName: string
-  signature: string
+  signature?: string | null
   checkInAt?: Date | string
   checkInMethod: $Enums.CheckInMethod
   lat?: string | null
@@ -844,7 +844,7 @@ export type AttendanceUncheckedCreateWithoutEventInput = {
   guestEmail?: string | null
   isWalkIn?: boolean
   signedName: string
-  signature: string
+  signature?: string | null
   checkInAt?: Date | string
   checkInMethod: $Enums.CheckInMethod
   lat?: string | null
@@ -889,7 +889,7 @@ export type AttendanceCreateManyUserInput = {
   guestEmail?: string | null
   isWalkIn?: boolean
   signedName: string
-  signature: string
+  signature?: string | null
   checkInAt?: Date | string
   checkInMethod: $Enums.CheckInMethod
   lat?: string | null
@@ -907,7 +907,7 @@ export type AttendanceUpdateWithoutUserInput = {
   guestEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isWalkIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
   signedName?: Prisma.StringFieldUpdateOperationsInput | string
-  signature?: Prisma.StringFieldUpdateOperationsInput | string
+  signature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checkInAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   checkInMethod?: Prisma.EnumCheckInMethodFieldUpdateOperationsInput | $Enums.CheckInMethod
   lat?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -927,7 +927,7 @@ export type AttendanceUncheckedUpdateWithoutUserInput = {
   guestEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isWalkIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
   signedName?: Prisma.StringFieldUpdateOperationsInput | string
-  signature?: Prisma.StringFieldUpdateOperationsInput | string
+  signature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checkInAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   checkInMethod?: Prisma.EnumCheckInMethodFieldUpdateOperationsInput | $Enums.CheckInMethod
   lat?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -946,7 +946,7 @@ export type AttendanceUncheckedUpdateManyWithoutUserInput = {
   guestEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isWalkIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
   signedName?: Prisma.StringFieldUpdateOperationsInput | string
-  signature?: Prisma.StringFieldUpdateOperationsInput | string
+  signature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checkInAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   checkInMethod?: Prisma.EnumCheckInMethodFieldUpdateOperationsInput | $Enums.CheckInMethod
   lat?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -965,7 +965,7 @@ export type AttendanceCreateManyEventInput = {
   guestEmail?: string | null
   isWalkIn?: boolean
   signedName: string
-  signature: string
+  signature?: string | null
   checkInAt?: Date | string
   checkInMethod: $Enums.CheckInMethod
   lat?: string | null
@@ -983,7 +983,7 @@ export type AttendanceUpdateWithoutEventInput = {
   guestEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isWalkIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
   signedName?: Prisma.StringFieldUpdateOperationsInput | string
-  signature?: Prisma.StringFieldUpdateOperationsInput | string
+  signature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checkInAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   checkInMethod?: Prisma.EnumCheckInMethodFieldUpdateOperationsInput | $Enums.CheckInMethod
   lat?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1003,7 +1003,7 @@ export type AttendanceUncheckedUpdateWithoutEventInput = {
   guestEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isWalkIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
   signedName?: Prisma.StringFieldUpdateOperationsInput | string
-  signature?: Prisma.StringFieldUpdateOperationsInput | string
+  signature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checkInAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   checkInMethod?: Prisma.EnumCheckInMethodFieldUpdateOperationsInput | $Enums.CheckInMethod
   lat?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1022,7 +1022,7 @@ export type AttendanceUncheckedUpdateManyWithoutEventInput = {
   guestEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isWalkIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
   signedName?: Prisma.StringFieldUpdateOperationsInput | string
-  signature?: Prisma.StringFieldUpdateOperationsInput | string
+  signature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checkInAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   checkInMethod?: Prisma.EnumCheckInMethodFieldUpdateOperationsInput | $Enums.CheckInMethod
   lat?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1150,7 +1150,7 @@ export type $AttendancePayload<ExtArgs extends runtime.Types.Extensions.Internal
     guestEmail: string | null
     isWalkIn: boolean
     signedName: string
-    signature: string
+    signature: string | null
     checkInAt: Date
     checkInMethod: $Enums.CheckInMethod
     lat: string | null
