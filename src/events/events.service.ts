@@ -178,6 +178,7 @@ export class EventsService {
     });
 
     await this.cache.invalidatePattern(`events:*${targetMinistryId}*`);
+    await this.cache.invalidateAnalytics();
 
     // Re-read so co-organizers are present on the response the client uses to
     // redirect to the new event.
@@ -451,6 +452,7 @@ export class EventsService {
     });
 
     await this.cache.invalidatePattern(`events:*${ministryId}*`);
+    await this.cache.invalidateAnalytics();
 
     return updated;
   }
@@ -488,6 +490,7 @@ export class EventsService {
     });
 
     await this.cache.invalidatePattern(`events:*${ministryId}*`);
+    await this.cache.invalidateAnalytics();
   }
 
   async publishEvent(
@@ -526,6 +529,7 @@ export class EventsService {
     });
 
     await this.cache.invalidatePattern(`events:*${ministryId}*`);
+    await this.cache.invalidateAnalytics();
 
     return updated;
   }
@@ -569,6 +573,7 @@ export class EventsService {
     });
 
     await this.cache.invalidatePattern(`events:*${ministryId}*`);
+    await this.cache.invalidateAnalytics();
 
     return updated;
   }
@@ -712,6 +717,7 @@ export class EventsService {
     });
 
     await this.cache.invalidatePattern(`events:*${ministryId}*`);
+    await this.cache.invalidateAnalytics();
 
     return (this.prisma as any).eventAttendee.findMany({
       where: { eventId },
@@ -805,5 +811,6 @@ export class EventsService {
     });
 
     await this.cache.invalidatePattern(`events:*${ministryId}*`);
+    await this.cache.invalidateAnalytics();
   }
 }

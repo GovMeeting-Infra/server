@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
+import { CacheService } from '../cache/cache.service';
 import { CreateRoomDto } from './dto/create-room.dto';
 import { UpdateRoomDto } from './dto/update-room.dto';
 import { ministryScope, assertSameMinistry } from '../common/utils/ministry-scope.util';
@@ -18,6 +19,7 @@ export class RoomsService {
   constructor(
     private prisma: PrismaService,
     private audit: AuditService,
+    private cache: CacheService,
   ) {}
 
   async createRoom(
@@ -40,6 +42,43 @@ export class RoomsService {
       if (!ministry) {
         throw new NotFoundException(`Ministry ${dto.ministryId} not found`);
       }
+    }
+
+    // Removing a room only sets active: false, but the (ministryId, name)
+    // unique index still holds the name. Without this, re-adding a removed
+    // room fails with "already exists" while the room is nowhere on the page —
+    // a dead end with no way out from the UI. Reactivate it instead.
+    const removed = await (this.prisma as any).room.findFirst({
+      where: { ministryId: targetMinistryId, name: dto.name, active: false },
+    });
+
+    if (removed) {
+      const revived = await (this.prisma as any).room.update({
+        where: { id: removed.id },
+        data: {
+          active: true,
+          location: dto.location,
+          capacity: dto.capacity,
+          amenities: dto.amenities || [],
+          latitude: dto.latitude,
+          longitude: dto.longitude,
+        },
+      });
+
+      await this.audit.log({
+        action: 'ROOM_REACTIVATED',
+        actionCategory: 'ROOM_MANAGEMENT',
+        entityType: 'Room',
+        entityId: revived.id,
+        entityName: revived.name,
+        status: 'SUCCESS',
+        ministryId: targetMinistryId,
+        actorId: userId,
+        description: `Reactivated previously removed room: ${revived.name}`,
+      });
+
+      await this.cache.invalidateAnalytics();
+      return revived;
     }
 
     try {
@@ -66,6 +105,8 @@ export class RoomsService {
         actorId: userId,
         description: `Created room: ${room.name}`,
       });
+
+      await this.cache.invalidateAnalytics();
 
       return room;
     } catch (error: any) {
@@ -196,6 +237,8 @@ export class RoomsService {
       changes: dto as unknown as Record<string, unknown>,
     });
 
+    await this.cache.invalidateAnalytics();
+
     return updated;
   }
 
@@ -234,6 +277,8 @@ export class RoomsService {
       actorId: userId,
       description: `Deactivated room: ${room.name}`,
     });
+
+    await this.cache.invalidateAnalytics();
 
     return updated;
   }

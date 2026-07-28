@@ -25,7 +25,7 @@ export class ReportsController {
   @Get('analytics')
   @Roles('MINISTRY_ADMIN', 'MINISTER', 'SUPER_ADMIN')
   async getAnalyticsDashboard(@CurrentUser() user: any) {
-    return this.reportsService.getAnalyticsDashboard(user.ministryId);
+    return this.reportsService.getAnalyticsDashboard(user);
   }
 
   @Get('export/events')

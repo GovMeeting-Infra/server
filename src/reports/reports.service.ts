@@ -6,8 +6,12 @@ import {
   AttendanceStatsDto,
   RoomStatsDto,
   UserStatsDto,
+  ActionItemStatsDto,
+  CheckInMethodsDto,
+  EventsOverTimeDto,
   AnalyticsDashboardDto
 } from './dto/analytics.dto';
+import { ministryScope } from '../common/utils/ministry-scope.util';
 
 @Injectable()
 export class ReportsService {
@@ -18,37 +22,152 @@ export class ReportsService {
     private cache: CacheService,
   ) {}
 
-  async getAnalyticsDashboard(ministryId: string): Promise<AnalyticsDashboardDto> {
-    const cacheKey = `reports:analytics:${ministryId}`;
-    let data = await this.cache.get(cacheKey);
+  async getAnalyticsDashboard(user: {
+    systemRole: string;
+    ministryId?: string;
+  }): Promise<AnalyticsDashboardDto> {
+    const scope = ministryScope(user);
+    const isAllMinistries = Object.keys(scope).length === 0;
 
-    if (data) {
-      return data as AnalyticsDashboardDto;
+    // The key must describe the data, not the caller. Keying on the actor's
+    // ministry alone would let a super-admin's cross-ministry figures and a
+    // ministry admin's own figures collide on one entry and serve each other.
+    const cacheKey = `reports:analytics:${isAllMinistries ? 'all' : user.ministryId}`;
+    const cached = await this.cache.get(cacheKey);
+
+    if (cached) {
+      return cached as AnalyticsDashboardDto;
     }
 
-    data = {
-      eventStats: await this.getEventStats(ministryId),
-      attendanceStats: await this.getAttendanceStats(ministryId),
-      roomStats: await this.getRoomStats(ministryId),
-      userStats: await this.getUserStats(ministryId),
+    const [
+      eventStats,
+      attendanceStats,
+      roomStats,
+      userStats,
+      actionItemStats,
+      checkInMethods,
+      eventsOverTime,
+    ] = await Promise.all([
+      this.getEventStats(scope),
+      this.getAttendanceStats(scope),
+      this.getRoomStats(scope),
+      this.getUserStats(scope),
+      this.getActionItemStats(scope),
+      this.getCheckInMethods(scope),
+      this.getEventsOverTime(scope),
+    ]);
+
+    const data: AnalyticsDashboardDto = {
+      eventStats,
+      attendanceStats,
+      roomStats,
+      userStats,
+      actionItemStats,
+      checkInMethods,
+      eventsOverTime,
+      scope: isAllMinistries ? 'all' : 'ministry',
       generatedAt: new Date(),
     };
 
     await this.cache.set(cacheKey, data, 3600);
-    return data as AnalyticsDashboardDto;
+    return data;
   }
 
-  private async getEventStats(ministryId: string): Promise<EventStatsDto> {
+  /** Completed / in-progress / overdue, scoped via the item's source event. */
+  private async getActionItemStats(
+    scope: Record<string, unknown>,
+  ): Promise<ActionItemStatsDto> {
+    // Action items carry no ministry of their own; they inherit it from the
+    // event their minutes belong to.
+    const where = { minutes: { event: scope } };
+    const now = new Date();
+
+    const [total, completed, inProgress, todo, overdue] = await Promise.all([
+      (this.prisma as any).actionItem.count({ where }),
+      (this.prisma as any).actionItem.count({
+        where: { ...where, status: 'COMPLETED' },
+      }),
+      (this.prisma as any).actionItem.count({
+        where: { ...where, status: 'IN_PROGRESS' },
+      }),
+      (this.prisma as any).actionItem.count({
+        where: { ...where, status: { in: ['TODO', 'BLOCKED'] } },
+      }),
+      (this.prisma as any).actionItem.count({
+        where: {
+          ...where,
+          dueDate: { lt: now },
+          status: { notIn: ['COMPLETED', 'CANCELLED'] },
+        },
+      }),
+    ]);
+
+    return { total, completed, inProgress, todo, overdue };
+  }
+
+  /** QR vs manual vs geofence, aggregated from the stored checkInMethod. */
+  private async getCheckInMethods(
+    scope: Record<string, unknown>,
+  ): Promise<CheckInMethodsDto> {
+    const grouped = await (this.prisma as any).attendance.groupBy({
+      by: ['checkInMethod'],
+      where: { event: scope },
+      _count: { _all: true },
+    });
+
+    const counts = new Map<string, number>(
+      grouped.map((g: any) => [g.checkInMethod, g._count._all]),
+    );
+
+    const qr = counts.get('QR') ?? 0;
+    const manual = counts.get('MANUAL') ?? 0;
+    const geo = counts.get('GEO') ?? 0;
+
+    return { qr, manual, geo, total: qr + manual + geo };
+  }
+
+  /** Events created per month over the last 12 months, oldest first. */
+  private async getEventsOverTime(
+    scope: Record<string, unknown>,
+  ): Promise<EventsOverTimeDto[]> {
+    const now = new Date();
+    const start = new Date(now.getFullYear(), now.getMonth() - 11, 1);
+
+    const events = await (this.prisma as any).event.findMany({
+      where: { ...scope, createdAt: { gte: start } },
+      select: { createdAt: true },
+    });
+
+    // Seed every month so gaps render as zero rather than disappearing.
+    const buckets = new Map<string, number>();
+    for (let i = 0; i < 12; i++) {
+      const d = new Date(start.getFullYear(), start.getMonth() + i, 1);
+      buckets.set(
+        `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`,
+        0,
+      );
+    }
+
+    for (const e of events) {
+      const d = new Date(e.createdAt);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      if (buckets.has(key)) buckets.set(key, (buckets.get(key) ?? 0) + 1);
+    }
+
+    return [...buckets.entries()].map(([month, count]) => ({ month, count }));
+  }
+
+  private async getEventStats(scope: Record<string, unknown>): Promise<EventStatsDto> {
     const now = new Date();
     const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
     const [total, upcoming, past, byType] = await Promise.all([
-      (this.prisma as any).event.count({ where: { ministryId } }),
-      (this.prisma as any).event.count({ where: { ministryId, startAt: { gt: now } } }),
-      (this.prisma as any).event.count({ where: { ministryId, endAt: { lt: now } } }),
+      (this.prisma as any).event.count({ where: { ...scope } }),
+      (this.prisma as any).event.count({ where: { ...scope, startAt: { gt: now } } }),
+      (this.prisma as any).event.count({ where: { ...scope, endAt: { lt: now } } }),
       (this.prisma as any).event.groupBy({
         by: ['type'],
-        where: { ministryId, createdAt: { gte: thirtyDaysAgo } },
+        where: { ...scope, createdAt: { gte: thirtyDaysAgo } },
         _count: true,
       }),
     ]);
@@ -64,25 +183,19 @@ export class ReportsService {
     };
   }
 
-  private async getAttendanceStats(ministryId: string): Promise<AttendanceStatsDto> {
-    const events = await (this.prisma as any).event.findMany({
-      where: { ministryId },
-      include: {
-        _count: { select: { attendees: true, attendances: true } }
-      },
-      take: 50,
-    });
+  private async getAttendanceStats(scope: Record<string, unknown>): Promise<AttendanceStatsDto> {
+    // This previously read an arbitrary 50 events (take: 50, no orderBy), so
+    // the headline rate was computed over a truncated slice. Count across all
+    // in-scope records instead.
+    const [totalCheckIns, totalInvited] = await Promise.all([
+      (this.prisma as any).attendance.count({ where: { event: scope } }),
+      (this.prisma as any).eventAttendee.count({ where: { event: scope } }),
+    ]);
 
-    const totalCheckIns = events.reduce((sum: number, e: any) => sum + e._count.attendances, 0);
-
-    let attendanceRate = 0;
-    if (events.length > 0) {
-      const sumRates = events.reduce((sum: number, e: any) => {
-        if (e._count.attendees === 0) return sum;
-        return sum + (e._count.attendances / e._count.attendees);
-      }, 0);
-      attendanceRate = sumRates / events.length;
-    }
+    // Overall rate: check-ins against invitations, rather than an unweighted
+    // mean of per-event rates where a 1-person event counts as much as a 500.
+    const attendanceRate =
+      totalInvited > 0 ? totalCheckIns / totalInvited : 0;
 
     return {
       totalCheckIns,
@@ -90,22 +203,22 @@ export class ReportsService {
     };
   }
 
-  private async getRoomStats(ministryId: string): Promise<RoomStatsDto> {
+  private async getRoomStats(scope: Record<string, unknown>): Promise<RoomStatsDto> {
     const now = new Date();
     const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
     const [totalRooms, activeRooms, bookingsThisMonth, allRoomBookings] = await Promise.all([
-      (this.prisma as any).room.count({ where: { ministryId } }),
-      (this.prisma as any).room.count({ where: { ministryId, active: true } }),
+      (this.prisma as any).room.count({ where: { ...scope } }),
+      (this.prisma as any).room.count({ where: { ...scope, active: true } }),
       (this.prisma as any).roomBooking.count({
         where: {
-          ministryId,
+          ...scope,
           createdAt: { gte: monthAgo },
           status: 'CONFIRMED',
         },
       }),
       (this.prisma as any).roomBooking.findMany({
-        where: { ministryId, status: 'CONFIRMED' },
+        where: { ...scope, status: 'CONFIRMED' },
         select: { startTime: true, endTime: true },
       }),
     ]);
@@ -129,26 +242,26 @@ export class ReportsService {
     };
   }
 
-  private async getUserStats(ministryId: string): Promise<UserStatsDto> {
+  private async getUserStats(scope: Record<string, unknown>): Promise<UserStatsDto> {
     const now = new Date();
     const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
     const [totalUsers, activeUsers, usersByRole, userLoginData] = await Promise.all([
-      (this.prisma as any).user.count({ where: { ministryId } }),
+      (this.prisma as any).user.count({ where: { ...scope } }),
       (this.prisma as any).user.count({
         where: {
-          ministryId,
+          ...scope,
           active: true,
           lastLoginAt: { gte: thirtyDaysAgo },
         },
       }),
       (this.prisma as any).user.groupBy({
         by: ['systemRole'],
-        where: { ministryId },
+        where: { ...scope },
         _count: true,
       }),
       (this.prisma as any).user.findMany({
-        where: { ministryId, lastLoginAt: { not: null } },
+        where: { ...scope, lastLoginAt: { not: null } },
         select: { lastLoginAt: true },
       }),
     ]);

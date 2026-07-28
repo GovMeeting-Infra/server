@@ -2,12 +2,15 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  ForbiddenException,
   Logger,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
+import { CacheService } from '../cache/cache.service';
 import { CreateActionItemDto } from './dto/create-action-item.dto';
 import { UpdateActionItemDto, ActionItemStatusEnum } from './dto/update-action-item.dto';
+import { ministryScope, assertSameMinistry } from '../common/utils/ministry-scope.util';
 
 @Injectable()
 export class ActionItemsService {
@@ -16,6 +19,7 @@ export class ActionItemsService {
   constructor(
     private prisma: PrismaService,
     private audit: AuditService,
+    private cache: CacheService,
   ) {}
 
   async createActionItem(
@@ -81,14 +85,24 @@ export class ActionItemsService {
       description: `Created action item: ${actionItem.title} for minutes of event: ${minutes.event.title}`,
     });
 
+    await this.cache.invalidateAnalytics();
+
     return actionItem;
   }
+
+  /** Roles that may move any action item within their ministry. */
+  private static readonly ADMIN_ROLES = [
+    'SUPER_ADMIN',
+    'MINISTER',
+    'MINISTRY_ADMIN',
+  ];
 
   async updateStatus(
     actionItemId: string,
     dto: UpdateActionItemDto,
     userId: string,
     ministryId: string,
+    systemRole?: string,
   ) {
     const actionItem = await (this.prisma as any).actionItem.findUnique({
       where: { id: actionItemId },
@@ -101,6 +115,23 @@ export class ActionItemsService {
 
     if (!actionItem) {
       throw new NotFoundException('Action item not found');
+    }
+
+    // This method previously performed no authorization at all: any signed-in
+    // user could edit any action item by id, across ministries. The owning
+    // ministry comes from the item's source event.
+    assertSameMinistry(
+      { systemRole: systemRole ?? '', ministryId },
+      actionItem.minutes.event.ministryId,
+    );
+
+    const isOwner = actionItem.ownerId === userId;
+    const isAdmin = ActionItemsService.ADMIN_ROLES.includes(systemRole ?? '');
+
+    if (!isOwner && !isAdmin) {
+      throw new ForbiddenException(
+        'Only the assigned owner or a ministry admin can change this action item',
+      );
     }
 
     const updateData: any = {};
@@ -136,6 +167,8 @@ export class ActionItemsService {
       changes: dto as unknown as Record<string, unknown>,
     });
 
+    await this.cache.invalidateAnalytics();
+
     return updated;
   }
 
@@ -169,6 +202,38 @@ export class ActionItemsService {
       include: {
         owner: { select: { id: true, name: true, email: true } },
         assignedBy: { select: { id: true, name: true, email: true } },
+      },
+      orderBy: [{ status: 'asc' }, { dueDate: 'asc' }],
+    });
+  }
+
+  /**
+   * Every action item across the actor's ministry, with its source event.
+   * Until now action items were only reachable per-event, so nothing could
+   * render a cross-event task board.
+   */
+  async listForMinistry(
+    user: { id: string; systemRole: string; ministryId?: string },
+    ownerId?: string,
+  ) {
+    const scope = ministryScope(user);
+
+    return await (this.prisma as any).actionItem.findMany({
+      where: {
+        // Action items have no ministry of their own; they inherit it from the
+        // event their minutes belong to.
+        minutes: { event: scope },
+        ...(ownerId && { ownerId }),
+      },
+      include: {
+        owner: { select: { id: true, name: true, email: true } },
+        assignedBy: { select: { id: true, name: true, email: true } },
+        minutes: {
+          select: {
+            id: true,
+            event: { select: { id: true, title: true, ministryId: true } },
+          },
+        },
       },
       orderBy: [{ status: 'asc' }, { dueDate: 'asc' }],
     });

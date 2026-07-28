@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
+import { CacheService } from '../cache/cache.service';
 import { BookRoomDto } from './dto/book-room.dto';
 import { UpdateBookingDto } from './dto/update-booking.dto';
 import { assertSameMinistry } from '../common/utils/ministry-scope.util';
@@ -18,6 +19,7 @@ export class BookingsService {
   constructor(
     private prisma: PrismaService,
     private audit: AuditService,
+    private cache: CacheService,
   ) {}
 
   async bookRoom(
@@ -130,6 +132,8 @@ export class BookingsService {
       actorId: userId,
       description: `Booked room: ${room.name} from ${startTime.toISOString()} to ${endTime.toISOString()}`,
     });
+
+    await this.cache.invalidateAnalytics();
 
     return booking;
   }
@@ -328,6 +332,8 @@ export class BookingsService {
       changes: dto as unknown as Record<string, unknown>,
     });
 
+    await this.cache.invalidateAnalytics();
+
     return updated;
   }
 
@@ -373,6 +379,8 @@ export class BookingsService {
       actorId: userId,
       description: `Cancelled booking ${bookingId}`,
     });
+
+    await this.cache.invalidateAnalytics();
 
     return updated;
   }

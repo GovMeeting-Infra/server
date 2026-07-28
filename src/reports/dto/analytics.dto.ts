@@ -24,10 +24,37 @@ export class UserStatsDto {
   averageLoginFrequency: number;
 }
 
+export class ActionItemStatsDto {
+  total: number;
+  completed: number;
+  inProgress: number;
+  todo: number;
+  /** Past their due date and not yet completed or cancelled. */
+  overdue: number;
+}
+
+export class CheckInMethodsDto {
+  qr: number;
+  manual: number;
+  geo: number;
+  total: number;
+}
+
+export class EventsOverTimeDto {
+  /** YYYY-MM, oldest first. */
+  month: string;
+  count: number;
+}
+
 export class AnalyticsDashboardDto {
   eventStats: EventStatsDto;
   attendanceStats: AttendanceStatsDto;
   roomStats: RoomStatsDto;
   userStats: UserStatsDto;
+  actionItemStats: ActionItemStatsDto;
+  checkInMethods: CheckInMethodsDto;
+  eventsOverTime: EventsOverTimeDto[];
+  /** "All ministries" for super-admins, otherwise the ministry's own scope. */
+  scope: 'ministry' | 'all';
   generatedAt: Date;
 }
