@@ -28,9 +28,12 @@ export class UsersService {
     private invites: InvitesService,
   ) {}
 
-
   /** Roles that may administer other users. */
-  private static readonly ADMIN_ROLES = ['SUPER_ADMIN', 'MINISTRY_ADMIN', 'MINISTER'];
+  private static readonly ADMIN_ROLES = [
+    'SUPER_ADMIN',
+    'MINISTRY_ADMIN',
+    'MINISTER',
+  ];
 
   /**
    * Authorizes acting on another user.
@@ -277,7 +280,7 @@ export class UsersService {
       ministryId: actorMinistryId || 'SYSTEM',
       actorId,
       description: `Updated user details: ${updated.email}`,
-      changes: dto as Record<string, unknown>,
+      changes: dto,
     });
 
     return updated;

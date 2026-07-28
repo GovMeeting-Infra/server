@@ -50,7 +50,7 @@ export class QRTokenService {
 
     if (!opts.force) {
       const cutoff = new Date(Date.now() + REUSE_MIN_REMAINING_MS);
-      const existing = await (db as any).qRToken.findFirst({
+      const existing = await db.qRToken.findFirst({
         where: { eventId, expiresAt: { gt: cutoff } },
         orderBy: { expiresAt: 'desc' },
       });
@@ -70,7 +70,7 @@ export class QRTokenService {
     const token = randomBytes(24).toString('base64url');
     const expiresAt = new Date(Date.now() + TOKEN_TTL_MS);
 
-    const qrToken = await (db as any).qRToken.create({
+    const qrToken = await db.qRToken.create({
       data: { eventId, token, expiresAt, rotatedAt: new Date() },
     });
 

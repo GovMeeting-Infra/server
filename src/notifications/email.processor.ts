@@ -138,9 +138,7 @@ export class EmailProcessor extends WorkerHost {
       // The reminder is already marked sent by the cron before this runs, so
       // failing the job would retry an email the scheduler will not re-queue.
       // Report the outcome instead and let the logged error be the signal.
-      return result.sent
-        ? { sent: 1 }
-        : { sent: 0, error: result.error };
+      return result.sent ? { sent: 1 } : { sent: 0, error: result.error };
     } catch (error) {
       this.logger.error('Error sending action item reminder', error);
       throw error;
@@ -188,9 +186,7 @@ export class EmailProcessor extends WorkerHost {
         }),
       );
 
-      return result.sent
-        ? { sent: 1 }
-        : { sent: 0, error: result.error };
+      return result.sent ? { sent: 1 } : { sent: 0, error: result.error };
     } catch (error) {
       this.logger.error('Error sending meeting reminder', error);
       throw error;
@@ -227,10 +223,7 @@ export class EmailProcessor extends WorkerHost {
             );
             sentCount++;
           } catch (error) {
-            this.logger.error(
-              `Failed to notify ${attendee.user.email}`,
-              error,
-            );
+            this.logger.error(`Failed to notify ${attendee.user.email}`, error);
           }
         }
       }

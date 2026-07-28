@@ -23,11 +23,7 @@ import {
 
 /** Why a token cannot currently be used, or OPEN when it can. */
 export type CheckInStatus =
-  | 'INVALID'
-  | 'EXPIRED'
-  | 'UNAVAILABLE'
-  | 'ENDED'
-  | 'OPEN';
+  'INVALID' | 'EXPIRED' | 'UNAVAILABLE' | 'ENDED' | 'OPEN';
 
 interface RequestMeta {
   ipAddress?: string;
@@ -143,32 +139,32 @@ export class CheckinService {
     // Not capturing: incoming coordinates are ignored entirely, so a rotating
     // token can never drag the fence along with the organizer.
 
-    const { token, expiresAt, updated } = await (this.prisma as any).$transaction(
-      async (tx: any) => {
-        let updated = event;
-        if (anchorData) {
-          updated = await tx.event.update({
-            where: { id: eventId },
-            data: anchorData,
-            select: {
-              id: true,
-              title: true,
-              status: true,
-              endAt: true,
-              ministryId: true,
-              allowGuestCheckIn: true,
-              ...ANCHOR_FIELDS,
-            },
-          });
-        }
-        const minted = await this.qrToken.ensureActiveToken(
-          eventId,
-          { force: dto.rotate === true },
-          tx,
-        );
-        return { ...minted, updated };
-      },
-    );
+    const { token, expiresAt, updated } = await (
+      this.prisma as any
+    ).$transaction(async (tx: any) => {
+      let updated = event;
+      if (anchorData) {
+        updated = await tx.event.update({
+          where: { id: eventId },
+          data: anchorData,
+          select: {
+            id: true,
+            title: true,
+            status: true,
+            endAt: true,
+            ministryId: true,
+            allowGuestCheckIn: true,
+            ...ANCHOR_FIELDS,
+          },
+        });
+      }
+      const minted = await this.qrToken.ensureActiveToken(
+        eventId,
+        { force: dto.rotate === true },
+        tx,
+      );
+      return { ...minted, updated };
+    });
 
     await this.audit.log({
       action: 'CHECKIN_CODE_ISSUED',
@@ -180,7 +176,10 @@ export class CheckinService {
       ministryId: event.ministryId,
       actorId: actor.id,
       description: `Issued check-in code for event: ${event.title}`,
-      metadata: { anchored: updated.checkInAnchorLat !== null, tokenExpiresAt: expiresAt },
+      metadata: {
+        anchored: updated.checkInAnchorLat !== null,
+        tokenExpiresAt: expiresAt,
+      },
     });
 
     if (anchorChange) {
@@ -282,7 +281,8 @@ export class CheckinService {
         ? new Date(new Date(expiresAt).getTime() - 60 * 1000)
         : null,
       geofence: {
-        enabled: event.checkInAnchorLat !== null && event.checkInAnchorLng !== null,
+        enabled:
+          event.checkInAnchorLat !== null && event.checkInAnchorLng !== null,
         radiusMeters: GEOFENCE_RADIUS_METERS,
         anchorLat: event.checkInAnchorLat,
         anchorLng: event.checkInAnchorLng,
@@ -306,9 +306,18 @@ export class CheckinService {
   async getCheckInContext(token: string) {
     const row = await this.qrToken.findToken(token);
 
-    if (!row) return { status: 'INVALID' as CheckInStatus, event: null, geofenceRequired: false };
+    if (!row)
+      return {
+        status: 'INVALID' as CheckInStatus,
+        event: null,
+        geofenceRequired: false,
+      };
     if (row.expiresAt < new Date()) {
-      return { status: 'EXPIRED' as CheckInStatus, event: null, geofenceRequired: false };
+      return {
+        status: 'EXPIRED' as CheckInStatus,
+        event: null,
+        geofenceRequired: false,
+      };
     }
 
     const event = await (this.prisma as any).event.findUnique({
@@ -327,7 +336,11 @@ export class CheckinService {
     });
 
     if (!event) {
-      return { status: 'INVALID' as CheckInStatus, event: null, geofenceRequired: false };
+      return {
+        status: 'INVALID' as CheckInStatus,
+        event: null,
+        geofenceRequired: false,
+      };
     }
 
     const geofenceRequired =
@@ -336,7 +349,11 @@ export class CheckinService {
     if (event.status === 'DRAFT' || event.status === 'CANCELLED') {
       // Rendered identically to INVALID by the client: someone holding a code
       // for an unpublished event should not learn that it exists.
-      return { status: 'UNAVAILABLE' as CheckInStatus, event: null, geofenceRequired };
+      return {
+        status: 'UNAVAILABLE' as CheckInStatus,
+        event: null,
+        geofenceRequired,
+      };
     }
 
     const publicEvent = {
@@ -349,12 +366,20 @@ export class CheckinService {
     };
 
     if (event.endAt < new Date()) {
-      return { status: 'ENDED' as CheckInStatus, event: publicEvent, geofenceRequired };
+      return {
+        status: 'ENDED' as CheckInStatus,
+        event: publicEvent,
+        geofenceRequired,
+      };
     }
 
     // Never expose anchor coordinates here — this endpoint is unauthenticated,
     // and handing out the centre of the fence makes spoofing trivial.
-    return { status: 'OPEN' as CheckInStatus, event: publicEvent, geofenceRequired };
+    return {
+      status: 'OPEN' as CheckInStatus,
+      event: publicEvent,
+      geofenceRequired,
+    };
   }
 
   // ==========================================================================
@@ -477,7 +502,9 @@ export class CheckinService {
       throw new BadRequestException('Invalid check-in code');
     }
     if (event.endAt < new Date()) {
-      throw new BadRequestException('This meeting has ended. Check-in is closed.');
+      throw new BadRequestException(
+        'This meeting has ended. Check-in is closed.',
+      );
     }
 
     return event;
@@ -514,7 +541,10 @@ export class CheckinService {
         'Location is required to check in to this meeting. Enable GPS and try again.',
       );
     }
-    if (dto.gpsAccuracy == null || dto.gpsAccuracy > CHECKIN_MAX_ACCURACY_METERS) {
+    if (
+      dto.gpsAccuracy == null ||
+      dto.gpsAccuracy > CHECKIN_MAX_ACCURACY_METERS
+    ) {
       throw new BadRequestException(
         'GPS accuracy insufficient for location verification. Move somewhere with a clearer signal and try again.',
       );
@@ -548,7 +578,12 @@ export class CheckinService {
 
   private async recordAttendance(
     event: any,
-    dto: { lat?: number; lng?: number; gpsAccuracy?: number; signature: string },
+    dto: {
+      lat?: number;
+      lng?: number;
+      gpsAccuracy?: number;
+      signature: string;
+    },
     verdict: GeofenceVerdict,
     meta: RequestMeta,
     identity: {
@@ -633,7 +668,13 @@ export class CheckinService {
   ) {
     const event = await (this.prisma as any).event.findUnique({
       where: { id: eventId },
-      select: { id: true, title: true, status: true, endAt: true, ministryId: true },
+      select: {
+        id: true,
+        title: true,
+        status: true,
+        endAt: true,
+        ministryId: true,
+      },
     });
 
     if (!event) {

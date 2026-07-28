@@ -57,7 +57,10 @@ export class MeService {
         (this.prisma as any).event.count({ where: { organizerId: userId } }),
         (this.prisma as any).attendance.count({ where: { userId } }),
         (this.prisma as any).actionItem.count({
-          where: { ownerId: userId, status: { notIn: ['COMPLETED', 'CANCELLED'] } },
+          where: {
+            ownerId: userId,
+            status: { notIn: ['COMPLETED', 'CANCELLED'] },
+          },
         }),
         // Events they are invited to that haven't started yet.
         (this.prisma as any).eventAttendee.count({
@@ -119,7 +122,9 @@ export class MeService {
    */
   async changePassword(userId: string, dto: ChangePasswordDto) {
     if (dto.newPassword.length < 8) {
-      throw new BadRequestException('New password must be at least 8 characters');
+      throw new BadRequestException(
+        'New password must be at least 8 characters',
+      );
     }
 
     const account = await (this.prisma as any).account.findFirst({
@@ -238,7 +243,13 @@ export class MeService {
         }),
         (this.prisma as any).event.findMany({
           where: { organizerId: userId },
-          select: { id: true, title: true, startAt: true, endAt: true, status: true },
+          select: {
+            id: true,
+            title: true,
+            startAt: true,
+            endAt: true,
+            status: true,
+          },
           orderBy: { startAt: 'desc' },
         }),
         (this.prisma as any).eventAttendee.findMany({

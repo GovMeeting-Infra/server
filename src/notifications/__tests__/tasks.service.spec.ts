@@ -24,7 +24,7 @@ describe('TasksService.sendMeetingReminders', () => {
     prisma = {
       event: { findMany: jest.fn().mockImplementation(() => events) },
     };
-    service = new TasksService(prisma as any, queue as any);
+    service = new TasksService(prisma, queue as any);
   });
 
   it('queues one reminder per attendee', async () => {

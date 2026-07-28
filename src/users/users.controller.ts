@@ -27,17 +27,9 @@ export class UsersController {
 
   @Post()
   @Roles('SUPER_ADMIN', 'MINISTER', 'MINISTRY_ADMIN')
-  create(
-    @Body() dto: CreateUserDto,
-    @CurrentUser() user: any,
-  ) {
+  create(@Body() dto: CreateUserDto, @CurrentUser() user: any) {
     const ministryId = user.ministryId || '';
-    return this.usersService.create(
-      dto,
-      ministryId,
-      user.id,
-      user.ministryId,
-    );
+    return this.usersService.create(dto, ministryId, user.id, user.ministryId);
   }
 
   @Get()
@@ -64,7 +56,13 @@ export class UsersController {
     @Body() dto: UpdateUserRoleDto,
     @CurrentUser() user: any,
   ) {
-    return this.usersService.updateRole(id, dto, user.id, user.ministryId, user.systemRole);
+    return this.usersService.updateRole(
+      id,
+      dto,
+      user.id,
+      user.ministryId,
+      user.systemRole,
+    );
   }
 
   @Patch(':id')
@@ -114,10 +112,12 @@ export class UsersController {
 
   @Delete(':id')
   @Roles('SUPER_ADMIN', 'MINISTER', 'MINISTRY_ADMIN')
-  anonymize(
-    @Param('id') id: string,
-    @CurrentUser() user: any,
-  ) {
-    return this.usersService.anonymize(id, user.id, user.ministryId, user.systemRole);
+  anonymize(@Param('id') id: string, @CurrentUser() user: any) {
+    return this.usersService.anonymize(
+      id,
+      user.id,
+      user.ministryId,
+      user.systemRole,
+    );
   }
 }

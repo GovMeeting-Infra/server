@@ -15,9 +15,7 @@ export type NotificationType =
 
 /** Category toggles on UserPreferences. */
 export type PreferenceKey =
-  | 'minutesNotifications'
-  | 'actionItemNotifications'
-  | 'meetingReminders';
+  'minutesNotifications' | 'actionItemNotifications' | 'meetingReminders';
 
 export const PREFERENCE_FOR: Record<NotificationType, PreferenceKey> = {
   MINUTES_PUBLISHED: 'minutesNotifications',

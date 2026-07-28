@@ -12,7 +12,11 @@ import { NotificationsModule } from '../notifications/notifications.module';
 @Module({
   imports: [PrismaModule, AuditModule, CacheModule, NotificationsModule],
   providers: [MinutesService, ActionItemsService],
-  controllers: [MinutesController, MinutesListController, ActionItemsController],
+  controllers: [
+    MinutesController,
+    MinutesListController,
+    ActionItemsController,
+  ],
   exports: [MinutesService, ActionItemsService],
 })
 export class MinutesModule {}

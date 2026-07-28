@@ -8,7 +8,11 @@ import {
   IsEmail,
   IsUrl,
 } from 'class-validator';
-import { EventTypeEnum, EventScopeEnum, EventClassificationEnum } from './create-event.dto';
+import {
+  EventTypeEnum,
+  EventScopeEnum,
+  EventClassificationEnum,
+} from './create-event.dto';
 
 export class UpdateEventDto {
   @IsOptional()

@@ -20,7 +20,7 @@ import {
   ActionItemStatsDto,
   CheckInMethodsDto,
   EventsOverTimeDto,
-  AnalyticsDashboardDto
+  AnalyticsDashboardDto,
 } from './dto/analytics.dto';
 import { ministryScope } from '../common/utils/ministry-scope.util';
 
@@ -168,14 +168,20 @@ export class ReportsService {
     return [...buckets.entries()].map(([month, count]) => ({ month, count }));
   }
 
-  private async getEventStats(scope: Record<string, unknown>): Promise<EventStatsDto> {
+  private async getEventStats(
+    scope: Record<string, unknown>,
+  ): Promise<EventStatsDto> {
     const now = new Date();
     const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
     const [total, upcoming, past, byType] = await Promise.all([
       (this.prisma as any).event.count({ where: { ...scope } }),
-      (this.prisma as any).event.count({ where: { ...scope, startAt: { gt: now } } }),
-      (this.prisma as any).event.count({ where: { ...scope, endAt: { lt: now } } }),
+      (this.prisma as any).event.count({
+        where: { ...scope, startAt: { gt: now } },
+      }),
+      (this.prisma as any).event.count({
+        where: { ...scope, endAt: { lt: now } },
+      }),
       (this.prisma as any).event.groupBy({
         by: ['type'],
         where: { ...scope, createdAt: { gte: thirtyDaysAgo } },
@@ -194,7 +200,9 @@ export class ReportsService {
     };
   }
 
-  private async getAttendanceStats(scope: Record<string, unknown>): Promise<AttendanceStatsDto> {
+  private async getAttendanceStats(
+    scope: Record<string, unknown>,
+  ): Promise<AttendanceStatsDto> {
     // This previously read an arbitrary 50 events (take: 50, no orderBy), so
     // the headline rate was computed over a truncated slice. Count across all
     // in-scope records instead.
@@ -205,8 +213,7 @@ export class ReportsService {
 
     // Overall rate: check-ins against invitations, rather than an unweighted
     // mean of per-event rates where a 1-person event counts as much as a 500.
-    const attendanceRate =
-      totalInvited > 0 ? totalCheckIns / totalInvited : 0;
+    const attendanceRate = totalInvited > 0 ? totalCheckIns / totalInvited : 0;
 
     return {
       totalCheckIns,
@@ -214,30 +221,35 @@ export class ReportsService {
     };
   }
 
-  private async getRoomStats(scope: Record<string, unknown>): Promise<RoomStatsDto> {
+  private async getRoomStats(
+    scope: Record<string, unknown>,
+  ): Promise<RoomStatsDto> {
     const now = new Date();
     const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
-    const [totalRooms, activeRooms, bookingsThisMonth, allRoomBookings] = await Promise.all([
-      (this.prisma as any).room.count({ where: { ...scope } }),
-      (this.prisma as any).room.count({ where: { ...scope, active: true } }),
-      (this.prisma as any).roomBooking.count({
-        where: {
-          ...scope,
-          createdAt: { gte: monthAgo },
-          status: 'CONFIRMED',
-        },
-      }),
-      (this.prisma as any).roomBooking.findMany({
-        where: { ...scope, status: 'CONFIRMED' },
-        select: { startTime: true, endTime: true },
-      }),
-    ]);
+    const [totalRooms, activeRooms, bookingsThisMonth, allRoomBookings] =
+      await Promise.all([
+        (this.prisma as any).room.count({ where: { ...scope } }),
+        (this.prisma as any).room.count({ where: { ...scope, active: true } }),
+        (this.prisma as any).roomBooking.count({
+          where: {
+            ...scope,
+            createdAt: { gte: monthAgo },
+            status: 'CONFIRMED',
+          },
+        }),
+        (this.prisma as any).roomBooking.findMany({
+          where: { ...scope, status: 'CONFIRMED' },
+          select: { startTime: true, endTime: true },
+        }),
+      ]);
 
     let averageUtilization = 0;
     if (allRoomBookings.length > 0) {
       const totalHours = allRoomBookings.reduce((sum: number, booking: any) => {
-        const hours = (booking.endTime.getTime() - booking.startTime.getTime()) / (1000 * 60 * 60);
+        const hours =
+          (booking.endTime.getTime() - booking.startTime.getTime()) /
+          (1000 * 60 * 60);
         return sum + hours;
       }, 0);
       averageUtilization = parseFloat(
@@ -253,39 +265,47 @@ export class ReportsService {
     };
   }
 
-  private async getUserStats(scope: Record<string, unknown>): Promise<UserStatsDto> {
+  private async getUserStats(
+    scope: Record<string, unknown>,
+  ): Promise<UserStatsDto> {
     const now = new Date();
     const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
-    const [totalUsers, activeUsers, usersByRole, userLoginData] = await Promise.all([
-      (this.prisma as any).user.count({ where: { ...scope } }),
-      (this.prisma as any).user.count({
-        where: {
-          ...scope,
-          active: true,
-          lastLoginAt: { gte: thirtyDaysAgo },
-        },
-      }),
-      (this.prisma as any).user.groupBy({
-        by: ['systemRole'],
-        where: { ...scope },
-        _count: true,
-      }),
-      (this.prisma as any).user.findMany({
-        where: { ...scope, lastLoginAt: { not: null } },
-        select: { lastLoginAt: true },
-      }),
-    ]);
+    const [totalUsers, activeUsers, usersByRole, userLoginData] =
+      await Promise.all([
+        (this.prisma as any).user.count({ where: { ...scope } }),
+        (this.prisma as any).user.count({
+          where: {
+            ...scope,
+            active: true,
+            lastLoginAt: { gte: thirtyDaysAgo },
+          },
+        }),
+        (this.prisma as any).user.groupBy({
+          by: ['systemRole'],
+          where: { ...scope },
+          _count: true,
+        }),
+        (this.prisma as any).user.findMany({
+          where: { ...scope, lastLoginAt: { not: null } },
+          select: { lastLoginAt: true },
+        }),
+      ]);
 
     let averageLoginFrequency = 0;
     if (userLoginData.length > 0) {
-      const totalDaysSinceLastLogin = userLoginData.reduce((sum: number, user: any) => {
-        if (user.lastLoginAt) {
-          const days = (now.getTime() - user.lastLoginAt.getTime()) / (1000 * 60 * 60 * 24);
-          return sum + days;
-        }
-        return sum;
-      }, 0);
+      const totalDaysSinceLastLogin = userLoginData.reduce(
+        (sum: number, user: any) => {
+          if (user.lastLoginAt) {
+            const days =
+              (now.getTime() - user.lastLoginAt.getTime()) /
+              (1000 * 60 * 60 * 24);
+            return sum + days;
+          }
+          return sum;
+        },
+        0,
+      );
       averageLoginFrequency = parseFloat(
         (totalDaysSinceLastLogin / userLoginData.length).toFixed(1),
       );
@@ -313,13 +333,23 @@ export class ReportsService {
     });
 
     const csvRows: string[][] = [
-      ['Event', 'Date', 'Type', 'Attendees Invited', 'CheckIns', 'Attendance Rate (%)'],
+      [
+        'Event',
+        'Date',
+        'Type',
+        'Attendees Invited',
+        'CheckIns',
+        'Attendance Rate (%)',
+      ],
     ];
 
     for (const event of events) {
       const invitedCount = event.attendees.length;
       const checkInCount = event.attendances.length;
-      const rate = invitedCount > 0 ? ((checkInCount / invitedCount) * 100).toFixed(1) : '0';
+      const rate =
+        invitedCount > 0
+          ? ((checkInCount / invitedCount) * 100).toFixed(1)
+          : '0';
 
       csvRows.push([
         event.title,
@@ -347,7 +377,15 @@ export class ReportsService {
     });
 
     const csvRows: string[][] = [
-      ['Event', 'Date', 'User', 'Email', 'Checked In At', 'Geofence Verified', 'Walk-in'],
+      [
+        'Event',
+        'Date',
+        'User',
+        'Email',
+        'Checked In At',
+        'Geofence Verified',
+        'Walk-in',
+      ],
     ];
 
     for (const attendance of attendances) {
@@ -387,7 +425,15 @@ export class ReportsService {
     });
 
     const csvRows: string[][] = [
-      ['Event', 'Title', 'Owner', 'Due Date', 'Status', 'Created At', 'Completed At'],
+      [
+        'Event',
+        'Title',
+        'Owner',
+        'Due Date',
+        'Status',
+        'Created At',
+        'Completed At',
+      ],
     ];
 
     for (const item of actionItems) {

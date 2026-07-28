@@ -19,17 +19,14 @@ export class CacheService {
       url: process.env.REDIS_URL || 'redis://localhost:6379',
       password: process.env.REDIS_PASSWORD || undefined,
       socket: {
-        reconnectStrategy: (retries: number) =>
-          Math.min(retries * 50, 500),
+        reconnectStrategy: (retries: number) => Math.min(retries * 50, 500),
       },
     });
 
     this.client.on('error', (err) =>
       this.logger.error('Redis Client Error', err),
     );
-    this.client.on('connect', () =>
-      this.logger.log('✅ Redis connected'),
-    );
+    this.client.on('connect', () => this.logger.log('✅ Redis connected'));
   }
 
   async onModuleInit() {
@@ -57,11 +54,7 @@ export class CacheService {
     ttlSeconds: number = CACHE_TTL.DEFAULT,
   ): Promise<void> {
     try {
-      await this.client.setEx(
-        key,
-        ttlSeconds,
-        JSON.stringify(value),
-      );
+      await this.client.setEx(key, ttlSeconds, JSON.stringify(value));
     } catch (error) {
       this.logger.error(`Cache set error for key ${key}:`, error);
     }
@@ -119,7 +112,10 @@ export class CacheService {
         await this.client.del(keys);
       }
     } catch (error) {
-      this.logger.error(`Cache invalidate error for pattern ${pattern}:`, error);
+      this.logger.error(
+        `Cache invalidate error for pattern ${pattern}:`,
+        error,
+      );
     }
   }
 

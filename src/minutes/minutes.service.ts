@@ -145,9 +145,7 @@ export class MinutesService {
     );
 
     if (!canEdit) {
-      throw new ForbiddenException(
-        'Edit window expired (2 days after event)',
-      );
+      throw new ForbiddenException('Edit window expired (2 days after event)');
     }
 
     const updated = await (this.prisma as any).minutes.update({
@@ -174,11 +172,7 @@ export class MinutesService {
     return updated;
   }
 
-  async publishMinutes(
-    eventId: string,
-    userId: string,
-    ministryId: string,
-  ) {
+  async publishMinutes(eventId: string, userId: string, ministryId: string) {
     const event = await (this.prisma as any).event.findUnique({
       where: { id: eventId },
       include: {
@@ -292,7 +286,10 @@ export class MinutesService {
       event.organizerId === userId ||
       event.coOrganizers?.some((c: any) => c.userId === userId);
 
-    if (!isOrganizerOrCoOrg && !['MINISTER', 'MINISTRY_ADMIN'].includes(userRole)) {
+    if (
+      !isOrganizerOrCoOrg &&
+      !['MINISTER', 'MINISTRY_ADMIN'].includes(userRole)
+    ) {
       return false;
     }
 
@@ -300,7 +297,10 @@ export class MinutesService {
       event.endAt.getTime() + this.EDIT_WINDOW_DAYS * 24 * 60 * 60 * 1000,
     );
 
-    if (new Date() > editWindowEnd && ['MINISTER', 'MINISTRY_ADMIN'].includes(userRole)) {
+    if (
+      new Date() > editWindowEnd &&
+      ['MINISTER', 'MINISTRY_ADMIN'].includes(userRole)
+    ) {
       return true;
     }
 
@@ -400,9 +400,7 @@ export class MinutesService {
     // Only a published record is a record. Archiving a draft would freeze
     // half-finished work, which is why the nightly job skips drafts too.
     if (minutes.status !== 'PUBLISHED') {
-      throw new BadRequestException(
-        'Only published minutes can be archived',
-      );
+      throw new BadRequestException('Only published minutes can be archived');
     }
 
     const updated = await (this.prisma as any).minutes.update({

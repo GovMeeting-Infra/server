@@ -1,4 +1,11 @@
-import { IsString, IsDateString, IsInt, IsEnum, IsOptional, Min } from 'class-validator';
+import {
+  IsString,
+  IsDateString,
+  IsInt,
+  IsEnum,
+  IsOptional,
+  Min,
+} from 'class-validator';
 
 export enum BookingPurposeEnum {
   MEETING = 'MEETING',

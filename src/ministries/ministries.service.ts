@@ -45,9 +45,7 @@ export class MinistriesService {
     } catch (error: any) {
       if (error.code === 'P2002') {
         const target = error.meta?.target?.[0];
-        throw new ConflictException(
-          `Ministry ${target} already exists`,
-        );
+        throw new ConflictException(`Ministry ${target} already exists`);
       }
       throw error;
     }

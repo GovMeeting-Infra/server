@@ -67,7 +67,11 @@ export class MinutesController {
     @Param('eventId') eventId: string,
     @CurrentUser() user: any,
   ) {
-    return this.minutesService.publishMinutes(eventId, user.id, user.ministryId);
+    return this.minutesService.publishMinutes(
+      eventId,
+      user.id,
+      user.ministryId,
+    );
   }
 
   /**
@@ -134,7 +138,9 @@ export class MinutesController {
     @Body() dto: CreateActionItemDto,
     @CurrentUser() user: any,
   ) {
-    const minutes = await (this.minutesService as any).prisma.minutes.findUnique({
+    const minutes = await (
+      this.minutesService as any
+    ).prisma.minutes.findUnique({
       where: { eventId },
     });
 
@@ -169,7 +175,9 @@ export class MinutesController {
   @Get('action-items')
   @Roles('STAFF', 'MINISTRY_ADMIN', 'MINISTER', 'SUPER_ADMIN')
   async listActionItems(@Param('eventId') eventId: string) {
-    const minutes = await (this.minutesService as any).prisma.minutes.findUnique({
+    const minutes = await (
+      this.minutesService as any
+    ).prisma.minutes.findUnique({
       where: { eventId },
     });
 

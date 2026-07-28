@@ -1,4 +1,11 @@
-import { IsOptional, IsString, IsDateString, IsInt, IsEnum, Min } from 'class-validator';
+import {
+  IsOptional,
+  IsString,
+  IsDateString,
+  IsInt,
+  IsEnum,
+  Min,
+} from 'class-validator';
 import { BookingPurposeEnum } from './book-room.dto';
 
 export class UpdateBookingDto {

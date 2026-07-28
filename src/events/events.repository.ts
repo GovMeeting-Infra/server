@@ -37,7 +37,9 @@ export class EventsRepository {
       omit: OMIT_ANCHOR,
       include: {
         organizer: { select: { id: true, name: true, email: true } },
-        coOrganizers: { include: { user: { select: { id: true, name: true, email: true } } } },
+        coOrganizers: {
+          include: { user: { select: { id: true, name: true, email: true } } },
+        },
         invitedMinistries: { select: { id: true, name: true, code: true } },
         attendees: {
           include: { user: { select: { id: true, name: true, email: true } } },
@@ -95,10 +97,7 @@ export class EventsRepository {
             roomId,
             id: { not: excludeEventId },
             NOT: {
-              OR: [
-                { endAt: { lte: startAt } },
-                { startAt: { gte: endAt } },
-              ],
+              OR: [{ endAt: { lte: startAt } }, { startAt: { gte: endAt } }],
             },
           },
         });
@@ -130,7 +129,7 @@ export class EventsRepository {
     ]);
 
     const slots: Array<{ start: Date; end: Date }> = [];
-    let slotTime = new Date(dayStart);
+    const slotTime = new Date(dayStart);
     slotTime.setHours(7, 0, 0, 0);
 
     while (slotTime.getHours() < 19) {

@@ -23,7 +23,7 @@ describe('MailService', () => {
 
   beforeEach(() => {
     fetchMock = jest.fn();
-    global.fetch = fetchMock as unknown as typeof fetch;
+    global.fetch = fetchMock;
     service = new MailService();
   });
 
@@ -109,7 +109,7 @@ describe('MailService', () => {
         json: async () => {
           throw new Error('not json');
         },
-      } as unknown as Response);
+      });
 
       await expect(service.send('a@b.gov.sl', BODY)).resolves.toEqual({
         sent: false,

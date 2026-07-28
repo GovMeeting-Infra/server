@@ -36,7 +36,10 @@ const CODE_ROLES = [
 function requestMeta(req: any) {
   return {
     ipAddress: req.ip || req.socket?.remoteAddress || undefined,
-    userAgent: (req.headers?.['user-agent'] as string | undefined)?.slice(0, 512),
+    userAgent: (req.headers?.['user-agent'] as string | undefined)?.slice(
+      0,
+      512,
+    ),
   };
 }
 

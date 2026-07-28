@@ -20,7 +20,11 @@ describe('escapeHtml', () => {
 });
 
 describe('inviteEmail', () => {
-  const body = inviteEmail({ name: 'Hawa Kallon', link: LINK, expiresInDays: 7 });
+  const body = inviteEmail({
+    name: 'Hawa Kallon',
+    link: LINK,
+    expiresInDays: 7,
+  });
 
   it('has a subject', () => {
     expect(body.subject.length).toBeGreaterThan(0);
@@ -57,7 +61,7 @@ describe('actionItemReminderEmail', () => {
     title: 'Circulate the budget paper',
     dueDate: new Date('2026-08-01T09:00:00Z'),
     eventTitle: 'Finance Committee',
-    });
+  });
 
   it('names the item in the subject', () => {
     expect(body.subject).toContain('Circulate the budget paper');

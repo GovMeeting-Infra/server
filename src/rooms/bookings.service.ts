@@ -249,7 +249,9 @@ export class BookingsService {
       throw new ForbiddenException('Can only update your own bookings');
     }
 
-    const startTime = dto.startTime ? new Date(dto.startTime) : booking.startTime;
+    const startTime = dto.startTime
+      ? new Date(dto.startTime)
+      : booking.startTime;
     const endTime = dto.endTime ? new Date(dto.endTime) : booking.endTime;
 
     if (startTime >= endTime) {
@@ -302,7 +304,9 @@ export class BookingsService {
               ...(dto.startTime && { startTime }),
               ...(dto.endTime && { endTime }),
               ...(dto.purpose && { purpose: dto.purpose }),
-              ...(dto.attendeeCount !== undefined && { attendeeCount: dto.attendeeCount }),
+              ...(dto.attendeeCount !== undefined && {
+                attendeeCount: dto.attendeeCount,
+              }),
               ...(dto.notes !== undefined && { notes: dto.notes }),
             },
           });

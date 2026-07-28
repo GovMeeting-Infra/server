@@ -7,7 +7,9 @@ import { PrismaClient } from '../../generated/prisma/client';
 
 let prisma: any;
 try {
-  const connectionString = process.env.DATABASE_URL || 'postgresql://govmeeting:devpass@localhost:5432/govmeeting_dev';
+  const connectionString =
+    process.env.DATABASE_URL ||
+    'postgresql://govmeeting:devpass@localhost:5432/govmeeting_dev';
   const pool = new Pool({ connectionString });
   const adapter = new PrismaPg(pool);
   prisma = new (PrismaClient as any)({ adapter });
@@ -43,8 +45,14 @@ export const auth: any = betterAuth({
     // extension afterwards is ours, in AuthService.getSession — better-auth's
     // own session route is never called, so updateAge below has no effect and
     // is kept only to mirror expiresIn.
-    expiresIn: parseInt(process.env.SESSION_INACTIVITY_TIMEOUT_SECONDS || '43200', 10),
-    updateAge: parseInt(process.env.SESSION_INACTIVITY_TIMEOUT_SECONDS || '43200', 10),
+    expiresIn: parseInt(
+      process.env.SESSION_INACTIVITY_TIMEOUT_SECONDS || '43200',
+      10,
+    ),
+    updateAge: parseInt(
+      process.env.SESSION_INACTIVITY_TIMEOUT_SECONDS || '43200',
+      10,
+    ),
   },
   emailAndPassword: {
     enabled: true,

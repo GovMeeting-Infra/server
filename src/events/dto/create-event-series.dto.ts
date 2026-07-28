@@ -1,4 +1,10 @@
-import { IsEnum, IsOptional, IsNumber, IsDateString, Min } from 'class-validator';
+import {
+  IsEnum,
+  IsOptional,
+  IsNumber,
+  IsDateString,
+  Min,
+} from 'class-validator';
 
 export enum FrequencyEnum {
   DAILY = 'DAILY',
