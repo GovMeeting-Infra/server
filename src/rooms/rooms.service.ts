@@ -9,6 +9,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
 import { CreateRoomDto } from './dto/create-room.dto';
 import { UpdateRoomDto } from './dto/update-room.dto';
+import { ministryScope, assertSameMinistry } from '../common/utils/ministry-scope.util';
 
 @Injectable()
 export class RoomsService {
@@ -23,11 +24,28 @@ export class RoomsService {
     dto: CreateRoomDto,
     ministryId: string,
     userId: string,
+    systemRole?: string,
   ) {
+    // Same shape as createEvent's override: only a super-admin may file the
+    // record under another ministry, and the target must exist.
+    const targetMinistryId =
+      systemRole === 'SUPER_ADMIN' && dto.ministryId ? dto.ministryId : ministryId;
+
+    if (systemRole === 'SUPER_ADMIN' && dto.ministryId) {
+      const ministry = await (this.prisma as any).ministry.findUnique({
+        where: { id: dto.ministryId },
+        select: { id: true },
+      });
+
+      if (!ministry) {
+        throw new NotFoundException(`Ministry ${dto.ministryId} not found`);
+      }
+    }
+
     try {
       const room = await (this.prisma as any).room.create({
         data: {
-          ministryId,
+          ministryId: targetMinistryId,
           name: dto.name,
           location: dto.location,
           capacity: dto.capacity,
@@ -44,7 +62,7 @@ export class RoomsService {
         entityId: room.id,
         entityName: room.name,
         status: 'SUCCESS',
-        ministryId,
+        ministryId: targetMinistryId,
         actorId: userId,
         description: `Created room: ${room.name}`,
       });
@@ -58,23 +76,65 @@ export class RoomsService {
     }
   }
 
-  async getRooms(ministryId: string) {
-    return await (this.prisma as any).room.findMany({
-      where: { ministryId, active: true },
+  async getRooms(ministryId: string, systemRole?: string) {
+    // Super-admins span ministries; everyone else sees only their own rooms.
+    const scope = ministryScope({ systemRole: systemRole ?? '', ministryId });
+
+    const rooms = await (this.prisma as any).room.findMany({
+      where: { ...scope, active: true },
+      orderBy: { name: 'asc' },
       include: {
         _count: {
-          select: { bookings: true, events: true },
+          // Cancelling a booking is a soft delete (status CANCELLED), so an
+          // unfiltered count would keep reporting cancelled bookings as live.
+          select: {
+            bookings: { where: { status: 'CONFIRMED' } },
+            events: true,
+          },
         },
       },
     });
+
+    if (rooms.length === 0) return rooms;
+
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+    const endOfToday = new Date(startOfToday.getTime() + 24 * 60 * 60 * 1000);
+
+    // A filtered _count can't sit alongside the unfiltered one for the same
+    // relation, so today's tally comes from one grouped query and is merged in
+    // — still two queries total rather than one per room.
+    const todayCounts = await (this.prisma as any).roomBooking.groupBy({
+      by: ['roomId'],
+      where: {
+        roomId: { in: rooms.map((r: any) => r.id) },
+        status: 'CONFIRMED',
+        startTime: { gte: startOfToday, lt: endOfToday },
+      },
+      _count: { _all: true },
+    });
+
+    const byRoom = new Map<string, number>(
+      todayCounts.map((c: any) => [c.roomId, c._count._all]),
+    );
+
+    return rooms.map((room: any) => ({
+      ...room,
+      bookingsToday: byRoom.get(room.id) ?? 0,
+    }));
   }
 
-  async getRoom(roomId: string, ministryId: string) {
+  async getRoom(roomId: string, ministryId: string, systemRole?: string) {
     const room = await (this.prisma as any).room.findUnique({
       where: { id: roomId },
       include: {
         _count: {
-          select: { bookings: true, events: true },
+          // Cancelling a booking is a soft delete (status CANCELLED), so an
+          // unfiltered count would keep reporting cancelled bookings as live.
+          select: {
+            bookings: { where: { status: 'CONFIRMED' } },
+            events: true,
+          },
         },
       },
     });
@@ -83,9 +143,10 @@ export class RoomsService {
       throw new NotFoundException('Room not found');
     }
 
-    if (room.ministryId !== ministryId) {
-      throw new ForbiddenException('Cannot access room from another ministry');
-    }
+    assertSameMinistry(
+      { systemRole: systemRole ?? '', ministryId },
+      room.ministryId,
+    );
 
     return room;
   }
@@ -95,6 +156,7 @@ export class RoomsService {
     dto: UpdateRoomDto,
     ministryId: string,
     userId: string,
+    systemRole?: string,
   ) {
     const room = await (this.prisma as any).room.findUnique({
       where: { id: roomId },
@@ -104,9 +166,10 @@ export class RoomsService {
       throw new NotFoundException('Room not found');
     }
 
-    if (room.ministryId !== ministryId) {
-      throw new ForbiddenException('Cannot update room from another ministry');
-    }
+    assertSameMinistry(
+      { systemRole: systemRole ?? '', ministryId },
+      room.ministryId,
+    );
 
     const updated = await (this.prisma as any).room.update({
       where: { id: roomId },
@@ -140,6 +203,7 @@ export class RoomsService {
     roomId: string,
     ministryId: string,
     userId: string,
+    systemRole?: string,
   ) {
     const room = await (this.prisma as any).room.findUnique({
       where: { id: roomId },
@@ -149,9 +213,10 @@ export class RoomsService {
       throw new NotFoundException('Room not found');
     }
 
-    if (room.ministryId !== ministryId) {
-      throw new ForbiddenException('Cannot deactivate room from another ministry');
-    }
+    assertSameMinistry(
+      { systemRole: systemRole ?? '', ministryId },
+      room.ministryId,
+    );
 
     const updated = await (this.prisma as any).room.update({
       where: { id: roomId },
@@ -178,6 +243,7 @@ export class RoomsService {
     startTime: Date,
     endTime: Date,
     ministryId: string,
+    systemRole?: string,
   ) {
     const room = await (this.prisma as any).room.findUnique({
       where: { id: roomId },
@@ -187,9 +253,10 @@ export class RoomsService {
       throw new NotFoundException('Room not found');
     }
 
-    if (room.ministryId !== ministryId) {
-      throw new ForbiddenException('Cannot check availability for room from another ministry');
-    }
+    assertSameMinistry(
+      { systemRole: systemRole ?? '', ministryId },
+      room.ministryId,
+    );
 
     const conflicts = await (this.prisma as any).roomBooking.findMany({
       where: {

@@ -22,4 +22,9 @@ export class CreateRoomDto {
 
   @IsOptional()
   longitude?: number;
+
+  /** Super-admins only; everyone else creates within their own ministry. */
+  @IsOptional()
+  @IsString()
+  ministryId?: string;
 }
