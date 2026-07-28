@@ -193,6 +193,28 @@ export class EventsService {
     'MINISTRY_ADMIN',
   ];
 
+  /** Upper bound for a date-range query, which is never paginated. */
+  static readonly RANGE_MAX = 500;
+
+  /**
+   * Builds a half-open startAt filter from ISO date strings. Returns null when
+   * neither bound is usable, so callers fall back to normal pagination rather
+   * than silently querying everything.
+   */
+  static parseRange(from?: string, to?: string) {
+    const gte = from ? new Date(from) : null;
+    const lt = to ? new Date(to) : null;
+
+    const valid = (d: Date | null) => d !== null && !Number.isNaN(d.getTime());
+
+    if (!valid(gte) && !valid(lt)) return null;
+
+    return {
+      ...(valid(gte) && { gte: gte as Date }),
+      ...(valid(lt) && { lt: lt as Date }),
+    };
+  }
+
   /**
    * Authorizes an action that is normally the organizer's alone.
    *
@@ -237,9 +259,15 @@ export class EventsService {
       sortBy?: string;
       order?: string;
       timeframe?: string;
+      from?: string;
+      to?: string;
     } = {},
   ) {
     const now = new Date();
+
+    // Calendar views ask for a window rather than a page. Half-open [from, to)
+    // so a month range excludes the first instant of the next month.
+    const range = EventsService.parseRange(options.from, options.to);
 
     // upcoming / now / past, matching how the list page groups events.
     const timeframeWhere =
@@ -255,11 +283,14 @@ export class EventsService {
       ...ministryScope(user),
       ...(options.isPublic !== undefined && { isPublic: options.isPublic }),
       ...timeframeWhere,
+      ...(range && { startAt: range }),
     };
 
     const page = Math.max(1, options.page || 1);
-    const take = 20;
-    const skip = (page - 1) * take;
+    // A month grid can't be paginated — it needs every event in the window — so
+    // range queries get a much higher ceiling. Still bounded, not unlimited.
+    const take = range ? EventsService.RANGE_MAX : 20;
+    const skip = range ? 0 : (page - 1) * take;
 
     const sortBy = (EventsService.SORTABLE as readonly string[]).includes(
       options.sortBy ?? '',
@@ -274,7 +305,7 @@ export class EventsService {
     // paginated server-side, so a different sort is a different page of data.
     const cacheKey = options.timeframe
       ? null
-      : `events:list:${ministryId}:${page}:${options.isPublic || 'all'}:${sortBy}:${order}`;
+      : `events:list:${ministryId}:${page}:${options.isPublic || 'all'}:${sortBy}:${order}:${options.from ?? '-'}:${options.to ?? '-'}`;
 
     if (cacheKey) {
       const cached = await this.cache.get(cacheKey);
