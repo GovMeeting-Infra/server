@@ -323,7 +323,10 @@ model Attendance {
   // A guest with no matching EventAttendee invite for this event.
   isWalkIn          Boolean  @default(false)
   signedName        String
-  signature         String   @db.Text
+  // Three states, all meaningful: null was never captured (an organizer
+  // recorded this walk-in at the desk), '' was captured then erased for GDPR
+  // (see UsersService.anonymize), and a value is the attendee's own signature.
+  signature         String?  @db.Text
   checkInAt         DateTime @default(now())
   checkInMethod     CheckInMethod
   lat               String?
