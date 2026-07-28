@@ -103,7 +103,7 @@ export class MeService {
       entityId: userId,
       entityName: updated.name,
       status: 'SUCCESS',
-      ministryId: updated.ministryId ?? '',
+      ministryId: updated.ministryId ?? undefined,
       actorId: userId,
       description: 'Updated own profile',
       changes: dto as unknown as Record<string, unknown>,
@@ -126,6 +126,14 @@ export class MeService {
       where: { userId, providerId: 'credential' },
     });
 
+    // So the entry lands in the right ministry's activity log. These calls used
+    // to pass an empty string, which is not a real ministry id — the insert
+    // failed the foreign key and the audit was silently dropped.
+    const owner = await (this.prisma as any).user.findUnique({
+      where: { id: userId },
+      select: { ministryId: true },
+    });
+
     if (!account?.password) {
       throw new BadRequestException(
         'This account has no password credential to change',
@@ -144,7 +152,7 @@ export class MeService {
         entityType: 'User',
         entityId: userId,
         status: 'FAILURE',
-        ministryId: '',
+        ministryId: owner?.ministryId ?? undefined,
         actorId: userId,
         description: 'Incorrect current password',
       });
@@ -162,7 +170,7 @@ export class MeService {
       entityType: 'User',
       entityId: userId,
       status: 'SUCCESS',
-      ministryId: '',
+      ministryId: owner?.ministryId ?? undefined,
       actorId: userId,
       description: 'Changed own password',
     });

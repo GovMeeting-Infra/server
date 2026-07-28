@@ -199,7 +199,7 @@ export class NotificationsService {
 
     await this.notify({
       userId: item.ownerId,
-      ministryId: item.owner?.ministryId ?? '',
+      ministryId: item.owner?.ministryId ?? undefined,
       type: 'ACTION_ITEM_ASSIGNED',
       title: 'Action item assigned to you',
       body: `You have been assigned: ${item.title}`,
@@ -224,7 +224,7 @@ export class NotificationsService {
 
     await this.notify({
       userId: item.ownerId,
-      ministryId: item.owner?.ministryId ?? '',
+      ministryId: item.owner?.ministryId ?? undefined,
       type: 'ACTION_ITEM_STATUS_CHANGED',
       title: 'Action item updated',
       body: `"${item.title}" is now ${newStatus.replace('_', ' ').toLowerCase()}.`,

@@ -545,7 +545,12 @@ model Notification {
 
 model AuditLog {
   id                String   @id @default(cuid())
-  ministryId        String
+  // Nullable because some auditable events genuinely belong to no ministry —
+  // a failed sign-in for an unknown address, or an invitation accepted before
+  // the account is in use. These previously fell back to a literal 'SYSTEM',
+  // which is not a real ministry, so the insert violated this foreign key and
+  // AuditService swallowed the error: those events were never recorded at all.
+  ministryId        String?
   actorId           String?
   action            String
   actionCategory    String
@@ -561,8 +566,8 @@ model AuditLog {
   metadata          Json?
   createdAt         DateTime @default(now())
 
-  ministry          Ministry @relation(fields: [ministryId], references: [id], onDelete: Cascade)
-  actor             User?    @relation(fields: [actorId], references: [id])
+  ministry          Ministry? @relation(fields: [ministryId], references: [id], onDelete: Cascade)
+  actor             User?     @relation(fields: [actorId], references: [id])
 
   @@index([ministryId])
   @@index([actorId])

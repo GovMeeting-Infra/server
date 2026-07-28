@@ -130,7 +130,14 @@ export class InvitesService {
     const userId = record.identifier.slice(IDENTIFIER_PREFIX.length);
     const user = await (this.prisma as any).user.findUnique({
       where: { id: userId },
-      select: { id: true, email: true, name: true, active: true, deletedAt: true },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        ministryId: true,
+        active: true,
+        deletedAt: true,
+      },
     });
 
     if (!user || user.deletedAt || !user.active) {
@@ -183,7 +190,7 @@ export class InvitesService {
       entityId: user.id,
       entityName: user.email,
       status: 'SUCCESS',
-      ministryId: '',
+      ministryId: user.ministryId ?? undefined,
       actorId: user.id,
       description: `Set initial password via invitation`,
     });

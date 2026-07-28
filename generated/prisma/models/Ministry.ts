@@ -622,10 +622,12 @@ export type MinistryCreateNestedOneWithoutAuditLogsInput = {
   connect?: Prisma.MinistryWhereUniqueInput
 }
 
-export type MinistryUpdateOneRequiredWithoutAuditLogsNestedInput = {
+export type MinistryUpdateOneWithoutAuditLogsNestedInput = {
   create?: Prisma.XOR<Prisma.MinistryCreateWithoutAuditLogsInput, Prisma.MinistryUncheckedCreateWithoutAuditLogsInput>
   connectOrCreate?: Prisma.MinistryCreateOrConnectWithoutAuditLogsInput
   upsert?: Prisma.MinistryUpsertWithoutAuditLogsInput
+  disconnect?: Prisma.MinistryWhereInput | boolean
+  delete?: Prisma.MinistryWhereInput | boolean
   connect?: Prisma.MinistryWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.MinistryUpdateToOneWithWhereWithoutAuditLogsInput, Prisma.MinistryUpdateWithoutAuditLogsInput>, Prisma.MinistryUncheckedUpdateWithoutAuditLogsInput>
 }
