@@ -54,6 +54,16 @@ export class EventsService {
       ...eventData
     } = dto;
 
+    // An internal meeting is owned by one person, so without a deputy it
+    // becomes unmanageable the moment that person is unavailable — only
+    // ministry admins could touch it. Public activities are exempt: they have
+    // no organizer at all and already fall to ministry admins by design.
+    if (!dto.isPublic && !coOrganizerIds?.length) {
+      throw new BadRequestException(
+        'An internal meeting needs at least one co-organizer',
+      );
+    }
+
     // Only super-admins may file an event under another ministry; for everyone
     // else the ministry always comes from their own session.
     const targetMinistryId =
