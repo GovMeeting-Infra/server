@@ -16,21 +16,20 @@ export interface RateLimitConfig {
   windowSeconds: number;
 }
 
-export const RATE_LIMIT = 'checkInRateLimit';
+export const RATE_LIMIT = 'rateLimit';
 
 /**
- * Rate limit for the unauthenticated check-in routes.
+ * Rate limit for unauthenticated routes — check-in, and password reset.
  *
  * Uses the Redis already backing CacheService rather than @nestjs/throttler:
  * throttler's default store is in-process, which under PM2's multiple workers
  * would give each worker its own allowance and enforce nothing.
  *
- * The per-token budget is the one that matters — it caps the damage from a QR
- * image that has been photographed and shared, which a per-IP limit alone
- * cannot see.
+ * The optional per-token budget caps damage a per-IP limit cannot see, such as
+ * a QR image that has been photographed and shared.
  */
 @Injectable()
-export class CheckInRateLimitGuard implements CanActivate {
+export class RateLimitGuard implements CanActivate {
   constructor(
     private cache: CacheService,
     private reflector: Reflector,

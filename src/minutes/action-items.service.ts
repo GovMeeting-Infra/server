@@ -8,6 +8,7 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
 import { CacheService } from '../cache/cache.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { CreateActionItemDto } from './dto/create-action-item.dto';
 import { UpdateActionItemDto, ActionItemStatusEnum } from './dto/update-action-item.dto';
 import { ministryScope, assertSameMinistry } from '../common/utils/ministry-scope.util';
@@ -20,6 +21,7 @@ export class ActionItemsService {
     private prisma: PrismaService,
     private audit: AuditService,
     private cache: CacheService,
+    private notifications: NotificationsService,
   ) {}
 
   async createActionItem(
@@ -37,24 +39,43 @@ export class ActionItemsService {
       throw new NotFoundException('Minutes not found');
     }
 
-    let ownerId = dto.ownerId;
+    // The record is frozen, so nothing new can be attached to it.
+    if (minutes.status === 'ARCHIVED') {
+      throw new ForbiddenException(
+        'These minutes have been archived and can no longer be changed',
+      );
+    }
 
-    if (dto.ownerName && !dto.ownerId) {
+    let ownerId: string | null = null;
+    let ownerName = dto.ownerName ?? null;
+
+    if (dto.ownerId) {
+      const owner = await this.resolveOwner(dto.ownerId, ministryId);
+      ownerId = owner.id;
+      ownerName = owner.name;
+    } else if (dto.ownerName) {
+      // Name matching is a fallback for minutes typed up from paper. It is
+      // deliberately exact rather than the substring match this used to do:
+      // "contains" took the first partial hit, so "Kallon" could silently
+      // assign the work to the wrong Kallon.
       const owner = await (this.prisma as any).user.findFirst({
         where: {
           ministryId,
-          name: {
-            contains: dto.ownerName,
-            mode: 'insensitive',
-          },
+          active: true,
+          deletedAt: null,
+          name: { equals: dto.ownerName.trim(), mode: 'insensitive' },
         },
+        select: { id: true, name: true },
       });
 
       if (owner) {
         ownerId = owner.id;
+        ownerName = owner.name;
       } else {
+        // Recorded against the name alone, so the minutes still read correctly
+        // even though nobody's board picks it up.
         this.logger.warn(
-          `Owner "${dto.ownerName}" not found in ministry ${ministryId}`,
+          `No exact match for owner "${dto.ownerName}" in ministry ${ministryId}; item left unassigned`,
         );
       }
     }
@@ -68,7 +89,7 @@ export class ActionItemsService {
         dueDate: new Date(dto.dueDate),
         status: 'TODO',
         point: dto.point || 'ACTION_POINT',
-        ownerName: dto.ownerName,
+        ownerName,
         assignedById: userId,
       },
     });
@@ -87,7 +108,36 @@ export class ActionItemsService {
 
     await this.cache.invalidateAnalytics();
 
+    // No-ops when owner resolution found nobody, which is the common case
+    // today — the create form does not collect an owner.
+    await this.notifications.notifyActionItemAssigned(actionItem.id);
+
     return actionItem;
+  }
+
+  /**
+   * Confirms an owner is a real, usable account in the item's own ministry.
+   *
+   * Assigning work across ministries would leak the item into an inbox on the
+   * other side of a boundary the rest of the app enforces carefully.
+   */
+  private async resolveOwner(ownerId: string, ministryId: string) {
+    const owner = await (this.prisma as any).user.findFirst({
+      where: { id: ownerId, active: true, deletedAt: null },
+      select: { id: true, name: true, ministryId: true },
+    });
+
+    if (!owner) {
+      throw new NotFoundException('No active user with that ID');
+    }
+
+    if (owner.ministryId !== ministryId) {
+      throw new ForbiddenException(
+        'Action items can only be assigned within the ministry that owns the meeting',
+      );
+    }
+
+    return owner;
   }
 
   /** Roles that may move any action item within their ministry. */
@@ -127,10 +177,14 @@ export class ActionItemsService {
 
     const isOwner = actionItem.ownerId === userId;
     const isAdmin = ActionItemsService.ADMIN_ROLES.includes(systemRole ?? '');
+    // Whoever raised the item can still manage it. Without this an unassigned
+    // item is untouchable by everyone except a ministry admin — including the
+    // person who just created it, who cannot even assign an owner to it.
+    const isCreator = actionItem.assignedById === userId;
 
-    if (!isOwner && !isAdmin) {
+    if (!isOwner && !isAdmin && !isCreator) {
       throw new ForbiddenException(
-        'Only the assigned owner or a ministry admin can change this action item',
+        'Only the assigned owner, the person who raised it, or a ministry admin can change this action item',
       );
     }
 
@@ -139,6 +193,24 @@ export class ActionItemsService {
     if (dto.title !== undefined) updateData.title = dto.title;
     if (dto.description !== undefined) updateData.description = dto.description;
     if (dto.dueDate !== undefined) updateData.dueDate = new Date(dto.dueDate);
+
+    // Undefined means "leave alone"; null means "unassign".
+    const reassigning = dto.ownerId !== undefined;
+    if (reassigning) {
+      if (dto.ownerId === null) {
+        updateData.ownerId = null;
+        updateData.ownerName = null;
+      } else {
+        const owner = await this.resolveOwner(
+          dto.ownerId as string,
+          actionItem.minutes.event.ministryId,
+        );
+        updateData.ownerId = owner.id;
+        // Kept in step with the account so the free-text field cannot drift
+        // into naming somebody other than the actual owner.
+        updateData.ownerName = owner.name;
+      }
+    }
 
     if (dto.status) {
       updateData.status = dto.status;
@@ -168,6 +240,19 @@ export class ActionItemsService {
     });
 
     await this.cache.invalidateAnalytics();
+
+    // A new owner is told they have been given the item; that is more useful
+    // than also telling them its status changed in the same breath.
+    if (reassigning && updated.ownerId && updated.ownerId !== actionItem.ownerId) {
+      await this.notifications.notifyActionItemAssigned(actionItemId);
+    } else if (dto.status && actionItem.ownerId && actionItem.ownerId !== userId) {
+      // Only when the status actually moved, and never back to the person who
+      // moved it — telling someone what they just did is noise.
+      await this.notifications.notifyActionItemStatusChanged(
+        actionItemId,
+        dto.status,
+      );
+    }
 
     return updated;
   }

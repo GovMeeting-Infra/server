@@ -10,6 +10,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
 import { CacheService } from '../cache/cache.service';
 import { EventsRepository } from './events.repository';
+import { NotificationsService } from '../notifications/notifications.service';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { AddAttendeesDto } from './dto/add-attendees.dto';
@@ -25,6 +26,7 @@ export class EventsService {
     private audit: AuditService,
     private cache: CacheService,
     private eventsRepository: EventsRepository,
+    private notifications: NotificationsService,
   ) {}
 
   async createEvent(
@@ -163,6 +165,11 @@ export class EventsService {
         ],
         skipDuplicates: true,
       });
+
+      await this.notifications.notifyMeetingInvitation(
+        event.id,
+        inviteeUserIds ?? [],
+      );
     }
 
     await this.audit.log({
@@ -718,6 +725,13 @@ export class EventsService {
 
     await this.cache.invalidatePattern(`events:*${ministryId}*`);
     await this.cache.invalidateAnalytics();
+
+    // Only people with accounts have an inbox; external guests are reached by
+    // their RSVP link instead.
+    await this.notifications.notifyMeetingInvitation(
+      eventId,
+      rows.filter((r: any) => r.userId).map((r: any) => r.userId),
+    );
 
     return (this.prisma as any).eventAttendee.findMany({
       where: { eventId },

@@ -207,7 +207,7 @@ export type AuditLogGroupByArgs<ExtArgs extends runtime.Types.Extensions.Interna
 
 export type AuditLogGroupByOutputType = {
   id: string
-  ministryId: string
+  ministryId: string | null
   actorId: string | null
   action: string
   actionCategory: string
@@ -247,7 +247,7 @@ export type AuditLogWhereInput = {
   OR?: Prisma.AuditLogWhereInput[]
   NOT?: Prisma.AuditLogWhereInput | Prisma.AuditLogWhereInput[]
   id?: Prisma.StringFilter<"AuditLog"> | string
-  ministryId?: Prisma.StringFilter<"AuditLog"> | string
+  ministryId?: Prisma.StringNullableFilter<"AuditLog"> | string | null
   actorId?: Prisma.StringNullableFilter<"AuditLog"> | string | null
   action?: Prisma.StringFilter<"AuditLog"> | string
   actionCategory?: Prisma.StringFilter<"AuditLog"> | string
@@ -262,13 +262,13 @@ export type AuditLogWhereInput = {
   changes?: Prisma.JsonNullableFilter<"AuditLog">
   metadata?: Prisma.JsonNullableFilter<"AuditLog">
   createdAt?: Prisma.DateTimeFilter<"AuditLog"> | Date | string
-  ministry?: Prisma.XOR<Prisma.MinistryScalarRelationFilter, Prisma.MinistryWhereInput>
+  ministry?: Prisma.XOR<Prisma.MinistryNullableScalarRelationFilter, Prisma.MinistryWhereInput> | null
   actor?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
 }
 
 export type AuditLogOrderByWithRelationInput = {
   id?: Prisma.SortOrder
-  ministryId?: Prisma.SortOrder
+  ministryId?: Prisma.SortOrderInput | Prisma.SortOrder
   actorId?: Prisma.SortOrderInput | Prisma.SortOrder
   action?: Prisma.SortOrder
   actionCategory?: Prisma.SortOrder
@@ -293,7 +293,7 @@ export type AuditLogWhereUniqueInput = Prisma.AtLeast<{
   AND?: Prisma.AuditLogWhereInput | Prisma.AuditLogWhereInput[]
   OR?: Prisma.AuditLogWhereInput[]
   NOT?: Prisma.AuditLogWhereInput | Prisma.AuditLogWhereInput[]
-  ministryId?: Prisma.StringFilter<"AuditLog"> | string
+  ministryId?: Prisma.StringNullableFilter<"AuditLog"> | string | null
   actorId?: Prisma.StringNullableFilter<"AuditLog"> | string | null
   action?: Prisma.StringFilter<"AuditLog"> | string
   actionCategory?: Prisma.StringFilter<"AuditLog"> | string
@@ -307,13 +307,13 @@ export type AuditLogWhereUniqueInput = Prisma.AtLeast<{
   changes?: Prisma.JsonNullableFilter<"AuditLog">
   metadata?: Prisma.JsonNullableFilter<"AuditLog">
   createdAt?: Prisma.DateTimeFilter<"AuditLog"> | Date | string
-  ministry?: Prisma.XOR<Prisma.MinistryScalarRelationFilter, Prisma.MinistryWhereInput>
+  ministry?: Prisma.XOR<Prisma.MinistryNullableScalarRelationFilter, Prisma.MinistryWhereInput> | null
   actor?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
 }, "id" | "requestId">
 
 export type AuditLogOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
-  ministryId?: Prisma.SortOrder
+  ministryId?: Prisma.SortOrderInput | Prisma.SortOrder
   actorId?: Prisma.SortOrderInput | Prisma.SortOrder
   action?: Prisma.SortOrder
   actionCategory?: Prisma.SortOrder
@@ -338,7 +338,7 @@ export type AuditLogScalarWhereWithAggregatesInput = {
   OR?: Prisma.AuditLogScalarWhereWithAggregatesInput[]
   NOT?: Prisma.AuditLogScalarWhereWithAggregatesInput | Prisma.AuditLogScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"AuditLog"> | string
-  ministryId?: Prisma.StringWithAggregatesFilter<"AuditLog"> | string
+  ministryId?: Prisma.StringNullableWithAggregatesFilter<"AuditLog"> | string | null
   actorId?: Prisma.StringNullableWithAggregatesFilter<"AuditLog"> | string | null
   action?: Prisma.StringWithAggregatesFilter<"AuditLog"> | string
   actionCategory?: Prisma.StringWithAggregatesFilter<"AuditLog"> | string
@@ -370,13 +370,13 @@ export type AuditLogCreateInput = {
   changes?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
-  ministry: Prisma.MinistryCreateNestedOneWithoutAuditLogsInput
+  ministry?: Prisma.MinistryCreateNestedOneWithoutAuditLogsInput
   actor?: Prisma.UserCreateNestedOneWithoutAuditLogsInput
 }
 
 export type AuditLogUncheckedCreateInput = {
   id?: string
-  ministryId: string
+  ministryId?: string | null
   actorId?: string | null
   action: string
   actionCategory: string
@@ -408,13 +408,13 @@ export type AuditLogUpdateInput = {
   changes?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  ministry?: Prisma.MinistryUpdateOneRequiredWithoutAuditLogsNestedInput
+  ministry?: Prisma.MinistryUpdateOneWithoutAuditLogsNestedInput
   actor?: Prisma.UserUpdateOneWithoutAuditLogsNestedInput
 }
 
 export type AuditLogUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  ministryId?: Prisma.StringFieldUpdateOperationsInput | string
+  ministryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   actorId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   action?: Prisma.StringFieldUpdateOperationsInput | string
   actionCategory?: Prisma.StringFieldUpdateOperationsInput | string
@@ -433,7 +433,7 @@ export type AuditLogUncheckedUpdateInput = {
 
 export type AuditLogCreateManyInput = {
   id?: string
-  ministryId: string
+  ministryId?: string | null
   actorId?: string | null
   action: string
   actionCategory: string
@@ -469,7 +469,7 @@ export type AuditLogUpdateManyMutationInput = {
 
 export type AuditLogUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  ministryId?: Prisma.StringFieldUpdateOperationsInput | string
+  ministryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   actorId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   action?: Prisma.StringFieldUpdateOperationsInput | string
   actionCategory?: Prisma.StringFieldUpdateOperationsInput | string
@@ -652,12 +652,12 @@ export type AuditLogCreateWithoutActorInput = {
   changes?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
-  ministry: Prisma.MinistryCreateNestedOneWithoutAuditLogsInput
+  ministry?: Prisma.MinistryCreateNestedOneWithoutAuditLogsInput
 }
 
 export type AuditLogUncheckedCreateWithoutActorInput = {
   id?: string
-  ministryId: string
+  ministryId?: string | null
   action: string
   actionCategory: string
   entityType: string
@@ -704,7 +704,7 @@ export type AuditLogScalarWhereInput = {
   OR?: Prisma.AuditLogScalarWhereInput[]
   NOT?: Prisma.AuditLogScalarWhereInput | Prisma.AuditLogScalarWhereInput[]
   id?: Prisma.StringFilter<"AuditLog"> | string
-  ministryId?: Prisma.StringFilter<"AuditLog"> | string
+  ministryId?: Prisma.StringNullableFilter<"AuditLog"> | string | null
   actorId?: Prisma.StringNullableFilter<"AuditLog"> | string | null
   action?: Prisma.StringFilter<"AuditLog"> | string
   actionCategory?: Prisma.StringFilter<"AuditLog"> | string
@@ -785,7 +785,7 @@ export type AuditLogUpdateManyWithWhereWithoutMinistryInput = {
 
 export type AuditLogCreateManyActorInput = {
   id?: string
-  ministryId: string
+  ministryId?: string | null
   action: string
   actionCategory: string
   entityType: string
@@ -816,12 +816,12 @@ export type AuditLogUpdateWithoutActorInput = {
   changes?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  ministry?: Prisma.MinistryUpdateOneRequiredWithoutAuditLogsNestedInput
+  ministry?: Prisma.MinistryUpdateOneWithoutAuditLogsNestedInput
 }
 
 export type AuditLogUncheckedUpdateWithoutActorInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  ministryId?: Prisma.StringFieldUpdateOperationsInput | string
+  ministryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   action?: Prisma.StringFieldUpdateOperationsInput | string
   actionCategory?: Prisma.StringFieldUpdateOperationsInput | string
   entityType?: Prisma.StringFieldUpdateOperationsInput | string
@@ -839,7 +839,7 @@ export type AuditLogUncheckedUpdateWithoutActorInput = {
 
 export type AuditLogUncheckedUpdateManyWithoutActorInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  ministryId?: Prisma.StringFieldUpdateOperationsInput | string
+  ministryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   action?: Prisma.StringFieldUpdateOperationsInput | string
   actionCategory?: Prisma.StringFieldUpdateOperationsInput | string
   entityType?: Prisma.StringFieldUpdateOperationsInput | string
@@ -946,7 +946,7 @@ export type AuditLogSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   changes?: boolean
   metadata?: boolean
   createdAt?: boolean
-  ministry?: boolean | Prisma.MinistryDefaultArgs<ExtArgs>
+  ministry?: boolean | Prisma.AuditLog$ministryArgs<ExtArgs>
   actor?: boolean | Prisma.AuditLog$actorArgs<ExtArgs>
 }, ExtArgs["result"]["auditLog"]>
 
@@ -967,7 +967,7 @@ export type AuditLogSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exte
   changes?: boolean
   metadata?: boolean
   createdAt?: boolean
-  ministry?: boolean | Prisma.MinistryDefaultArgs<ExtArgs>
+  ministry?: boolean | Prisma.AuditLog$ministryArgs<ExtArgs>
   actor?: boolean | Prisma.AuditLog$actorArgs<ExtArgs>
 }, ExtArgs["result"]["auditLog"]>
 
@@ -988,7 +988,7 @@ export type AuditLogSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exte
   changes?: boolean
   metadata?: boolean
   createdAt?: boolean
-  ministry?: boolean | Prisma.MinistryDefaultArgs<ExtArgs>
+  ministry?: boolean | Prisma.AuditLog$ministryArgs<ExtArgs>
   actor?: boolean | Prisma.AuditLog$actorArgs<ExtArgs>
 }, ExtArgs["result"]["auditLog"]>
 
@@ -1013,27 +1013,27 @@ export type AuditLogSelectScalar = {
 
 export type AuditLogOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "ministryId" | "actorId" | "action" | "actionCategory" | "entityType" | "entityId" | "entityName" | "ipAddress" | "userAgent" | "requestId" | "status" | "description" | "changes" | "metadata" | "createdAt", ExtArgs["result"]["auditLog"]>
 export type AuditLogInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  ministry?: boolean | Prisma.MinistryDefaultArgs<ExtArgs>
+  ministry?: boolean | Prisma.AuditLog$ministryArgs<ExtArgs>
   actor?: boolean | Prisma.AuditLog$actorArgs<ExtArgs>
 }
 export type AuditLogIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  ministry?: boolean | Prisma.MinistryDefaultArgs<ExtArgs>
+  ministry?: boolean | Prisma.AuditLog$ministryArgs<ExtArgs>
   actor?: boolean | Prisma.AuditLog$actorArgs<ExtArgs>
 }
 export type AuditLogIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  ministry?: boolean | Prisma.MinistryDefaultArgs<ExtArgs>
+  ministry?: boolean | Prisma.AuditLog$ministryArgs<ExtArgs>
   actor?: boolean | Prisma.AuditLog$actorArgs<ExtArgs>
 }
 
 export type $AuditLogPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "AuditLog"
   objects: {
-    ministry: Prisma.$MinistryPayload<ExtArgs>
+    ministry: Prisma.$MinistryPayload<ExtArgs> | null
     actor: Prisma.$UserPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
-    ministryId: string
+    ministryId: string | null
     actorId: string | null
     action: string
     actionCategory: string
@@ -1442,7 +1442,7 @@ readonly fields: AuditLogFieldRefs;
  */
 export interface Prisma__AuditLogClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
-  ministry<T extends Prisma.MinistryDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.MinistryDefaultArgs<ExtArgs>>): Prisma.Prisma__MinistryClient<runtime.Types.Result.GetResult<Prisma.$MinistryPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  ministry<T extends Prisma.AuditLog$ministryArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.AuditLog$ministryArgs<ExtArgs>>): Prisma.Prisma__MinistryClient<runtime.Types.Result.GetResult<Prisma.$MinistryPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   actor<T extends Prisma.AuditLog$actorArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.AuditLog$actorArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -1887,6 +1887,25 @@ export type AuditLogDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Inte
    * Limit how many AuditLogs to delete.
    */
   limit?: number
+}
+
+/**
+ * AuditLog.ministry
+ */
+export type AuditLog$ministryArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Ministry
+   */
+  select?: Prisma.MinistrySelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Ministry
+   */
+  omit?: Prisma.MinistryOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.MinistryInclude<ExtArgs> | null
+  where?: Prisma.MinistryWhereInput
 }
 
 /**

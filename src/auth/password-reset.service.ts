@@ -6,26 +6,26 @@ import {
 } from '@nestjs/common';
 import { createHash, randomBytes } from 'crypto';
 import { hashPassword } from 'better-auth/crypto';
+import { v4 as uuid } from 'uuid';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
 import { MailService } from '../mail/mail.service';
-import { inviteEmail } from '../mail/templates';
-import { v4 as uuid } from 'uuid';
+import { passwordResetEmail } from '../mail/templates';
 
-const INVITE_TTL_DAYS = 7;
-const IDENTIFIER_PREFIX = 'invite:';
+const RESET_TTL_MINUTES = 60;
+const IDENTIFIER_PREFIX = 'reset:';
 
 /**
- * Invitation tokens for new accounts.
+ * Self-service password reset.
  *
- * Users are created without a credential; they set their own password from a
- * one-time link, so no administrator ever handles someone else's password.
- * Tokens live in the existing Verification table (identifier / value /
- * expiresAt), which is already shaped for this — no schema change needed.
+ * Deliberately mirrors InvitesService: same Verification table, same sha256
+ * storage of the token, same single-use consumption. The differences are the
+ * short TTL, and that every response here is written to reveal nothing to an
+ * unauthenticated caller.
  */
 @Injectable()
-export class InvitesService {
-  private logger = new Logger('InvitesService');
+export class PasswordResetService {
+  private logger = new Logger('PasswordResetService');
 
   constructor(
     private prisma: PrismaService,
@@ -40,79 +40,75 @@ export class InvitesService {
 
   private linkFor(token: string) {
     const base =
-      process.env.WEB_URL || process.env.NEXT_PUBLIC_WEB_URL || 'http://localhost:3000';
-    return `${base}/set-password?token=${token}`;
+      process.env.WEB_URL ||
+      process.env.NEXT_PUBLIC_WEB_URL ||
+      'http://localhost:3000';
+    return `${base}/reset-password?token=${token}`;
   }
 
   /**
-   * Issues (or re-issues) an invite. Any previous invite for the user is
-   * dropped first, so re-inviting invalidates the old link.
+   * Issues a reset link if the address belongs to a usable account.
+   *
+   * Returns nothing either way. The caller is unauthenticated, so telling it
+   * whether the address exists — or whether mail was actually sent — would
+   * turn this into an account-enumeration oracle.
    */
-  async issue(userId: string, actorId: string, ministryId: string) {
-    const user = await (this.prisma as any).user.findUnique({
-      where: { id: userId },
-      select: { id: true, email: true, name: true, deletedAt: true },
+  async request(rawEmail: string, ipAddress?: string): Promise<void> {
+    const email = rawEmail.trim().toLowerCase();
+
+    const user = await (this.prisma as any).user.findFirst({
+      where: { email, active: true, deletedAt: null },
+      select: { id: true, email: true, name: true, ministryId: true },
     });
 
-    if (!user || user.deletedAt) {
-      throw new NotFoundException('User not found');
+    if (!user) {
+      // Logged, not returned. Someone probing for valid addresses learns
+      // nothing from the response.
+      this.logger.warn(
+        `Password reset requested for an unknown or inactive address`,
+      );
+      return;
     }
 
     const token = randomBytes(32).toString('base64url');
-    const identifier = `${IDENTIFIER_PREFIX}${userId}`;
+    const identifier = `${IDENTIFIER_PREFIX}${user.id}`;
 
+    // Re-requesting invalidates any previous link.
     await (this.prisma as any).verification.deleteMany({ where: { identifier } });
 
     await (this.prisma as any).verification.create({
       data: {
         identifier,
         value: this.hash(token),
-        expiresAt: new Date(Date.now() + INVITE_TTL_DAYS * 24 * 60 * 60 * 1000),
+        expiresAt: new Date(Date.now() + RESET_TTL_MINUTES * 60 * 1000),
       },
     });
 
     await this.audit.log({
-      action: 'USER_INVITED',
-      actionCategory: 'USER_MANAGEMENT',
+      action: 'PASSWORD_RESET_REQUESTED',
+      actionCategory: 'AUTH',
       entityType: 'User',
-      entityId: userId,
+      entityId: user.id,
       entityName: user.email,
       status: 'SUCCESS',
-      ministryId,
-      actorId,
-      description: `Issued account invitation for ${user.email}`,
+      ministryId: user.ministryId ?? undefined,
+      actorId: user.id,
+      description: 'Password reset link issued',
+      ipAddress,
     });
 
-    const link = this.linkFor(token);
-
-    // Sent inline rather than queued so the caller learns the real outcome and
-    // the admin can be told truthfully whether to hand the link over. Never
-    // throws, so a mail failure cannot undo an account that already exists.
-    const delivery = await this.mail.send(
+    // Result deliberately discarded — see the note above.
+    await this.mail.send(
       user.email,
-      inviteEmail({ name: user.name, link, expiresInDays: INVITE_TTL_DAYS }),
+      passwordResetEmail({
+        name: user.name,
+        link: this.linkFor(token),
+        expiresInMinutes: RESET_TTL_MINUTES,
+      }),
     );
-
-    if (!delivery.sent) {
-      this.logger.warn(
-        `Invitation for ${user.email} was not emailed (${delivery.error}); the link is returned to the inviting admin instead`,
-      );
-    }
-
-    return {
-      userId,
-      email: user.email,
-      name: user.name,
-      link,
-      expiresInDays: INVITE_TTL_DAYS,
-      emailSent: delivery.sent,
-      // Surfaced so the admin screen can say why, rather than assuming the
-      // server simply has no mailer configured.
-      emailError: delivery.error ?? null,
-    };
   }
 
-  /** Looks up a live invite, or throws. Used by both verify and consume. */
+  /** Looks up a live reset token, or throws. Used by both verify and consume. */
   private async findValid(token: string) {
     const record = await (this.prisma as any).verification.findFirst({
       where: {
@@ -121,10 +117,12 @@ export class InvitesService {
       },
     });
 
-    // Identical response for missing, expired and already-used, so the
+    // One message for missing, expired, already-used and tampered, so the
     // endpoint doesn't disclose which.
     if (!record || record.expiresAt < new Date()) {
-      throw new NotFoundException('This invitation is invalid or has expired');
+      throw new NotFoundException(
+        'This reset link is invalid or has expired',
+      );
     }
 
     const userId = record.identifier.slice(IDENTIFIER_PREFIX.length);
@@ -141,7 +139,9 @@ export class InvitesService {
     });
 
     if (!user || user.deletedAt || !user.active) {
-      throw new NotFoundException('This invitation is invalid or has expired');
+      throw new NotFoundException(
+        'This reset link is invalid or has expired',
+      );
     }
 
     return { record, user };
@@ -152,8 +152,8 @@ export class InvitesService {
     return { email: user.email, name: user.name };
   }
 
-  /** Sets the password and consumes the token, so the link works exactly once. */
-  async setPassword(token: string, password: string) {
+  /** Sets the new password and consumes the token, so the link works once. */
+  async reset(token: string, password: string, ipAddress?: string) {
     if (password.length < 8) {
       throw new BadRequestException('Password must be at least 8 characters');
     }
@@ -183,16 +183,24 @@ export class InvitesService {
 
     await (this.prisma as any).verification.delete({ where: { id: record.id } });
 
+    // A reset implies the old credential may be in someone else's hands, so
+    // every existing session goes with it.
+    const { count } = await (this.prisma as any).session.deleteMany({
+      where: { userId: user.id },
+    });
+
     await this.audit.log({
-      action: 'INVITE_ACCEPTED',
-      actionCategory: 'USER_MANAGEMENT',
+      action: 'PASSWORD_RESET_COMPLETED',
+      actionCategory: 'AUTH',
       entityType: 'User',
       entityId: user.id,
       entityName: user.email,
       status: 'SUCCESS',
       ministryId: user.ministryId ?? undefined,
       actorId: user.id,
-      description: `Set initial password via invitation`,
+      description: 'Password reset via emailed link',
+      metadata: { sessionsRevoked: count },
+      ipAddress,
     });
 
     return { success: true, email: user.email };

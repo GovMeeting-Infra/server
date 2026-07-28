@@ -22,8 +22,8 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { CanManageEventGuard } from '../events/guards/can-manage-event.guard';
 import { AllowCoOrganizers } from '../events/decorators/allow-co-organizers.decorator';
-import { CheckInRateLimitGuard } from './guards/check-in-rate-limit.guard';
-import { RateLimit } from './decorators/rate-limit.decorator';
+import { RateLimitGuard } from '../common/guards/rate-limit.guard';
+import { RateLimit } from '../common/decorators/rate-limit.decorator';
 
 const CODE_ROLES = [
   'SUPER_ADMIN',
@@ -92,7 +92,7 @@ export class CheckinController {
    * check-in page calls it before showing anything.
    */
   @Get('checkin/:token/context')
-  @UseGuards(CheckInRateLimitGuard)
+  @UseGuards(RateLimitGuard)
   @RateLimit({ perIp: 60, windowSeconds: 60 })
   async checkInContext(@Param('token') token: string) {
     return this.checkinService.getCheckInContext(token);
@@ -100,7 +100,7 @@ export class CheckinController {
 
   /** Check-in by a signed-in member of staff. */
   @Post('checkin/:token')
-  @UseGuards(CheckInRateLimitGuard)
+  @UseGuards(RateLimitGuard)
   @RateLimit({ perIp: 10, perToken: 30, windowSeconds: 60 })
   @HttpCode(200)
   async checkIn(
@@ -117,7 +117,7 @@ export class CheckinController {
 
   /** Check-in by someone without an account. */
   @Post('checkin/:token/guest')
-  @UseGuards(CheckInRateLimitGuard)
+  @UseGuards(RateLimitGuard)
   @RateLimit({ perIp: 10, perToken: 30, windowSeconds: 60 })
   @HttpCode(200)
   async guestCheckIn(

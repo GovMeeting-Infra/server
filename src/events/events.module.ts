@@ -8,9 +8,10 @@ import { CanManageEventGuard } from './guards/can-manage-event.guard';
 import { PrismaModule } from '../prisma/prisma.module';
 import { AuditModule } from '../audit/audit.module';
 import { CacheModule } from '../cache/cache.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
-  imports: [PrismaModule, AuditModule, CacheModule],
+  imports: [PrismaModule, AuditModule, CacheModule, NotificationsModule],
   providers: [
     EventsService,
     EventsRepository,

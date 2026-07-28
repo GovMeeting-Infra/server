@@ -1,6 +1,17 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CacheService } from '../cache/cache.service';
+import { toCsv } from './csv.util';
+
+/**
+ * Enough of the caller to scope a query. The exports previously took a bare
+ * ministryId, which meant a super-admin — who has none — silently got an empty
+ * file, even though their dashboard spans every ministry.
+ */
+interface ScopedUser {
+  systemRole: string;
+  ministryId?: string | null;
+}
 import {
   EventStatsDto,
   AttendanceStatsDto,
@@ -291,9 +302,9 @@ export class ReportsService {
     };
   }
 
-  async exportToCSV(ministryId: string): Promise<string> {
+  async exportToCSV(user: ScopedUser): Promise<string> {
     const events = await (this.prisma as any).event.findMany({
-      where: { ministryId },
+      where: ministryScope(user),
       include: {
         attendances: true,
         attendees: true,
@@ -320,13 +331,13 @@ export class ReportsService {
       ]);
     }
 
-    return csvRows.map((row) => row.map((cell) => `"${cell}"`).join(',')).join('\n');
+    return toCsv(csvRows);
   }
 
-  async exportAttendanceToCSV(ministryId: string): Promise<string> {
+  async exportAttendanceToCSV(user: ScopedUser): Promise<string> {
     const attendances = await (this.prisma as any).attendance.findMany({
       where: {
-        event: { ministryId },
+        event: ministryScope(user),
       },
       include: {
         user: { select: { id: true, name: true, email: true } },
@@ -358,14 +369,14 @@ export class ReportsService {
       ]);
     }
 
-    return csvRows.map((row) => row.map((cell) => `"${cell}"`).join(',')).join('\n');
+    return toCsv(csvRows);
   }
 
-  async exportActionItemsToCSV(ministryId: string): Promise<string> {
+  async exportActionItemsToCSV(user: ScopedUser): Promise<string> {
     const actionItems = await (this.prisma as any).actionItem.findMany({
       where: {
         minutes: {
-          event: { ministryId },
+          event: ministryScope(user),
         },
       },
       include: {
@@ -391,6 +402,6 @@ export class ReportsService {
       ]);
     }
 
-    return csvRows.map((row) => row.map((cell) => `"${cell}"`).join(',')).join('\n');
+    return toCsv(csvRows);
   }
 }

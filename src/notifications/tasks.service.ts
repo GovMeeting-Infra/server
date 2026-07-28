@@ -3,6 +3,7 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { Queue } from 'bullmq';
 import { InjectQueue } from '@nestjs/bullmq';
 import { PrismaService } from '../prisma/prisma.service';
+import { archiveCutoff } from '../minutes/archive.policy';
 
 @Injectable()
 export class TasksService {
@@ -61,9 +62,14 @@ export class TasksService {
       const upcomingEvents = await (this.prisma as any).event.findMany({
         where: {
           startAt: { gte: now, lte: in1h },
+          // Without this, drafts and cancelled meetings send reminders too.
+          status: 'PUBLISHED',
         },
         include: {
           attendees: {
+            // Someone who declined should not be chased. Everyone else,
+            // including people who never answered, still gets the nudge.
+            where: { status: { not: 'DECLINED' } },
             include: { user: true },
           },
         },
@@ -78,10 +84,20 @@ export class TasksService {
       for (const event of upcomingEvents) {
         for (const attendee of event.attendees) {
           if (attendee.user) {
-            await this.emailQueue.add('send-meeting-reminder', {
-              eventId: event.id,
-              userId: attendee.user.id,
-            });
+            // This cron runs every 10 minutes over a one-hour window, so the
+            // same attendee matches roughly six times per meeting. A stable
+            // jobId makes the repeats no-ops: BullMQ ignores an add for an id
+            // it already holds. Retaining completed jobs for two hours keeps
+            // the id alive across the whole window.
+            await this.emailQueue.add(
+              'send-meeting-reminder',
+              { eventId: event.id, userId: attendee.user.id },
+              {
+                jobId: `meeting-reminder:${event.id}:${attendee.user.id}`,
+                removeOnComplete: { age: 2 * 60 * 60 },
+                removeOnFail: { age: 2 * 60 * 60 },
+              },
+            );
             queuedCount++;
           }
         }
@@ -92,6 +108,41 @@ export class TasksService {
       }
     } catch (error) {
       this.logger.error('Error in meeting reminders cron', error);
+    }
+  }
+
+  /**
+   * Archives published minutes once their meeting is old enough.
+   *
+   * Only PUBLISHED records are touched. A six-month-old draft is abandoned
+   * work rather than a record, and archiving would freeze it read-only and
+   * hide it from the person still meaning to finish it.
+   */
+  @Cron(CronExpression.EVERY_DAY_AT_1AM)
+  async archiveOldMinutes() {
+    this.logger.log('Starting minutes archiving cron job...');
+
+    try {
+      const cutoff = archiveCutoff();
+
+      const result = await (this.prisma as any).minutes.updateMany({
+        where: {
+          status: 'PUBLISHED',
+          // A record leadership deliberately restored stays out of the
+          // archive; without this the job would put it straight back tonight.
+          archiveExempt: false,
+          event: { endAt: { lt: cutoff } },
+        },
+        data: { status: 'ARCHIVED', archivedAt: new Date() },
+      });
+
+      if (result.count > 0) {
+        this.logger.log(
+          `Archived ${result.count} minutes for meetings before ${cutoff.toISOString()}`,
+        );
+      }
+    } catch (error) {
+      this.logger.error('Error in minutes archiving cron', error);
     }
   }
 

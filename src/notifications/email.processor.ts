@@ -2,6 +2,12 @@ import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Job } from 'bullmq';
 import { Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { MailService } from '../mail/mail.service';
+import { NotificationsService } from './notifications.service';
+import {
+  actionItemReminderEmail,
+  meetingReminderEmail,
+} from '../mail/templates';
 
 interface MeetingInvitationPayload {
   eventId: string;
@@ -25,7 +31,11 @@ interface MinutesPublishedPayload {
 export class EmailProcessor extends WorkerHost {
   private logger = new Logger('EmailProcessor');
 
-  constructor(private prisma: PrismaService) {
+  constructor(
+    private prisma: PrismaService,
+    private mail: MailService,
+    private notifications: NotificationsService,
+  ) {
     super();
   }
 
@@ -106,18 +116,31 @@ export class EmailProcessor extends WorkerHost {
         return { sent: 0, error: 'No owner assigned' };
       }
 
-      try {
-        this.logger.log(
-          `Sending action item reminder to ${actionItem.owner.email}: ${actionItem.title}`,
-        );
-        return { sent: 1 };
-      } catch (error) {
-        this.logger.error(
-          `Failed to send reminder to ${actionItem.owner.email}`,
-          error,
-        );
-        throw error;
+      if (
+        !(await this.notifications.wantsEmail(
+          actionItem.owner.id,
+          'ACTION_ITEM_ASSIGNED',
+        ))
+      ) {
+        return { sent: 0, error: 'Muted by preference' };
       }
+
+      const result = await this.mail.send(
+        actionItem.owner.email,
+        actionItemReminderEmail({
+          name: actionItem.owner.name,
+          title: actionItem.title,
+          dueDate: actionItem.dueDate,
+          eventTitle: actionItem.minutes?.event?.title ?? null,
+        }),
+      );
+
+      // The reminder is already marked sent by the cron before this runs, so
+      // failing the job would retry an email the scheduler will not re-queue.
+      // Report the outcome instead and let the logged error be the signal.
+      return result.sent
+        ? { sent: 1 }
+        : { sent: 0, error: result.error };
     } catch (error) {
       this.logger.error('Error sending action item reminder', error);
       throw error;
@@ -147,18 +170,27 @@ export class EmailProcessor extends WorkerHost {
         return { sent: 0, error: 'User not found' };
       }
 
-      try {
-        this.logger.log(
-          `Sending meeting reminder to ${user.email}: ${event.title}`,
-        );
-        return { sent: 1 };
-      } catch (error) {
-        this.logger.error(
-          `Failed to send meeting reminder to ${user.email}`,
-          error,
-        );
-        throw error;
+      // The in-app copy is written regardless of the email outcome and applies
+      // its own preference check, so muting email does not mute the inbox.
+      await this.notifications.notifyMeetingReminder(eventId, userId);
+
+      if (!(await this.notifications.wantsEmail(userId, 'MEETING_REMINDER'))) {
+        return { sent: 0, error: 'Muted by preference' };
       }
+
+      const result = await this.mail.send(
+        user.email,
+        meetingReminderEmail({
+          name: user.name,
+          eventTitle: event.title,
+          startAt: event.startAt,
+          venueName: event.venueName,
+        }),
+      );
+
+      return result.sent
+        ? { sent: 1 }
+        : { sent: 0, error: result.error };
     } catch (error) {
       this.logger.error('Error sending meeting reminder', error);
       throw error;
