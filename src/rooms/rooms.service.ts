@@ -10,7 +10,10 @@ import { AuditService } from '../audit/audit.service';
 import { CacheService } from '../cache/cache.service';
 import { CreateRoomDto } from './dto/create-room.dto';
 import { UpdateRoomDto } from './dto/update-room.dto';
-import { ministryScope, assertSameMinistry } from '../common/utils/ministry-scope.util';
+import {
+  ministryScope,
+  assertSameMinistry,
+} from '../common/utils/ministry-scope.util';
 
 @Injectable()
 export class RoomsService {
@@ -31,7 +34,9 @@ export class RoomsService {
     // Same shape as createEvent's override: only a super-admin may file the
     // record under another ministry, and the target must exist.
     const targetMinistryId =
-      systemRole === 'SUPER_ADMIN' && dto.ministryId ? dto.ministryId : ministryId;
+      systemRole === 'SUPER_ADMIN' && dto.ministryId
+        ? dto.ministryId
+        : ministryId;
 
     if (systemRole === 'SUPER_ADMIN' && dto.ministryId) {
       const ministry = await (this.prisma as any).ministry.findUnique({
@@ -111,7 +116,9 @@ export class RoomsService {
       return room;
     } catch (error: any) {
       if (error.code === 'P2002') {
-        throw new BadRequestException(`Room "${dto.name}" already exists in this ministry`);
+        throw new BadRequestException(
+          `Room "${dto.name}" already exists in this ministry`,
+        );
       }
       throw error;
     }
@@ -320,10 +327,7 @@ export class RoomsService {
       where: {
         roomId,
         NOT: {
-          OR: [
-            { endAt: { lte: startTime } },
-            { startAt: { gte: endTime } },
-          ],
+          OR: [{ endAt: { lte: startTime } }, { startAt: { gte: endTime } }],
         },
       },
     });

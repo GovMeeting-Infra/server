@@ -6,7 +6,9 @@ interface UserWithMinistry {
 }
 
 export function ministryScope(user: UserWithMinistry): Record<string, unknown> {
-  return user.systemRole === 'SUPER_ADMIN' ? {} : { ministryId: user.ministryId };
+  return user.systemRole === 'SUPER_ADMIN'
+    ? {}
+    : { ministryId: user.ministryId };
 }
 
 export function assertSameMinistry(

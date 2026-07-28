@@ -11,17 +11,8 @@ import { RateLimitGuard } from '../common/guards/rate-limit.guard';
 @Module({
   // CacheModule backs the rate limiter on the public check-in routes.
   imports: [PrismaModule, AuditModule, CacheModule],
-  providers: [
-    CheckinService,
-    RSVPService,
-    QRTokenService,
-    RateLimitGuard,
-  ],
+  providers: [CheckinService, RSVPService, QRTokenService, RateLimitGuard],
   controllers: [CheckinController],
-  exports: [
-    CheckinService,
-    RSVPService,
-    QRTokenService,
-  ],
+  exports: [CheckinService, RSVPService, QRTokenService],
 })
 export class AttendanceModule {}

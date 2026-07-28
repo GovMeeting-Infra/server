@@ -74,7 +74,9 @@ export class PasswordResetService {
     const identifier = `${IDENTIFIER_PREFIX}${user.id}`;
 
     // Re-requesting invalidates any previous link.
-    await (this.prisma as any).verification.deleteMany({ where: { identifier } });
+    await (this.prisma as any).verification.deleteMany({
+      where: { identifier },
+    });
 
     await (this.prisma as any).verification.create({
       data: {
@@ -120,9 +122,7 @@ export class PasswordResetService {
     // One message for missing, expired, already-used and tampered, so the
     // endpoint doesn't disclose which.
     if (!record || record.expiresAt < new Date()) {
-      throw new NotFoundException(
-        'This reset link is invalid or has expired',
-      );
+      throw new NotFoundException('This reset link is invalid or has expired');
     }
 
     const userId = record.identifier.slice(IDENTIFIER_PREFIX.length);
@@ -139,9 +139,7 @@ export class PasswordResetService {
     });
 
     if (!user || user.deletedAt || !user.active) {
-      throw new NotFoundException(
-        'This reset link is invalid or has expired',
-      );
+      throw new NotFoundException('This reset link is invalid or has expired');
     }
 
     return { record, user };
@@ -181,7 +179,9 @@ export class PasswordResetService {
       });
     }
 
-    await (this.prisma as any).verification.delete({ where: { id: record.id } });
+    await (this.prisma as any).verification.delete({
+      where: { id: record.id },
+    });
 
     // A reset implies the old credential may be in someone else's hands, so
     // every existing session goes with it.

@@ -33,14 +33,11 @@ export class AuthController {
     @Res() res: Response,
     @Req() req: Request,
   ) {
-    const result = await this.authService.signIn(
-      dto,
-      req.ip || undefined,
-    );
+    const result = await this.authService.signIn(dto, req.ip || undefined);
 
     res.setHeader(
       'Set-Cookie',
-      `authToken=${(result as any).token}; Path=/; HttpOnly; Secure; SameSite=Lax`,
+      `authToken=${result.token}; Path=/; HttpOnly; Secure; SameSite=Lax`,
     );
 
     res.json({

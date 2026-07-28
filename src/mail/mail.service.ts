@@ -86,7 +86,9 @@ export class MailService {
       return { sent: true };
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Unknown mail error';
-      this.logger.error(`Failed sending "${body.subject}" to ${to}: ${message}`);
+      this.logger.error(
+        `Failed sending "${body.subject}" to ${to}: ${message}`,
+      );
       return { sent: false, error: message };
     }
   }

@@ -68,7 +68,11 @@ export class SearchService {
       }),
 
       (this.prisma as any).room.findMany({
-        where: { ...scope, active: true, OR: [{ name: like }, { location: like }] },
+        where: {
+          ...scope,
+          active: true,
+          OR: [{ name: like }, { location: like }],
+        },
         select: { id: true, name: true, location: true, capacity: true },
         take: LIMIT,
       }),

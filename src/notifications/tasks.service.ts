@@ -30,7 +30,9 @@ export class TasksService {
         },
       });
 
-      this.logger.log(`Found ${dueItems.length} action items due in next 24 hours`);
+      this.logger.log(
+        `Found ${dueItems.length} action items due in next 24 hours`,
+      );
 
       for (const item of dueItems) {
         await this.emailQueue.add('send-action-item-reminder', {

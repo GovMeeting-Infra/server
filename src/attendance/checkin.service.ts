@@ -23,11 +23,7 @@ import {
 
 /** Why a token cannot currently be used, or OPEN when it can. */
 export type CheckInStatus =
-  | 'INVALID'
-  | 'EXPIRED'
-  | 'UNAVAILABLE'
-  | 'ENDED'
-  | 'OPEN';
+  'INVALID' | 'EXPIRED' | 'UNAVAILABLE' | 'ENDED' | 'OPEN';
 
 interface RequestMeta {
   ipAddress?: string;
@@ -143,32 +139,32 @@ export class CheckinService {
     // Not capturing: incoming coordinates are ignored entirely, so a rotating
     // token can never drag the fence along with the organizer.
 
-    const { token, expiresAt, updated } = await (this.prisma as any).$transaction(
-      async (tx: any) => {
-        let updated = event;
-        if (anchorData) {
-          updated = await tx.event.update({
-            where: { id: eventId },
-            data: anchorData,
-            select: {
-              id: true,
-              title: true,
-              status: true,
-              endAt: true,
-              ministryId: true,
-              allowGuestCheckIn: true,
-              ...ANCHOR_FIELDS,
-            },
-          });
-        }
-        const minted = await this.qrToken.ensureActiveToken(
-          eventId,
-          { force: dto.rotate === true },
-          tx,
-        );
-        return { ...minted, updated };
-      },
-    );
+    const { token, expiresAt, updated } = await (
+      this.prisma as any
+    ).$transaction(async (tx: any) => {
+      let updated = event;
+      if (anchorData) {
+        updated = await tx.event.update({
+          where: { id: eventId },
+          data: anchorData,
+          select: {
+            id: true,
+            title: true,
+            status: true,
+            endAt: true,
+            ministryId: true,
+            allowGuestCheckIn: true,
+            ...ANCHOR_FIELDS,
+          },
+        });
+      }
+      const minted = await this.qrToken.ensureActiveToken(
+        eventId,
+        { force: dto.rotate === true },
+        tx,
+      );
+      return { ...minted, updated };
+    });
 
     await this.audit.log({
       action: 'CHECKIN_CODE_ISSUED',
@@ -180,7 +176,10 @@ export class CheckinService {
       ministryId: event.ministryId,
       actorId: actor.id,
       description: `Issued check-in code for event: ${event.title}`,
-      metadata: { anchored: updated.checkInAnchorLat !== null, tokenExpiresAt: expiresAt },
+      metadata: {
+        anchored: updated.checkInAnchorLat !== null,
+        tokenExpiresAt: expiresAt,
+      },
     });
 
     if (anchorChange) {
@@ -282,7 +281,8 @@ export class CheckinService {
         ? new Date(new Date(expiresAt).getTime() - 60 * 1000)
         : null,
       geofence: {
-        enabled: event.checkInAnchorLat !== null && event.checkInAnchorLng !== null,
+        enabled:
+          event.checkInAnchorLat !== null && event.checkInAnchorLng !== null,
         radiusMeters: GEOFENCE_RADIUS_METERS,
         anchorLat: event.checkInAnchorLat,
         anchorLng: event.checkInAnchorLng,
@@ -306,9 +306,18 @@ export class CheckinService {
   async getCheckInContext(token: string) {
     const row = await this.qrToken.findToken(token);
 
-    if (!row) return { status: 'INVALID' as CheckInStatus, event: null, geofenceRequired: false };
+    if (!row)
+      return {
+        status: 'INVALID' as CheckInStatus,
+        event: null,
+        geofenceRequired: false,
+      };
     if (row.expiresAt < new Date()) {
-      return { status: 'EXPIRED' as CheckInStatus, event: null, geofenceRequired: false };
+      return {
+        status: 'EXPIRED' as CheckInStatus,
+        event: null,
+        geofenceRequired: false,
+      };
     }
 
     const event = await (this.prisma as any).event.findUnique({
@@ -327,7 +336,11 @@ export class CheckinService {
     });
 
     if (!event) {
-      return { status: 'INVALID' as CheckInStatus, event: null, geofenceRequired: false };
+      return {
+        status: 'INVALID' as CheckInStatus,
+        event: null,
+        geofenceRequired: false,
+      };
     }
 
     const geofenceRequired =
@@ -336,7 +349,11 @@ export class CheckinService {
     if (event.status === 'DRAFT' || event.status === 'CANCELLED') {
       // Rendered identically to INVALID by the client: someone holding a code
       // for an unpublished event should not learn that it exists.
-      return { status: 'UNAVAILABLE' as CheckInStatus, event: null, geofenceRequired };
+      return {
+        status: 'UNAVAILABLE' as CheckInStatus,
+        event: null,
+        geofenceRequired,
+      };
     }
 
     const publicEvent = {
@@ -349,12 +366,20 @@ export class CheckinService {
     };
 
     if (event.endAt < new Date()) {
-      return { status: 'ENDED' as CheckInStatus, event: publicEvent, geofenceRequired };
+      return {
+        status: 'ENDED' as CheckInStatus,
+        event: publicEvent,
+        geofenceRequired,
+      };
     }
 
     // Never expose anchor coordinates here — this endpoint is unauthenticated,
     // and handing out the centre of the fence makes spoofing trivial.
-    return { status: 'OPEN' as CheckInStatus, event: publicEvent, geofenceRequired };
+    return {
+      status: 'OPEN' as CheckInStatus,
+      event: publicEvent,
+      geofenceRequired,
+    };
   }
 
   // ==========================================================================
@@ -477,7 +502,9 @@ export class CheckinService {
       throw new BadRequestException('Invalid check-in code');
     }
     if (event.endAt < new Date()) {
-      throw new BadRequestException('This meeting has ended. Check-in is closed.');
+      throw new BadRequestException(
+        'This meeting has ended. Check-in is closed.',
+      );
     }
 
     return event;
@@ -514,7 +541,10 @@ export class CheckinService {
         'Location is required to check in to this meeting. Enable GPS and try again.',
       );
     }
-    if (dto.gpsAccuracy == null || dto.gpsAccuracy > CHECKIN_MAX_ACCURACY_METERS) {
+    if (
+      dto.gpsAccuracy == null ||
+      dto.gpsAccuracy > CHECKIN_MAX_ACCURACY_METERS
+    ) {
       throw new BadRequestException(
         'GPS accuracy insufficient for location verification. Move somewhere with a clearer signal and try again.',
       );
@@ -548,7 +578,12 @@ export class CheckinService {
 
   private async recordAttendance(
     event: any,
-    dto: { lat?: number; lng?: number; gpsAccuracy?: number; signature: string },
+    dto: {
+      lat?: number;
+      lng?: number;
+      gpsAccuracy?: number;
+      signature: string;
+    },
     verdict: GeofenceVerdict,
     meta: RequestMeta,
     identity: {
@@ -633,7 +668,13 @@ export class CheckinService {
   ) {
     const event = await (this.prisma as any).event.findUnique({
       where: { id: eventId },
-      select: { id: true, title: true, status: true, endAt: true, ministryId: true },
+      select: {
+        id: true,
+        title: true,
+        status: true,
+        endAt: true,
+        ministryId: true,
+      },
     });
 
     if (!event) {
@@ -643,41 +684,79 @@ export class CheckinService {
       throw new BadRequestException('This event has been cancelled');
     }
 
+    const name = dto.name.trim();
+    const email = dto.email.trim().toLowerCase();
+
     // The attendee may legitimately belong to another ministry — events can
     // invite them — so this checks only that the account is real and usable.
     // Who may operate this desk is settled by CanManageEventGuard.
+    //
+    // Deliberately the opposite of guestCheckIn, which refuses an email that
+    // belongs to an account: there the visitor is anonymous and could type a
+    // colleague's address, whereas here an authorized organizer is vouching in
+    // person. Linking means the check-in reaches that person's own attendance
+    // record instead of being stranded as an unrelated guest row.
     const target = await (this.prisma as any).user.findFirst({
-      where: { id: dto.userId, active: true, deletedAt: null },
-      select: { id: true, name: true },
+      where: { email, active: true, deletedAt: null },
+      select: { id: true },
     });
-    if (!target) {
-      throw new NotFoundException('No active user with that ID');
-    }
 
-    // findFirst, not findUnique on the compound key: userId is nullable now, so
-    // the compound-unique input no longer accepts it cleanly.
+    // findFirst, not findUnique on the compound key: userId is nullable, so the
+    // compound-unique input no longer accepts it cleanly. Which of the two
+    // unique indexes applies depends on whether this resolved to an account.
     const existing = await (this.prisma as any).attendance.findFirst({
-      where: { eventId, userId: target.id },
+      where: target ? { eventId, userId: target.id } : { eventId, guestEmail: email },
     });
 
     if (existing) {
       throw new ConflictException('Already checked in');
     }
 
-    const attendance = await (this.prisma as any).attendance.create({
-      data: {
+    // Same rule as the guest path: "walk-in" means nobody invited them, not
+    // that an organizer typed it. Without this the manual path never set the
+    // flag, so the word meant different things depending on the door used.
+    const invite = await (this.prisma as any).eventAttendee.findFirst({
+      where: {
         eventId,
-        userId: target.id,
-        signedName: dto.signedName.trim(),
-        signature: dto.signature,
-        checkInMethod: 'MANUAL',
-        // Staff vouched for them in person; there is no location reading to
-        // judge, so this is recorded as unverified rather than true.
-        withinGeofence: null,
-        ipAddress: meta.ipAddress ?? null,
-        userAgent: meta.userAgent ?? null,
+        OR: [
+          { externalEmail: { equals: email, mode: 'insensitive' } },
+          { user: { email: { equals: email, mode: 'insensitive' } } },
+        ],
       },
+      select: { id: true },
     });
+
+    let attendance;
+    try {
+      attendance = await (this.prisma as any).attendance.create({
+        data: {
+          eventId,
+          userId: target?.id ?? null,
+          guestName: target ? null : name,
+          guestEmail: target ? null : email,
+          isWalkIn: !invite,
+          signedName: name,
+          // Null, not '': nobody signed. An empty string already means
+          // "captured then erased" in UsersService.anonymize, and reusing it
+          // would make a desk record indistinguishable from a redacted one.
+          signature: null,
+          checkInMethod: 'MANUAL',
+          // Staff vouched for them in person; there is no location reading to
+          // judge, so this is recorded as unverified rather than true.
+          withinGeofence: null,
+          ipAddress: meta.ipAddress ?? null,
+          userAgent: meta.userAgent ?? null,
+        },
+      });
+    } catch (error: any) {
+      // Two submissions racing past the findFirst above land here; the unique
+      // index is the real guarantee. Surface it as the same clean conflict
+      // rather than a 500.
+      if (error?.code === 'P2002') {
+        throw new ConflictException('Already checked in');
+      }
+      throw error;
+    }
 
     await this.audit.log({
       action: 'ATTENDANCE_MANUAL_CHECKIN',
@@ -692,7 +771,14 @@ export class CheckinService {
       ministryId: event.ministryId,
       actorId: staffId,
       description: `Staff check-in: ${attendance.signedName} to event: ${event.title}`,
-      metadata: { eventId, targetUserId: target.id },
+      metadata: {
+        eventId,
+        email,
+        // Worth auditing which of the two a desk record became: a linked row
+        // lands in someone's attendance history, a guest row does not.
+        targetUserId: target?.id ?? null,
+        linkedToAccount: !!target,
+      },
       ipAddress: meta.ipAddress,
       userAgent: meta.userAgent,
     });
@@ -734,10 +820,12 @@ export class CheckinService {
 
   /**
    * Check-in records for an event, newest first. The signature blob is left
-   * out — it is large and only needed on the individual record.
+   * out — it is large and only needed on the individual record — but whether
+   * one exists is reported, so the list can distinguish a record the attendee
+   * signed from one an organizer took at the desk.
    */
   async listCheckIns(eventId: string) {
-    return (this.prisma as any).attendance.findMany({
+    const rows = await (this.prisma as any).attendance.findMany({
       where: { eventId },
       select: {
         id: true,
@@ -747,6 +835,7 @@ export class CheckinService {
         guestEmail: true,
         isWalkIn: true,
         signedName: true,
+        signature: true,
         checkInAt: true,
         checkInMethod: true,
         withinGeofence: true,
@@ -755,5 +844,13 @@ export class CheckinService {
       },
       orderBy: { checkInAt: 'desc' },
     });
+
+    // Reduced to a boolean here rather than selected as one — Prisma has no way
+    // to project "is this column non-empty", and the blob must not leave the
+    // server.
+    return rows.map(({ signature, ...row }: any) => ({
+      ...row,
+      hasSignature: !!signature,
+    }));
   }
 }

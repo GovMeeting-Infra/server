@@ -110,7 +110,13 @@ describe('NotificationsService', () => {
     });
 
     it('does nothing for an empty recipient list', async () => {
-      expect(await service.notifyMany([], { type: 'MINUTES_PUBLISHED', title: 't', body: 'b' })).toEqual([]);
+      expect(
+        await service.notifyMany([], {
+          type: 'MINUTES_PUBLISHED',
+          title: 't',
+          body: 'b',
+        }),
+      ).toEqual([]);
       expect(prisma.userPreferences.findMany).not.toHaveBeenCalled();
     });
   });
@@ -135,22 +141,30 @@ describe('NotificationsService', () => {
   describe('wantsEmail', () => {
     it('requires both the master email switch and the category', async () => {
       prefRows = [prefs('u1')];
-      await expect(service.wantsEmail('u1', 'MEETING_REMINDER')).resolves.toBe(true);
+      await expect(service.wantsEmail('u1', 'MEETING_REMINDER')).resolves.toBe(
+        true,
+      );
     });
 
     it('is false when email is off entirely, even if the category is on', async () => {
       prefRows = [prefs('u1', { emailNotifications: false })];
-      await expect(service.wantsEmail('u1', 'MEETING_REMINDER')).resolves.toBe(false);
+      await expect(service.wantsEmail('u1', 'MEETING_REMINDER')).resolves.toBe(
+        false,
+      );
     });
 
     it('is false when the category is off, even if email is on', async () => {
       prefRows = [prefs('u1', { meetingReminders: false })];
-      await expect(service.wantsEmail('u1', 'MEETING_REMINDER')).resolves.toBe(false);
+      await expect(service.wantsEmail('u1', 'MEETING_REMINDER')).resolves.toBe(
+        false,
+      );
     });
 
     it('leaves the in-app channel unaffected by the email master switch', async () => {
       prefRows = [prefs('u1', { emailNotifications: false })];
-      await expect(service.wantsInApp('u1', 'MEETING_REMINDER')).resolves.toBe(true);
+      await expect(service.wantsInApp('u1', 'MEETING_REMINDER')).resolves.toBe(
+        true,
+      );
     });
   });
 

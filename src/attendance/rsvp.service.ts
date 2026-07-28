@@ -74,17 +74,12 @@ export class RSVPService {
   }
 
   async generateRSVPToken(attendeeId: string): Promise<string> {
-    const token = EncryptionUtil.hashToken(
-      `${attendeeId}-${Date.now()}`,
-    );
+    const token = EncryptionUtil.hashToken(`${attendeeId}-${Date.now()}`);
 
     return token;
   }
 
-  async getAttendeesByStatus(
-    eventId: string,
-    status: string,
-  ) {
+  async getAttendeesByStatus(eventId: string, status: string) {
     return (this.prisma as any).eventAttendee.findMany({
       where: {
         eventId,

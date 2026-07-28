@@ -46,14 +46,26 @@ describe('isWithinRadius', () => {
   it('accepts a point well inside the fence', () => {
     const p = metresNorth(40);
     expect(
-      isWithinRadius(p.lat, p.lng, ANCHOR_LAT, ANCHOR_LNG, GEOFENCE_RADIUS_METERS),
+      isWithinRadius(
+        p.lat,
+        p.lng,
+        ANCHOR_LAT,
+        ANCHOR_LNG,
+        GEOFENCE_RADIUS_METERS,
+      ),
     ).toBe(true);
   });
 
   it('rejects a point well outside the fence', () => {
     const p = metresNorth(500);
     expect(
-      isWithinRadius(p.lat, p.lng, ANCHOR_LAT, ANCHOR_LNG, GEOFENCE_RADIUS_METERS),
+      isWithinRadius(
+        p.lat,
+        p.lng,
+        ANCHOR_LAT,
+        ANCHOR_LNG,
+        GEOFENCE_RADIUS_METERS,
+      ),
     ).toBe(false);
   });
 
@@ -67,10 +79,22 @@ describe('isWithinRadius', () => {
     const inside = metresNorth(GEOFENCE_RADIUS_METERS - 5);
     const outside = metresNorth(GEOFENCE_RADIUS_METERS + 5);
     expect(
-      isWithinRadius(inside.lat, inside.lng, ANCHOR_LAT, ANCHOR_LNG, GEOFENCE_RADIUS_METERS),
+      isWithinRadius(
+        inside.lat,
+        inside.lng,
+        ANCHOR_LAT,
+        ANCHOR_LNG,
+        GEOFENCE_RADIUS_METERS,
+      ),
     ).toBe(true);
     expect(
-      isWithinRadius(outside.lat, outside.lng, ANCHOR_LAT, ANCHOR_LNG, GEOFENCE_RADIUS_METERS),
+      isWithinRadius(
+        outside.lat,
+        outside.lng,
+        ANCHOR_LAT,
+        ANCHOR_LNG,
+        GEOFENCE_RADIUS_METERS,
+      ),
     ).toBe(false);
   });
 });

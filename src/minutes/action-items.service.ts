@@ -10,8 +10,14 @@ import { AuditService } from '../audit/audit.service';
 import { CacheService } from '../cache/cache.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { CreateActionItemDto } from './dto/create-action-item.dto';
-import { UpdateActionItemDto, ActionItemStatusEnum } from './dto/update-action-item.dto';
-import { ministryScope, assertSameMinistry } from '../common/utils/ministry-scope.util';
+import {
+  UpdateActionItemDto,
+  ActionItemStatusEnum,
+} from './dto/update-action-item.dto';
+import {
+  ministryScope,
+  assertSameMinistry,
+} from '../common/utils/ministry-scope.util';
 
 @Injectable()
 export class ActionItemsService {
@@ -243,9 +249,17 @@ export class ActionItemsService {
 
     // A new owner is told they have been given the item; that is more useful
     // than also telling them its status changed in the same breath.
-    if (reassigning && updated.ownerId && updated.ownerId !== actionItem.ownerId) {
+    if (
+      reassigning &&
+      updated.ownerId &&
+      updated.ownerId !== actionItem.ownerId
+    ) {
       await this.notifications.notifyActionItemAssigned(actionItemId);
-    } else if (dto.status && actionItem.ownerId && actionItem.ownerId !== userId) {
+    } else if (
+      dto.status &&
+      actionItem.ownerId &&
+      actionItem.ownerId !== userId
+    ) {
       // Only when the status actually moved, and never back to the person who
       // moved it — telling someone what they just did is noise.
       await this.notifications.notifyActionItemStatusChanged(

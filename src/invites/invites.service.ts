@@ -40,7 +40,9 @@ export class InvitesService {
 
   private linkFor(token: string) {
     const base =
-      process.env.WEB_URL || process.env.NEXT_PUBLIC_WEB_URL || 'http://localhost:3000';
+      process.env.WEB_URL ||
+      process.env.NEXT_PUBLIC_WEB_URL ||
+      'http://localhost:3000';
     return `${base}/set-password?token=${token}`;
   }
 
@@ -61,7 +63,9 @@ export class InvitesService {
     const token = randomBytes(32).toString('base64url');
     const identifier = `${IDENTIFIER_PREFIX}${userId}`;
 
-    await (this.prisma as any).verification.deleteMany({ where: { identifier } });
+    await (this.prisma as any).verification.deleteMany({
+      where: { identifier },
+    });
 
     await (this.prisma as any).verification.create({
       data: {
@@ -181,7 +185,9 @@ export class InvitesService {
       });
     }
 
-    await (this.prisma as any).verification.delete({ where: { id: record.id } });
+    await (this.prisma as any).verification.delete({
+      where: { id: record.id },
+    });
 
     await this.audit.log({
       action: 'INVITE_ACCEPTED',

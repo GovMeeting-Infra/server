@@ -143,10 +143,7 @@ export class AuthService {
   private isGovDomain(email: string): boolean {
     const domain = email.split('@')[1];
     if (!domain) return false;
-    return (
-      domain === 'gov.sl' ||
-      domain.endsWith(this.govEmailDomain)
-    );
+    return domain === 'gov.sl' || domain.endsWith(this.govEmailDomain);
   }
 
   /**
@@ -165,7 +162,11 @@ export class AuthService {
 
     const session = await (this.prisma as any).session.findUnique({
       where: { token: sessionToken },
-      select: { id: true, userId: true, user: { select: { ministryId: true } } },
+      select: {
+        id: true,
+        userId: true,
+        user: { select: { ministryId: true } },
+      },
     });
 
     if (!session) return { signedOut: false };

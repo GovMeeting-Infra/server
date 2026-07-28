@@ -23,10 +23,7 @@ export class MinistriesController {
 
   @Post()
   @Roles('SUPER_ADMIN')
-  create(
-    @Body() dto: CreateMinistryDto,
-    @CurrentUser() user: any,
-  ) {
+  create(@Body() dto: CreateMinistryDto, @CurrentUser() user: any) {
     return this.ministriesService.create(dto, user.id, user.ministryId);
   }
 
@@ -54,10 +51,7 @@ export class MinistriesController {
 
   @Delete(':id')
   @Roles('SUPER_ADMIN')
-  delete(
-    @Param('id') id: string,
-    @CurrentUser() user: any,
-  ) {
+  delete(@Param('id') id: string, @CurrentUser() user: any) {
     return this.ministriesService.delete(id, user.id, user.ministryId);
   }
 }

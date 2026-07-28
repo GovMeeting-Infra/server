@@ -1,5 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ForbiddenException, BadRequestException, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  BadRequestException,
+  NotFoundException,
+} from '@nestjs/common';
 import { EventsService } from '../events.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuditService } from '../../audit/audit.service';
@@ -189,9 +193,9 @@ describe('EventsService', () => {
     it('should throw NotFoundException when event not found', async () => {
       mockPrisma.event.findUnique.mockResolvedValue(null);
 
-      await expect(
-        service.getOne('nonexistent', 'ministry-1'),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.getOne('nonexistent', 'ministry-1')).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should throw ForbiddenException when accessing other ministry event', async () => {
@@ -203,9 +207,9 @@ describe('EventsService', () => {
 
       mockPrisma.event.findUnique.mockResolvedValue(event);
 
-      await expect(
-        service.getOne('event-1', 'ministry-1'),
-      ).rejects.toThrow(ForbiddenException);
+      await expect(service.getOne('event-1', 'ministry-1')).rejects.toThrow(
+        ForbiddenException,
+      );
     });
   });
 });

@@ -43,20 +43,17 @@ export class EventsController {
     @Query('to') to?: string,
     @Query('roomId') roomId?: string,
   ) {
-    return this.eventsService.listEvents(
-      user.ministryId,
-      user,
-      {
-        page,
-        isPublic: isPublic === 'true' ? true : isPublic === 'false' ? false : undefined,
-        sortBy,
-        order,
-        timeframe,
-        from,
-        to,
-        roomId,
-      },
-    );
+    return this.eventsService.listEvents(user.ministryId, user, {
+      page,
+      isPublic:
+        isPublic === 'true' ? true : isPublic === 'false' ? false : undefined,
+      sortBy,
+      order,
+      timeframe,
+      from,
+      to,
+      roomId,
+    });
   }
 
   /**
@@ -90,10 +87,7 @@ export class EventsController {
 
   @Post()
   @Roles('SUPER_ADMIN', 'MINISTER', 'MINISTRY_ADMIN', 'STAFF')
-  create(
-    @Body() dto: CreateEventDto,
-    @CurrentUser() user: any,
-  ) {
+  create(@Body() dto: CreateEventDto, @CurrentUser() user: any) {
     return this.eventsService.createEvent(
       dto,
       user.id,
@@ -125,21 +119,25 @@ export class EventsController {
   @UseGuards(CanManageEventGuard)
   @Roles('SUPER_ADMIN', 'MINISTER', 'MINISTRY_ADMIN', 'STAFF')
   @HttpCode(204)
-  delete(
-    @Param('id') id: string,
-    @CurrentUser() user: any,
-  ) {
-    return this.eventsService.deleteEvent(id, user.id, user.ministryId, user.systemRole);
+  delete(@Param('id') id: string, @CurrentUser() user: any) {
+    return this.eventsService.deleteEvent(
+      id,
+      user.id,
+      user.ministryId,
+      user.systemRole,
+    );
   }
 
   @Post(':id/publish')
   @UseGuards(CanManageEventGuard)
   @Roles('SUPER_ADMIN', 'MINISTER', 'MINISTRY_ADMIN', 'STAFF')
-  publish(
-    @Param('id') id: string,
-    @CurrentUser() user: any,
-  ) {
-    return this.eventsService.publishEvent(id, user.id, user.ministryId, user.systemRole);
+  publish(@Param('id') id: string, @CurrentUser() user: any) {
+    return this.eventsService.publishEvent(
+      id,
+      user.id,
+      user.ministryId,
+      user.systemRole,
+    );
   }
 
   /**
@@ -167,11 +165,13 @@ export class EventsController {
   @Post(':id/cancel')
   @UseGuards(CanManageEventGuard)
   @Roles('SUPER_ADMIN', 'MINISTER', 'MINISTRY_ADMIN', 'STAFF')
-  cancel(
-    @Param('id') id: string,
-    @CurrentUser() user: any,
-  ) {
-    return this.eventsService.cancelEvent(id, user.id, user.ministryId, user.systemRole);
+  cancel(@Param('id') id: string, @CurrentUser() user: any) {
+    return this.eventsService.cancelEvent(
+      id,
+      user.id,
+      user.ministryId,
+      user.systemRole,
+    );
   }
 
   /**
@@ -189,7 +189,31 @@ export class EventsController {
     @Body() { userId }: { userId: string },
     @CurrentUser() user: any,
   ) {
-    return this.eventsService.addCoOrganizer(id, userId, user.id, user.ministryId);
+    return this.eventsService.addCoOrganizer(
+      id,
+      userId,
+      user.id,
+      user.ministryId,
+      user.systemRole,
+    );
+  }
+
+  /** Gated identically to adding one — see addCoOrganizer above. */
+  @Delete(':id/co-organizers/:userId')
+  @UseGuards(CanManageEventGuard)
+  @Roles('SUPER_ADMIN', 'MINISTER', 'MINISTRY_ADMIN', 'STAFF')
+  removeCoOrganizer(
+    @Param('id') id: string,
+    @Param('userId') userId: string,
+    @CurrentUser() user: any,
+  ) {
+    return this.eventsService.removeCoOrganizer(
+      id,
+      userId,
+      user.id,
+      user.ministryId,
+      user.systemRole,
+    );
   }
 
   @Post(':id/attendees')
@@ -221,7 +245,12 @@ export class EventsController {
     @Body() dto: SelfRsvpDto,
     @CurrentUser() user: any,
   ) {
-    return this.eventsService.selfRsvp(id, dto.status, user.id, user.ministryId);
+    return this.eventsService.selfRsvp(
+      id,
+      dto.status,
+      user.id,
+      user.ministryId,
+    );
   }
 
   @Delete(':id/attendees/:attendeeId')

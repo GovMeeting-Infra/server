@@ -69,10 +69,7 @@ export class EventSeriesService {
     return series;
   }
 
-  private generateOccurrences(
-    baseEvent: any,
-    series: any,
-  ): any[] {
+  private generateOccurrences(baseEvent: any, series: any): any[] {
     const occurrences: any[] = [];
     const currentDate = new Date(baseEvent.startAt);
     let count = 1;
@@ -106,7 +103,11 @@ export class EventSeriesService {
         ministryId: baseEvent.ministryId,
         organizerId: baseEvent.organizerId,
         seriesId: series.id,
-        status: 'DRAFT',
+        // Inherited rather than hardcoded to DRAFT: a recurring internal
+        // meeting is live from creation like any other, and hardcoding would
+        // leave every occurrence unable to take check-ins with no publish
+        // button anywhere to fix it.
+        status: baseEvent.status,
       });
 
       this.incrementDate(currentDate, series.frequency, series.interval || 1);
