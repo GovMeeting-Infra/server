@@ -42,6 +42,15 @@ export class MinutesService {
       throw new NotFoundException('Event not found');
     }
 
+    // A public activity is a launch or a ceremony, not a meeting that produces
+    // a record of proceedings. Its attendance still matters — check-in and the
+    // attendee list are untouched — but minutes do not apply.
+    if (event.isPublic) {
+      throw new BadRequestException(
+        'Public activities do not have meeting minutes',
+      );
+    }
+
     const canDraft =
       event.organizerId === userId ||
       event.coOrganizers?.some((c: any) => c.userId === userId);
