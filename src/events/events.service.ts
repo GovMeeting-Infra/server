@@ -15,7 +15,10 @@ import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { AddAttendeesDto } from './dto/add-attendees.dto';
 import { randomBytes } from 'crypto';
-import { ministryScope, assertSameMinistry } from '../common/utils/ministry-scope.util';
+import {
+  ministryScope,
+  assertSameMinistry,
+} from '../common/utils/ministry-scope.util';
 
 @Injectable()
 export class EventsService {
@@ -65,7 +68,9 @@ export class EventsService {
       });
 
       if (!ministry) {
-        throw new NotFoundException(`Ministry ${requestedMinistryId} not found`);
+        throw new NotFoundException(
+          `Ministry ${requestedMinistryId} not found`,
+        );
       }
     }
 
@@ -113,7 +118,9 @@ export class EventsService {
       );
 
       if (missing.length > 0) {
-        throw new NotFoundException(`Unknown ministry(ies): ${missing.join(', ')}`);
+        throw new NotFoundException(
+          `Unknown ministry(ies): ${missing.join(', ')}`,
+        );
       }
     }
 
@@ -126,7 +133,13 @@ export class EventsService {
       }),
       startAt,
       endAt,
-      status: 'DRAFT',
+      // Publishing means "make this visible on the public calendar", so it only
+      // applies to public activities — those wait as drafts for a deliberate
+      // decision to go public. An internal meeting has no such step and goes
+      // live immediately: leaving it in DRAFT would silently block check-in
+      // (checkin.service) and its reminders (tasks.service).
+      status: dto.isPublic ? 'DRAFT' : 'PUBLISHED',
+      publishedAt: dto.isPublic ? null : new Date(),
       ministryId: targetMinistryId,
       // Public activities belong to the ministry rather than a person, so they
       // are created without an organizer. Management of those falls back to
@@ -404,9 +417,11 @@ export class EventsService {
     const isCoOrganizer = event.coOrganizers?.some(
       (c: any) => c.userId === actorId,
     );
-    const isMinistryAdmin = ['MINISTER', 'MINISTRY_ADMIN', 'SUPER_ADMIN'].includes(
-      actorRole ?? '',
-    );
+    const isMinistryAdmin = [
+      'MINISTER',
+      'MINISTRY_ADMIN',
+      'SUPER_ADMIN',
+    ].includes(actorRole ?? '');
 
     if (event.organizerId !== actorId && !isCoOrganizer && !isMinistryAdmin) {
       throw new ForbiddenException(
@@ -433,9 +448,7 @@ export class EventsService {
         );
 
         if (conflicts.length > 0) {
-          throw new ConflictException(
-            'Room conflict with the new time slot',
-          );
+          throw new ConflictException('Room conflict with the new time slot');
         }
       }
 
@@ -518,6 +531,15 @@ export class EventsService {
     );
     this.assertCanAdminister(event, actorId, actorRole, 'publish');
 
+    // Publishing is what puts an activity on the public calendar. Internal
+    // meetings are live from creation and have no such step, so accepting this
+    // for one would be a no-op that implies otherwise.
+    if (!event.isPublic) {
+      throw new BadRequestException(
+        'Only public activities can be published; internal meetings are live from creation',
+      );
+    }
+
     const updated = await this.eventsRepository.update(id, {
       status: 'PUBLISHED',
       publishedAt: new Date(),
@@ -590,6 +612,7 @@ export class EventsService {
     userId: string,
     actorId: string,
     ministryId: string,
+    actorRole?: string,
   ) {
     const event = await this.eventsRepository.findOne(eventId);
 
@@ -597,9 +620,10 @@ export class EventsService {
       throw new NotFoundException(`Event ${eventId} not found`);
     }
 
-    if (event.organizerId !== actorId) {
-      throw new ForbiddenException('Only event organizer can add co-organizers');
-    }
+    // Was a bare organizerId check, which refused every public activity: those
+    // are created with no organizer at all, so nobody could name a
+    // co-organizer on one even though the UI offered it to admins.
+    this.assertCanAdminister(event, actorId, actorRole, 'add co-organizers to');
 
     // Co-organizers are added by raw user id from the UI, so an unknown id is
     // routine input — report it instead of letting the FK violation surface
@@ -641,6 +665,59 @@ export class EventsService {
     });
 
     return coOrganizer;
+  }
+
+  /**
+   * Removes a co-organizer. Gated exactly as adding one is — naming a deputy
+   * and withdrawing that are the same authority, so anything else would leave
+   * an assignment nobody present could undo.
+   */
+  async removeCoOrganizer(
+    eventId: string,
+    userId: string,
+    actorId: string,
+    ministryId: string,
+    actorRole?: string,
+  ) {
+    const event = await this.eventsRepository.findOne(eventId);
+
+    if (!event) {
+      throw new NotFoundException(`Event ${eventId} not found`);
+    }
+
+    this.assertCanAdminister(
+      event,
+      actorId,
+      actorRole,
+      'remove co-organizers from',
+    );
+
+    const existing = await (this.prisma as any).eventCoOrganizer.findFirst({
+      where: { eventId, userId },
+      include: { user: { select: { name: true } } },
+    });
+
+    if (!existing) {
+      throw new NotFoundException('User is not a co-organizer of this event');
+    }
+
+    await (this.prisma as any).eventCoOrganizer.delete({
+      where: { id: existing.id },
+    });
+
+    await this.audit.log({
+      action: 'COORGANIZER_REMOVED',
+      actionCategory: 'EVENT_MANAGEMENT',
+      entityType: 'EventCoOrganizer',
+      entityId: existing.id,
+      entityName: existing.user?.name ?? undefined,
+      status: 'SUCCESS',
+      ministryId,
+      actorId,
+      description: `Removed co-organizer from event: ${event.title}`,
+    });
+
+    return { success: true };
   }
 
   async addAttendees(
@@ -756,7 +833,9 @@ export class EventsService {
     });
 
     if (!attendee) {
-      throw new NotFoundException('You are not on the invitee list for this event');
+      throw new NotFoundException(
+        'You are not on the invitee list for this event',
+      );
     }
 
     const updated = await (this.prisma as any).eventAttendee.update({
