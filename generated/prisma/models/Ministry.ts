@@ -250,6 +250,7 @@ export type MinistryWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"Ministry"> | Date | string
   users?: Prisma.UserListRelationFilter
   events?: Prisma.EventListRelationFilter
+  invitedToEvents?: Prisma.EventListRelationFilter
   rooms?: Prisma.RoomListRelationFilter
   roomBookings?: Prisma.RoomBookingListRelationFilter
   auditLogs?: Prisma.AuditLogListRelationFilter
@@ -268,6 +269,7 @@ export type MinistryOrderByWithRelationInput = {
   updatedAt?: Prisma.SortOrder
   users?: Prisma.UserOrderByRelationAggregateInput
   events?: Prisma.EventOrderByRelationAggregateInput
+  invitedToEvents?: Prisma.EventOrderByRelationAggregateInput
   rooms?: Prisma.RoomOrderByRelationAggregateInput
   roomBookings?: Prisma.RoomBookingOrderByRelationAggregateInput
   auditLogs?: Prisma.AuditLogOrderByRelationAggregateInput
@@ -289,6 +291,7 @@ export type MinistryWhereUniqueInput = Prisma.AtLeast<{
   updatedAt?: Prisma.DateTimeFilter<"Ministry"> | Date | string
   users?: Prisma.UserListRelationFilter
   events?: Prisma.EventListRelationFilter
+  invitedToEvents?: Prisma.EventListRelationFilter
   rooms?: Prisma.RoomListRelationFilter
   roomBookings?: Prisma.RoomBookingListRelationFilter
   auditLogs?: Prisma.AuditLogListRelationFilter
@@ -339,6 +342,7 @@ export type MinistryCreateInput = {
   updatedAt?: Date | string
   users?: Prisma.UserCreateNestedManyWithoutMinistryInput
   events?: Prisma.EventCreateNestedManyWithoutMinistryInput
+  invitedToEvents?: Prisma.EventCreateNestedManyWithoutInvitedMinistriesInput
   rooms?: Prisma.RoomCreateNestedManyWithoutMinistryInput
   roomBookings?: Prisma.RoomBookingCreateNestedManyWithoutMinistryInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutMinistryInput
@@ -357,6 +361,7 @@ export type MinistryUncheckedCreateInput = {
   updatedAt?: Date | string
   users?: Prisma.UserUncheckedCreateNestedManyWithoutMinistryInput
   events?: Prisma.EventUncheckedCreateNestedManyWithoutMinistryInput
+  invitedToEvents?: Prisma.EventUncheckedCreateNestedManyWithoutInvitedMinistriesInput
   rooms?: Prisma.RoomUncheckedCreateNestedManyWithoutMinistryInput
   roomBookings?: Prisma.RoomBookingUncheckedCreateNestedManyWithoutMinistryInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutMinistryInput
@@ -375,6 +380,7 @@ export type MinistryUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   users?: Prisma.UserUpdateManyWithoutMinistryNestedInput
   events?: Prisma.EventUpdateManyWithoutMinistryNestedInput
+  invitedToEvents?: Prisma.EventUpdateManyWithoutInvitedMinistriesNestedInput
   rooms?: Prisma.RoomUpdateManyWithoutMinistryNestedInput
   roomBookings?: Prisma.RoomBookingUpdateManyWithoutMinistryNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutMinistryNestedInput
@@ -393,6 +399,7 @@ export type MinistryUncheckedUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   users?: Prisma.UserUncheckedUpdateManyWithoutMinistryNestedInput
   events?: Prisma.EventUncheckedUpdateManyWithoutMinistryNestedInput
+  invitedToEvents?: Prisma.EventUncheckedUpdateManyWithoutInvitedMinistriesNestedInput
   rooms?: Prisma.RoomUncheckedUpdateManyWithoutMinistryNestedInput
   roomBookings?: Prisma.RoomBookingUncheckedUpdateManyWithoutMinistryNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutMinistryNestedInput
@@ -489,6 +496,16 @@ export type MinistryScalarRelationFilter = {
   isNot?: Prisma.MinistryWhereInput
 }
 
+export type MinistryListRelationFilter = {
+  every?: Prisma.MinistryWhereInput
+  some?: Prisma.MinistryWhereInput
+  none?: Prisma.MinistryWhereInput
+}
+
+export type MinistryOrderByRelationAggregateInput = {
+  _count?: Prisma.SortOrder
+}
+
 export type MinistryCreateNestedOneWithoutUsersInput = {
   create?: Prisma.XOR<Prisma.MinistryCreateWithoutUsersInput, Prisma.MinistryUncheckedCreateWithoutUsersInput>
   connectOrCreate?: Prisma.MinistryCreateOrConnectWithoutUsersInput
@@ -511,12 +528,50 @@ export type MinistryCreateNestedOneWithoutEventsInput = {
   connect?: Prisma.MinistryWhereUniqueInput
 }
 
+export type MinistryCreateNestedManyWithoutInvitedToEventsInput = {
+  create?: Prisma.XOR<Prisma.MinistryCreateWithoutInvitedToEventsInput, Prisma.MinistryUncheckedCreateWithoutInvitedToEventsInput> | Prisma.MinistryCreateWithoutInvitedToEventsInput[] | Prisma.MinistryUncheckedCreateWithoutInvitedToEventsInput[]
+  connectOrCreate?: Prisma.MinistryCreateOrConnectWithoutInvitedToEventsInput | Prisma.MinistryCreateOrConnectWithoutInvitedToEventsInput[]
+  connect?: Prisma.MinistryWhereUniqueInput | Prisma.MinistryWhereUniqueInput[]
+}
+
+export type MinistryUncheckedCreateNestedManyWithoutInvitedToEventsInput = {
+  create?: Prisma.XOR<Prisma.MinistryCreateWithoutInvitedToEventsInput, Prisma.MinistryUncheckedCreateWithoutInvitedToEventsInput> | Prisma.MinistryCreateWithoutInvitedToEventsInput[] | Prisma.MinistryUncheckedCreateWithoutInvitedToEventsInput[]
+  connectOrCreate?: Prisma.MinistryCreateOrConnectWithoutInvitedToEventsInput | Prisma.MinistryCreateOrConnectWithoutInvitedToEventsInput[]
+  connect?: Prisma.MinistryWhereUniqueInput | Prisma.MinistryWhereUniqueInput[]
+}
+
 export type MinistryUpdateOneRequiredWithoutEventsNestedInput = {
   create?: Prisma.XOR<Prisma.MinistryCreateWithoutEventsInput, Prisma.MinistryUncheckedCreateWithoutEventsInput>
   connectOrCreate?: Prisma.MinistryCreateOrConnectWithoutEventsInput
   upsert?: Prisma.MinistryUpsertWithoutEventsInput
   connect?: Prisma.MinistryWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.MinistryUpdateToOneWithWhereWithoutEventsInput, Prisma.MinistryUpdateWithoutEventsInput>, Prisma.MinistryUncheckedUpdateWithoutEventsInput>
+}
+
+export type MinistryUpdateManyWithoutInvitedToEventsNestedInput = {
+  create?: Prisma.XOR<Prisma.MinistryCreateWithoutInvitedToEventsInput, Prisma.MinistryUncheckedCreateWithoutInvitedToEventsInput> | Prisma.MinistryCreateWithoutInvitedToEventsInput[] | Prisma.MinistryUncheckedCreateWithoutInvitedToEventsInput[]
+  connectOrCreate?: Prisma.MinistryCreateOrConnectWithoutInvitedToEventsInput | Prisma.MinistryCreateOrConnectWithoutInvitedToEventsInput[]
+  upsert?: Prisma.MinistryUpsertWithWhereUniqueWithoutInvitedToEventsInput | Prisma.MinistryUpsertWithWhereUniqueWithoutInvitedToEventsInput[]
+  set?: Prisma.MinistryWhereUniqueInput | Prisma.MinistryWhereUniqueInput[]
+  disconnect?: Prisma.MinistryWhereUniqueInput | Prisma.MinistryWhereUniqueInput[]
+  delete?: Prisma.MinistryWhereUniqueInput | Prisma.MinistryWhereUniqueInput[]
+  connect?: Prisma.MinistryWhereUniqueInput | Prisma.MinistryWhereUniqueInput[]
+  update?: Prisma.MinistryUpdateWithWhereUniqueWithoutInvitedToEventsInput | Prisma.MinistryUpdateWithWhereUniqueWithoutInvitedToEventsInput[]
+  updateMany?: Prisma.MinistryUpdateManyWithWhereWithoutInvitedToEventsInput | Prisma.MinistryUpdateManyWithWhereWithoutInvitedToEventsInput[]
+  deleteMany?: Prisma.MinistryScalarWhereInput | Prisma.MinistryScalarWhereInput[]
+}
+
+export type MinistryUncheckedUpdateManyWithoutInvitedToEventsNestedInput = {
+  create?: Prisma.XOR<Prisma.MinistryCreateWithoutInvitedToEventsInput, Prisma.MinistryUncheckedCreateWithoutInvitedToEventsInput> | Prisma.MinistryCreateWithoutInvitedToEventsInput[] | Prisma.MinistryUncheckedCreateWithoutInvitedToEventsInput[]
+  connectOrCreate?: Prisma.MinistryCreateOrConnectWithoutInvitedToEventsInput | Prisma.MinistryCreateOrConnectWithoutInvitedToEventsInput[]
+  upsert?: Prisma.MinistryUpsertWithWhereUniqueWithoutInvitedToEventsInput | Prisma.MinistryUpsertWithWhereUniqueWithoutInvitedToEventsInput[]
+  set?: Prisma.MinistryWhereUniqueInput | Prisma.MinistryWhereUniqueInput[]
+  disconnect?: Prisma.MinistryWhereUniqueInput | Prisma.MinistryWhereUniqueInput[]
+  delete?: Prisma.MinistryWhereUniqueInput | Prisma.MinistryWhereUniqueInput[]
+  connect?: Prisma.MinistryWhereUniqueInput | Prisma.MinistryWhereUniqueInput[]
+  update?: Prisma.MinistryUpdateWithWhereUniqueWithoutInvitedToEventsInput | Prisma.MinistryUpdateWithWhereUniqueWithoutInvitedToEventsInput[]
+  updateMany?: Prisma.MinistryUpdateManyWithWhereWithoutInvitedToEventsInput | Prisma.MinistryUpdateManyWithWhereWithoutInvitedToEventsInput[]
+  deleteMany?: Prisma.MinistryScalarWhereInput | Prisma.MinistryScalarWhereInput[]
 }
 
 export type MinistryCreateNestedOneWithoutRoomsInput = {
@@ -586,6 +641,7 @@ export type MinistryCreateWithoutUsersInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   events?: Prisma.EventCreateNestedManyWithoutMinistryInput
+  invitedToEvents?: Prisma.EventCreateNestedManyWithoutInvitedMinistriesInput
   rooms?: Prisma.RoomCreateNestedManyWithoutMinistryInput
   roomBookings?: Prisma.RoomBookingCreateNestedManyWithoutMinistryInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutMinistryInput
@@ -603,6 +659,7 @@ export type MinistryUncheckedCreateWithoutUsersInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   events?: Prisma.EventUncheckedCreateNestedManyWithoutMinistryInput
+  invitedToEvents?: Prisma.EventUncheckedCreateNestedManyWithoutInvitedMinistriesInput
   rooms?: Prisma.RoomUncheckedCreateNestedManyWithoutMinistryInput
   roomBookings?: Prisma.RoomBookingUncheckedCreateNestedManyWithoutMinistryInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutMinistryInput
@@ -636,6 +693,7 @@ export type MinistryUpdateWithoutUsersInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   events?: Prisma.EventUpdateManyWithoutMinistryNestedInput
+  invitedToEvents?: Prisma.EventUpdateManyWithoutInvitedMinistriesNestedInput
   rooms?: Prisma.RoomUpdateManyWithoutMinistryNestedInput
   roomBookings?: Prisma.RoomBookingUpdateManyWithoutMinistryNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutMinistryNestedInput
@@ -653,6 +711,7 @@ export type MinistryUncheckedUpdateWithoutUsersInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   events?: Prisma.EventUncheckedUpdateManyWithoutMinistryNestedInput
+  invitedToEvents?: Prisma.EventUncheckedUpdateManyWithoutInvitedMinistriesNestedInput
   rooms?: Prisma.RoomUncheckedUpdateManyWithoutMinistryNestedInput
   roomBookings?: Prisma.RoomBookingUncheckedUpdateManyWithoutMinistryNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutMinistryNestedInput
@@ -670,6 +729,7 @@ export type MinistryCreateWithoutEventsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   users?: Prisma.UserCreateNestedManyWithoutMinistryInput
+  invitedToEvents?: Prisma.EventCreateNestedManyWithoutInvitedMinistriesInput
   rooms?: Prisma.RoomCreateNestedManyWithoutMinistryInput
   roomBookings?: Prisma.RoomBookingCreateNestedManyWithoutMinistryInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutMinistryInput
@@ -687,6 +747,7 @@ export type MinistryUncheckedCreateWithoutEventsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   users?: Prisma.UserUncheckedCreateNestedManyWithoutMinistryInput
+  invitedToEvents?: Prisma.EventUncheckedCreateNestedManyWithoutInvitedMinistriesInput
   rooms?: Prisma.RoomUncheckedCreateNestedManyWithoutMinistryInput
   roomBookings?: Prisma.RoomBookingUncheckedCreateNestedManyWithoutMinistryInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutMinistryInput
@@ -696,6 +757,47 @@ export type MinistryUncheckedCreateWithoutEventsInput = {
 export type MinistryCreateOrConnectWithoutEventsInput = {
   where: Prisma.MinistryWhereUniqueInput
   create: Prisma.XOR<Prisma.MinistryCreateWithoutEventsInput, Prisma.MinistryUncheckedCreateWithoutEventsInput>
+}
+
+export type MinistryCreateWithoutInvitedToEventsInput = {
+  id?: string
+  name: string
+  code: string
+  emailDomain: string
+  compoundMaxGpsAccuracy?: number
+  active?: boolean
+  logoUrl?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  users?: Prisma.UserCreateNestedManyWithoutMinistryInput
+  events?: Prisma.EventCreateNestedManyWithoutMinistryInput
+  rooms?: Prisma.RoomCreateNestedManyWithoutMinistryInput
+  roomBookings?: Prisma.RoomBookingCreateNestedManyWithoutMinistryInput
+  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutMinistryInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutMinistryInput
+}
+
+export type MinistryUncheckedCreateWithoutInvitedToEventsInput = {
+  id?: string
+  name: string
+  code: string
+  emailDomain: string
+  compoundMaxGpsAccuracy?: number
+  active?: boolean
+  logoUrl?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  users?: Prisma.UserUncheckedCreateNestedManyWithoutMinistryInput
+  events?: Prisma.EventUncheckedCreateNestedManyWithoutMinistryInput
+  rooms?: Prisma.RoomUncheckedCreateNestedManyWithoutMinistryInput
+  roomBookings?: Prisma.RoomBookingUncheckedCreateNestedManyWithoutMinistryInput
+  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutMinistryInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutMinistryInput
+}
+
+export type MinistryCreateOrConnectWithoutInvitedToEventsInput = {
+  where: Prisma.MinistryWhereUniqueInput
+  create: Prisma.XOR<Prisma.MinistryCreateWithoutInvitedToEventsInput, Prisma.MinistryUncheckedCreateWithoutInvitedToEventsInput>
 }
 
 export type MinistryUpsertWithoutEventsInput = {
@@ -720,6 +822,7 @@ export type MinistryUpdateWithoutEventsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   users?: Prisma.UserUpdateManyWithoutMinistryNestedInput
+  invitedToEvents?: Prisma.EventUpdateManyWithoutInvitedMinistriesNestedInput
   rooms?: Prisma.RoomUpdateManyWithoutMinistryNestedInput
   roomBookings?: Prisma.RoomBookingUpdateManyWithoutMinistryNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutMinistryNestedInput
@@ -737,10 +840,42 @@ export type MinistryUncheckedUpdateWithoutEventsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   users?: Prisma.UserUncheckedUpdateManyWithoutMinistryNestedInput
+  invitedToEvents?: Prisma.EventUncheckedUpdateManyWithoutInvitedMinistriesNestedInput
   rooms?: Prisma.RoomUncheckedUpdateManyWithoutMinistryNestedInput
   roomBookings?: Prisma.RoomBookingUncheckedUpdateManyWithoutMinistryNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutMinistryNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutMinistryNestedInput
+}
+
+export type MinistryUpsertWithWhereUniqueWithoutInvitedToEventsInput = {
+  where: Prisma.MinistryWhereUniqueInput
+  update: Prisma.XOR<Prisma.MinistryUpdateWithoutInvitedToEventsInput, Prisma.MinistryUncheckedUpdateWithoutInvitedToEventsInput>
+  create: Prisma.XOR<Prisma.MinistryCreateWithoutInvitedToEventsInput, Prisma.MinistryUncheckedCreateWithoutInvitedToEventsInput>
+}
+
+export type MinistryUpdateWithWhereUniqueWithoutInvitedToEventsInput = {
+  where: Prisma.MinistryWhereUniqueInput
+  data: Prisma.XOR<Prisma.MinistryUpdateWithoutInvitedToEventsInput, Prisma.MinistryUncheckedUpdateWithoutInvitedToEventsInput>
+}
+
+export type MinistryUpdateManyWithWhereWithoutInvitedToEventsInput = {
+  where: Prisma.MinistryScalarWhereInput
+  data: Prisma.XOR<Prisma.MinistryUpdateManyMutationInput, Prisma.MinistryUncheckedUpdateManyWithoutInvitedToEventsInput>
+}
+
+export type MinistryScalarWhereInput = {
+  AND?: Prisma.MinistryScalarWhereInput | Prisma.MinistryScalarWhereInput[]
+  OR?: Prisma.MinistryScalarWhereInput[]
+  NOT?: Prisma.MinistryScalarWhereInput | Prisma.MinistryScalarWhereInput[]
+  id?: Prisma.StringFilter<"Ministry"> | string
+  name?: Prisma.StringFilter<"Ministry"> | string
+  code?: Prisma.StringFilter<"Ministry"> | string
+  emailDomain?: Prisma.StringFilter<"Ministry"> | string
+  compoundMaxGpsAccuracy?: Prisma.IntFilter<"Ministry"> | number
+  active?: Prisma.BoolFilter<"Ministry"> | boolean
+  logoUrl?: Prisma.StringNullableFilter<"Ministry"> | string | null
+  createdAt?: Prisma.DateTimeFilter<"Ministry"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"Ministry"> | Date | string
 }
 
 export type MinistryCreateWithoutRoomsInput = {
@@ -755,6 +890,7 @@ export type MinistryCreateWithoutRoomsInput = {
   updatedAt?: Date | string
   users?: Prisma.UserCreateNestedManyWithoutMinistryInput
   events?: Prisma.EventCreateNestedManyWithoutMinistryInput
+  invitedToEvents?: Prisma.EventCreateNestedManyWithoutInvitedMinistriesInput
   roomBookings?: Prisma.RoomBookingCreateNestedManyWithoutMinistryInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutMinistryInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutMinistryInput
@@ -772,6 +908,7 @@ export type MinistryUncheckedCreateWithoutRoomsInput = {
   updatedAt?: Date | string
   users?: Prisma.UserUncheckedCreateNestedManyWithoutMinistryInput
   events?: Prisma.EventUncheckedCreateNestedManyWithoutMinistryInput
+  invitedToEvents?: Prisma.EventUncheckedCreateNestedManyWithoutInvitedMinistriesInput
   roomBookings?: Prisma.RoomBookingUncheckedCreateNestedManyWithoutMinistryInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutMinistryInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutMinistryInput
@@ -805,6 +942,7 @@ export type MinistryUpdateWithoutRoomsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   users?: Prisma.UserUpdateManyWithoutMinistryNestedInput
   events?: Prisma.EventUpdateManyWithoutMinistryNestedInput
+  invitedToEvents?: Prisma.EventUpdateManyWithoutInvitedMinistriesNestedInput
   roomBookings?: Prisma.RoomBookingUpdateManyWithoutMinistryNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutMinistryNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutMinistryNestedInput
@@ -822,6 +960,7 @@ export type MinistryUncheckedUpdateWithoutRoomsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   users?: Prisma.UserUncheckedUpdateManyWithoutMinistryNestedInput
   events?: Prisma.EventUncheckedUpdateManyWithoutMinistryNestedInput
+  invitedToEvents?: Prisma.EventUncheckedUpdateManyWithoutInvitedMinistriesNestedInput
   roomBookings?: Prisma.RoomBookingUncheckedUpdateManyWithoutMinistryNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutMinistryNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutMinistryNestedInput
@@ -839,6 +978,7 @@ export type MinistryCreateWithoutRoomBookingsInput = {
   updatedAt?: Date | string
   users?: Prisma.UserCreateNestedManyWithoutMinistryInput
   events?: Prisma.EventCreateNestedManyWithoutMinistryInput
+  invitedToEvents?: Prisma.EventCreateNestedManyWithoutInvitedMinistriesInput
   rooms?: Prisma.RoomCreateNestedManyWithoutMinistryInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutMinistryInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutMinistryInput
@@ -856,6 +996,7 @@ export type MinistryUncheckedCreateWithoutRoomBookingsInput = {
   updatedAt?: Date | string
   users?: Prisma.UserUncheckedCreateNestedManyWithoutMinistryInput
   events?: Prisma.EventUncheckedCreateNestedManyWithoutMinistryInput
+  invitedToEvents?: Prisma.EventUncheckedCreateNestedManyWithoutInvitedMinistriesInput
   rooms?: Prisma.RoomUncheckedCreateNestedManyWithoutMinistryInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutMinistryInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutMinistryInput
@@ -889,6 +1030,7 @@ export type MinistryUpdateWithoutRoomBookingsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   users?: Prisma.UserUpdateManyWithoutMinistryNestedInput
   events?: Prisma.EventUpdateManyWithoutMinistryNestedInput
+  invitedToEvents?: Prisma.EventUpdateManyWithoutInvitedMinistriesNestedInput
   rooms?: Prisma.RoomUpdateManyWithoutMinistryNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutMinistryNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutMinistryNestedInput
@@ -906,6 +1048,7 @@ export type MinistryUncheckedUpdateWithoutRoomBookingsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   users?: Prisma.UserUncheckedUpdateManyWithoutMinistryNestedInput
   events?: Prisma.EventUncheckedUpdateManyWithoutMinistryNestedInput
+  invitedToEvents?: Prisma.EventUncheckedUpdateManyWithoutInvitedMinistriesNestedInput
   rooms?: Prisma.RoomUncheckedUpdateManyWithoutMinistryNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutMinistryNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutMinistryNestedInput
@@ -923,6 +1066,7 @@ export type MinistryCreateWithoutNotificationsInput = {
   updatedAt?: Date | string
   users?: Prisma.UserCreateNestedManyWithoutMinistryInput
   events?: Prisma.EventCreateNestedManyWithoutMinistryInput
+  invitedToEvents?: Prisma.EventCreateNestedManyWithoutInvitedMinistriesInput
   rooms?: Prisma.RoomCreateNestedManyWithoutMinistryInput
   roomBookings?: Prisma.RoomBookingCreateNestedManyWithoutMinistryInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutMinistryInput
@@ -940,6 +1084,7 @@ export type MinistryUncheckedCreateWithoutNotificationsInput = {
   updatedAt?: Date | string
   users?: Prisma.UserUncheckedCreateNestedManyWithoutMinistryInput
   events?: Prisma.EventUncheckedCreateNestedManyWithoutMinistryInput
+  invitedToEvents?: Prisma.EventUncheckedCreateNestedManyWithoutInvitedMinistriesInput
   rooms?: Prisma.RoomUncheckedCreateNestedManyWithoutMinistryInput
   roomBookings?: Prisma.RoomBookingUncheckedCreateNestedManyWithoutMinistryInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutMinistryInput
@@ -973,6 +1118,7 @@ export type MinistryUpdateWithoutNotificationsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   users?: Prisma.UserUpdateManyWithoutMinistryNestedInput
   events?: Prisma.EventUpdateManyWithoutMinistryNestedInput
+  invitedToEvents?: Prisma.EventUpdateManyWithoutInvitedMinistriesNestedInput
   rooms?: Prisma.RoomUpdateManyWithoutMinistryNestedInput
   roomBookings?: Prisma.RoomBookingUpdateManyWithoutMinistryNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutMinistryNestedInput
@@ -990,6 +1136,7 @@ export type MinistryUncheckedUpdateWithoutNotificationsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   users?: Prisma.UserUncheckedUpdateManyWithoutMinistryNestedInput
   events?: Prisma.EventUncheckedUpdateManyWithoutMinistryNestedInput
+  invitedToEvents?: Prisma.EventUncheckedUpdateManyWithoutInvitedMinistriesNestedInput
   rooms?: Prisma.RoomUncheckedUpdateManyWithoutMinistryNestedInput
   roomBookings?: Prisma.RoomBookingUncheckedUpdateManyWithoutMinistryNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutMinistryNestedInput
@@ -1007,6 +1154,7 @@ export type MinistryCreateWithoutAuditLogsInput = {
   updatedAt?: Date | string
   users?: Prisma.UserCreateNestedManyWithoutMinistryInput
   events?: Prisma.EventCreateNestedManyWithoutMinistryInput
+  invitedToEvents?: Prisma.EventCreateNestedManyWithoutInvitedMinistriesInput
   rooms?: Prisma.RoomCreateNestedManyWithoutMinistryInput
   roomBookings?: Prisma.RoomBookingCreateNestedManyWithoutMinistryInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutMinistryInput
@@ -1024,6 +1172,7 @@ export type MinistryUncheckedCreateWithoutAuditLogsInput = {
   updatedAt?: Date | string
   users?: Prisma.UserUncheckedCreateNestedManyWithoutMinistryInput
   events?: Prisma.EventUncheckedCreateNestedManyWithoutMinistryInput
+  invitedToEvents?: Prisma.EventUncheckedCreateNestedManyWithoutInvitedMinistriesInput
   rooms?: Prisma.RoomUncheckedCreateNestedManyWithoutMinistryInput
   roomBookings?: Prisma.RoomBookingUncheckedCreateNestedManyWithoutMinistryInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutMinistryInput
@@ -1057,6 +1206,7 @@ export type MinistryUpdateWithoutAuditLogsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   users?: Prisma.UserUpdateManyWithoutMinistryNestedInput
   events?: Prisma.EventUpdateManyWithoutMinistryNestedInput
+  invitedToEvents?: Prisma.EventUpdateManyWithoutInvitedMinistriesNestedInput
   rooms?: Prisma.RoomUpdateManyWithoutMinistryNestedInput
   roomBookings?: Prisma.RoomBookingUpdateManyWithoutMinistryNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutMinistryNestedInput
@@ -1074,9 +1224,58 @@ export type MinistryUncheckedUpdateWithoutAuditLogsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   users?: Prisma.UserUncheckedUpdateManyWithoutMinistryNestedInput
   events?: Prisma.EventUncheckedUpdateManyWithoutMinistryNestedInput
+  invitedToEvents?: Prisma.EventUncheckedUpdateManyWithoutInvitedMinistriesNestedInput
   rooms?: Prisma.RoomUncheckedUpdateManyWithoutMinistryNestedInput
   roomBookings?: Prisma.RoomBookingUncheckedUpdateManyWithoutMinistryNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutMinistryNestedInput
+}
+
+export type MinistryUpdateWithoutInvitedToEventsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  code?: Prisma.StringFieldUpdateOperationsInput | string
+  emailDomain?: Prisma.StringFieldUpdateOperationsInput | string
+  compoundMaxGpsAccuracy?: Prisma.IntFieldUpdateOperationsInput | number
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  users?: Prisma.UserUpdateManyWithoutMinistryNestedInput
+  events?: Prisma.EventUpdateManyWithoutMinistryNestedInput
+  rooms?: Prisma.RoomUpdateManyWithoutMinistryNestedInput
+  roomBookings?: Prisma.RoomBookingUpdateManyWithoutMinistryNestedInput
+  auditLogs?: Prisma.AuditLogUpdateManyWithoutMinistryNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutMinistryNestedInput
+}
+
+export type MinistryUncheckedUpdateWithoutInvitedToEventsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  code?: Prisma.StringFieldUpdateOperationsInput | string
+  emailDomain?: Prisma.StringFieldUpdateOperationsInput | string
+  compoundMaxGpsAccuracy?: Prisma.IntFieldUpdateOperationsInput | number
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  users?: Prisma.UserUncheckedUpdateManyWithoutMinistryNestedInput
+  events?: Prisma.EventUncheckedUpdateManyWithoutMinistryNestedInput
+  rooms?: Prisma.RoomUncheckedUpdateManyWithoutMinistryNestedInput
+  roomBookings?: Prisma.RoomBookingUncheckedUpdateManyWithoutMinistryNestedInput
+  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutMinistryNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutMinistryNestedInput
+}
+
+export type MinistryUncheckedUpdateManyWithoutInvitedToEventsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  code?: Prisma.StringFieldUpdateOperationsInput | string
+  emailDomain?: Prisma.StringFieldUpdateOperationsInput | string
+  compoundMaxGpsAccuracy?: Prisma.IntFieldUpdateOperationsInput | number
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 
@@ -1087,6 +1286,7 @@ export type MinistryUncheckedUpdateWithoutAuditLogsInput = {
 export type MinistryCountOutputType = {
   users: number
   events: number
+  invitedToEvents: number
   rooms: number
   roomBookings: number
   auditLogs: number
@@ -1096,6 +1296,7 @@ export type MinistryCountOutputType = {
 export type MinistryCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   users?: boolean | MinistryCountOutputTypeCountUsersArgs
   events?: boolean | MinistryCountOutputTypeCountEventsArgs
+  invitedToEvents?: boolean | MinistryCountOutputTypeCountInvitedToEventsArgs
   rooms?: boolean | MinistryCountOutputTypeCountRoomsArgs
   roomBookings?: boolean | MinistryCountOutputTypeCountRoomBookingsArgs
   auditLogs?: boolean | MinistryCountOutputTypeCountAuditLogsArgs
@@ -1123,6 +1324,13 @@ export type MinistryCountOutputTypeCountUsersArgs<ExtArgs extends runtime.Types.
  * MinistryCountOutputType without action
  */
 export type MinistryCountOutputTypeCountEventsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.EventWhereInput
+}
+
+/**
+ * MinistryCountOutputType without action
+ */
+export type MinistryCountOutputTypeCountInvitedToEventsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.EventWhereInput
 }
 
@@ -1167,6 +1375,7 @@ export type MinistrySelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   updatedAt?: boolean
   users?: boolean | Prisma.Ministry$usersArgs<ExtArgs>
   events?: boolean | Prisma.Ministry$eventsArgs<ExtArgs>
+  invitedToEvents?: boolean | Prisma.Ministry$invitedToEventsArgs<ExtArgs>
   rooms?: boolean | Prisma.Ministry$roomsArgs<ExtArgs>
   roomBookings?: boolean | Prisma.Ministry$roomBookingsArgs<ExtArgs>
   auditLogs?: boolean | Prisma.Ministry$auditLogsArgs<ExtArgs>
@@ -1214,6 +1423,7 @@ export type MinistryOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs =
 export type MinistryInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   users?: boolean | Prisma.Ministry$usersArgs<ExtArgs>
   events?: boolean | Prisma.Ministry$eventsArgs<ExtArgs>
+  invitedToEvents?: boolean | Prisma.Ministry$invitedToEventsArgs<ExtArgs>
   rooms?: boolean | Prisma.Ministry$roomsArgs<ExtArgs>
   roomBookings?: boolean | Prisma.Ministry$roomBookingsArgs<ExtArgs>
   auditLogs?: boolean | Prisma.Ministry$auditLogsArgs<ExtArgs>
@@ -1228,6 +1438,7 @@ export type $MinistryPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
   objects: {
     users: Prisma.$UserPayload<ExtArgs>[]
     events: Prisma.$EventPayload<ExtArgs>[]
+    invitedToEvents: Prisma.$EventPayload<ExtArgs>[]
     rooms: Prisma.$RoomPayload<ExtArgs>[]
     roomBookings: Prisma.$RoomBookingPayload<ExtArgs>[]
     auditLogs: Prisma.$AuditLogPayload<ExtArgs>[]
@@ -1639,6 +1850,7 @@ export interface Prisma__MinistryClient<T, Null = never, ExtArgs extends runtime
   readonly [Symbol.toStringTag]: "PrismaPromise"
   users<T extends Prisma.Ministry$usersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Ministry$usersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   events<T extends Prisma.Ministry$eventsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Ministry$eventsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  invitedToEvents<T extends Prisma.Ministry$invitedToEventsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Ministry$invitedToEventsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   rooms<T extends Prisma.Ministry$roomsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Ministry$roomsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RoomPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   roomBookings<T extends Prisma.Ministry$roomBookingsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Ministry$roomBookingsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RoomBookingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   auditLogs<T extends Prisma.Ministry$auditLogsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Ministry$auditLogsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AuditLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -2101,6 +2313,30 @@ export type Ministry$usersArgs<ExtArgs extends runtime.Types.Extensions.Internal
  * Ministry.events
  */
 export type Ministry$eventsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Event
+   */
+  select?: Prisma.EventSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Event
+   */
+  omit?: Prisma.EventOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.EventInclude<ExtArgs> | null
+  where?: Prisma.EventWhereInput
+  orderBy?: Prisma.EventOrderByWithRelationInput | Prisma.EventOrderByWithRelationInput[]
+  cursor?: Prisma.EventWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.EventScalarFieldEnum | Prisma.EventScalarFieldEnum[]
+}
+
+/**
+ * Ministry.invitedToEvents
+ */
+export type Ministry$invitedToEventsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   /**
    * Select specific fields to fetch from the Event
    */

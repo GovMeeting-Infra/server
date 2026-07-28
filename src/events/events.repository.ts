@@ -20,7 +20,10 @@ export class EventsRepository {
       include: {
         organizer: { select: { id: true, name: true, email: true } },
         coOrganizers: { include: { user: { select: { id: true, name: true, email: true } } } },
-        attendees: true,
+        invitedMinistries: { select: { id: true, name: true, code: true } },
+        attendees: {
+          include: { user: { select: { id: true, name: true, email: true } } },
+        },
         minutes: true,
         room: true,
         series: true,
@@ -28,13 +31,13 @@ export class EventsRepository {
     });
   }
 
-  async findMany(where: any, skip: number, take: number) {
+  async findMany(where: any, skip: number, take: number, orderBy?: any) {
     const [data, total] = await Promise.all([
       (this.prisma as any).event.findMany({
         where,
         skip,
         take,
-        orderBy: { startAt: 'desc' },
+        orderBy: orderBy ?? { startAt: 'desc' },
         include: {
           organizer: { select: { id: true, name: true } },
           _count: { select: { attendees: true } },

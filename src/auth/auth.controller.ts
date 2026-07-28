@@ -29,7 +29,7 @@ export class AuthController {
 
     res.setHeader(
       'Set-Cookie',
-      `authToken=${(result as any).token}; HttpOnly; Secure; SameSite=Lax`,
+      `authToken=${(result as any).token}; Path=/; HttpOnly; Secure; SameSite=Lax`,
     );
 
     res.json({
@@ -76,7 +76,7 @@ export class AuthController {
 
   @Post('sign-out')
   async signOut(@Res() res: Response): Promise<void> {
-    res.clearCookie('authToken');
+    res.clearCookie('authToken', { path: '/' });
     res.json({ success: true, message: 'Signed out' });
   }
 }

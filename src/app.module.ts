@@ -1,4 +1,4 @@
-import { Module, Global } from '@nestjs/common';
+import { Module, Global, MiddlewareConsumer, NestModule } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
 import { BullModule } from '@nestjs/bullmq';
@@ -17,6 +17,8 @@ import { RoomsModule } from './rooms/rooms.module';
 import { ReportsModule } from './reports/reports.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { HealthModule } from './health/health.module';
+import { UploadsModule } from './uploads/uploads.module';
+import { SessionMiddleware } from './auth/middleware/session.middleware';
 
 @Global()
 @Module({
@@ -51,8 +53,15 @@ import { HealthModule } from './health/health.module';
     ReportsModule,
     NotificationsModule,
     HealthModule,
+    UploadsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    // Attaches req.user from the session cookie for every route. Guards still
+    // decide access; this only makes the authenticated user available to them.
+    consumer.apply(SessionMiddleware).forRoutes('*');
+  }
+}

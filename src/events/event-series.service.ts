@@ -40,6 +40,14 @@ export class EventSeriesService {
       data: occurrences,
     });
 
+    // The event this series was created from is its first occurrence. Without
+    // this it stays detached, so the event you started from shows no
+    // recurrence at all while its siblings do.
+    await (this.prisma as any).event.update({
+      where: { id: baseEvent.id },
+      data: { seriesId: series.id },
+    });
+
     await this.audit.log({
       action: 'EVENT_SERIES_CREATED',
       actionCategory: 'EVENT_MANAGEMENT',
@@ -66,9 +74,14 @@ export class EventSeriesService {
     series: any,
   ): any[] {
     const occurrences: any[] = [];
-    let currentDate = new Date(baseEvent.startAt);
-    let count = 0;
+    const currentDate = new Date(baseEvent.startAt);
+    let count = 1;
     const maxOccurrences = series.count || 52;
+
+    // The base event already occupies the first slot, so advance before
+    // generating anything — otherwise occurrence one duplicates it and a
+    // 4-occurrence series yields 5 events.
+    this.incrementDate(currentDate, series.frequency, series.interval || 1);
 
     while (count < maxOccurrences) {
       if (series.until && currentDate > new Date(series.until)) break;

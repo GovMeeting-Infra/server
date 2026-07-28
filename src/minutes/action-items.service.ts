@@ -64,7 +64,8 @@ export class ActionItemsService {
         dueDate: new Date(dto.dueDate),
         status: 'TODO',
         point: dto.point || 'ACTION_POINT',
-        createdById: userId,
+        ownerName: dto.ownerName,
+        assignedById: userId,
       },
     });
 
@@ -112,10 +113,8 @@ export class ActionItemsService {
       updateData.status = dto.status;
       if (dto.status === ActionItemStatusEnum.COMPLETED) {
         updateData.completedAt = new Date();
-        updateData.completedById = userId;
       } else {
         updateData.completedAt = null;
-        updateData.completedById = null;
       }
     }
 
@@ -145,8 +144,7 @@ export class ActionItemsService {
       where: { id: actionItemId },
       include: {
         owner: { select: { id: true, name: true, email: true } },
-        createdBy: { select: { id: true, name: true, email: true } },
-        completedBy: { select: { id: true, name: true, email: true } },
+        assignedBy: { select: { id: true, name: true, email: true } },
       },
     });
 
@@ -170,8 +168,7 @@ export class ActionItemsService {
       where: { minutesId },
       include: {
         owner: { select: { id: true, name: true, email: true } },
-        createdBy: { select: { id: true, name: true, email: true } },
-        completedBy: { select: { id: true, name: true, email: true } },
+        assignedBy: { select: { id: true, name: true, email: true } },
       },
       orderBy: [{ status: 'asc' }, { dueDate: 'asc' }],
     });

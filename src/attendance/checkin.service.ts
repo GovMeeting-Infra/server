@@ -226,4 +226,65 @@ export class CheckinService {
 
     return attendance;
   }
+
+  /** Venue coordinates and radius, for showing geofence availability. */
+  async getGeofence(eventId: string) {
+    return (this.prisma as any).event.findUnique({
+      where: { id: eventId },
+      select: { venueLat: true, venueLng: true, geofenceRadius: true },
+    });
+  }
+
+  async removeCheckIn(
+    eventId: string,
+    attendanceId: string,
+    actorId: string,
+    ministryId: string,
+  ) {
+    const attendance = await (this.prisma as any).attendance.findFirst({
+      where: { id: attendanceId, eventId },
+      include: { event: { select: { title: true } } },
+    });
+
+    if (!attendance) {
+      throw new NotFoundException('Check-in record not found for this event');
+    }
+
+    await (this.prisma as any).attendance.delete({
+      where: { id: attendanceId },
+    });
+
+    await this.audit.log({
+      action: 'ATTENDANCE_REMOVED',
+      actionCategory: 'ATTENDANCE',
+      entityType: 'Attendance',
+      entityId: attendanceId,
+      entityName: attendance.signedName,
+      status: 'SUCCESS',
+      ministryId,
+      actorId,
+      description: `Removed check-in for ${attendance.signedName} from event: ${attendance.event.title}`,
+    });
+  }
+
+  /**
+   * Check-in records for an event, newest first. The signature blob is left
+   * out — it is large and only needed on the individual record.
+   */
+  async listCheckIns(eventId: string) {
+    return (this.prisma as any).attendance.findMany({
+      where: { eventId },
+      select: {
+        id: true,
+        eventId: true,
+        userId: true,
+        signedName: true,
+        checkInAt: true,
+        checkInMethod: true,
+        withinGeofence: true,
+        user: { select: { id: true, name: true, email: true } },
+      },
+      orderBy: { checkInAt: 'desc' },
+    });
+  }
 }

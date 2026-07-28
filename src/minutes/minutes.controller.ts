@@ -76,6 +76,28 @@ export class MinutesController {
     return this.minutesService.getMinutes(eventId);
   }
 
+  /**
+   * Whether the caller may edit these minutes right now. The rules (2-day
+   * window after the event, overridable by ministry-level roles) live in
+   * minutesService.canEditMinutes; exposing them keeps the UI honest instead
+   * of re-deriving the window client-side.
+   */
+  @Get('minutes/can-edit')
+  @Roles('STAFF', 'MINISTRY_ADMIN', 'MINISTER', 'SUPER_ADMIN')
+  async getCanEditMinutes(
+    @Param('eventId') eventId: string,
+    @CurrentUser() user: any,
+  ) {
+    const canEdit = await this.minutesService.canEditMinutes(
+      eventId,
+      user.id,
+      user.systemRole,
+      user.ministryId,
+    );
+
+    return { canEdit };
+  }
+
   @Post('minutes/action-items')
   @Roles('STAFF', 'MINISTRY_ADMIN', 'MINISTER', 'SUPER_ADMIN')
   async createActionItem(
