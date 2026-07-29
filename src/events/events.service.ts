@@ -363,6 +363,72 @@ export class EventsService {
    * ministry, or everyone for a super-admin. Self is excluded — you are
    * already the organizer.
    */
+  /**
+   * The people invited to one meeting, for assigning its action items.
+   *
+   * The whole ministry directory is the wrong list here: work coming out of a
+   * meeting belongs to someone who was in it. Guests are included — action
+   * items can be owned by someone with no account — and carry a `guest:` id
+   * because there is no user row to point at. Callers must read that prefix and
+   * assign by email rather than by id.
+   */
+  async listAttendeeCandidates(
+    eventId: string,
+    user: { systemRole: string; ministryId?: string },
+    query?: string,
+  ) {
+    const event = await (this.prisma as any).event.findUnique({
+      where: { id: eventId },
+      select: { ministryId: true },
+    });
+
+    if (!event) {
+      throw new NotFoundException('Event not found');
+    }
+
+    assertSameMinistry(user, event.ministryId);
+
+    const attendees = await (this.prisma as any).eventAttendee.findMany({
+      where: { eventId },
+      select: {
+        externalName: true,
+        externalEmail: true,
+        user: {
+          select: { id: true, name: true, email: true, jobTitle: true },
+        },
+      },
+    });
+
+    const q = query?.trim().toLowerCase();
+
+    return attendees
+      .map((a: any) =>
+        a.user
+          ? {
+              id: a.user.id,
+              name: a.user.name,
+              email: a.user.email,
+              jobTitle: a.user.jobTitle,
+            }
+          : a.externalEmail
+            ? {
+                id: `guest:${a.externalEmail.toLowerCase()}`,
+                name: a.externalName ?? a.externalEmail,
+                email: a.externalEmail,
+                jobTitle: null,
+              }
+            : null,
+      )
+      .filter(Boolean)
+      .filter(
+        (p: any) =>
+          !q ||
+          p.name.toLowerCase().includes(q) ||
+          p.email.toLowerCase().includes(q),
+      )
+      .sort((a: any, b: any) => a.name.localeCompare(b.name));
+  }
+
   async listCoOrganizerCandidates(user: {
     id: string;
     systemRole: string;

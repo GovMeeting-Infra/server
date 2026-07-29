@@ -61,6 +61,20 @@ export class EventsController {
    * before @Get(':id') so it isn't matched as an event id. Exists because
    * /admin/users is admin-only, and STAFF need to populate these pickers.
    */
+  /**
+   * Assignees for this meeting's action items. Declared before ':id' routes so
+   * a literal path segment is not swallowed as an event id.
+   */
+  @Get(':eventId/attendee-candidates')
+  @Roles('SUPER_ADMIN', 'MINISTER', 'MINISTRY_ADMIN', 'STAFF')
+  listAttendeeCandidates(
+    @Param('eventId') eventId: string,
+    @CurrentUser() user: any,
+    @Query('q') q?: string,
+  ) {
+    return this.eventsService.listAttendeeCandidates(eventId, user, q);
+  }
+
   @Get('co-organizer-candidates')
   @Roles('SUPER_ADMIN', 'MINISTER', 'MINISTRY_ADMIN', 'STAFF')
   listCandidates(@CurrentUser() user: any) {
