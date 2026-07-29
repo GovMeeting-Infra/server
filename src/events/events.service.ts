@@ -364,13 +364,16 @@ export class EventsService {
    * already the organizer.
    */
   /**
-   * The people invited to one meeting, for assigning its action items.
+   * Everyone connected to one meeting, for assigning its action items.
    *
    * The whole ministry directory is the wrong list here: work coming out of a
-   * meeting belongs to someone who was in it. Guests are included — action
-   * items can be owned by someone with no account — and carry a `guest:` id
-   * because there is no user row to point at. Callers must read that prefix and
-   * assign by email rather than by id.
+   * meeting belongs to someone who was in it. That means the organizer and
+   * co-organizers as well as the invitees — they run the meeting without
+   * necessarily appearing on its own invite list.
+   *
+   * Guests are included too, since an action item can be owned by someone with
+   * no account. They carry a `guest:` id because there is no user row to point
+   * at; callers must read that prefix and assign by email rather than by id.
    */
   async listAttendeeCandidates(
     eventId: string,
@@ -379,7 +382,28 @@ export class EventsService {
   ) {
     const event = await (this.prisma as any).event.findUnique({
       where: { id: eventId },
-      select: { ministryId: true },
+      select: {
+        ministryId: true,
+        organizer: {
+          select: { id: true, name: true, email: true, jobTitle: true },
+        },
+        coOrganizers: {
+          select: {
+            user: {
+              select: { id: true, name: true, email: true, jobTitle: true },
+            },
+          },
+        },
+        attendees: {
+          select: {
+            externalName: true,
+            externalEmail: true,
+            user: {
+              select: { id: true, name: true, email: true, jobTitle: true },
+            },
+          },
+        },
+      },
     });
 
     if (!event) {
@@ -388,38 +412,39 @@ export class EventsService {
 
     assertSameMinistry(user, event.ministryId);
 
-    const attendees = await (this.prisma as any).eventAttendee.findMany({
-      where: { eventId },
-      select: {
-        externalName: true,
-        externalEmail: true,
-        user: {
-          select: { id: true, name: true, email: true, jobTitle: true },
-        },
-      },
-    });
+    // Everyone who could reasonably own work from this meeting. The organizer
+    // and co-organizers run it without necessarily appearing on the invite
+    // list, so attendees alone left the very people most likely to be assigned
+    // something out of the picker entirely. Public activities have no
+    // organizer, hence the null check.
+    const byId = new Map<string, any>();
+
+    const add = (p: any) => {
+      if (p && !byId.has(p.id)) byId.set(p.id, p);
+    };
+
+    add(event.organizer);
+    for (const c of event.coOrganizers) add(c.user);
+
+    for (const a of event.attendees) {
+      if (a.user) {
+        add(a.user);
+      } else if (a.externalEmail) {
+        // No user row to point at, so callers assign these by email. An
+        // invitee recorded with a name but no address is left out: there
+        // would be no way to tell them.
+        add({
+          id: `guest:${a.externalEmail.toLowerCase()}`,
+          name: a.externalName ?? a.externalEmail,
+          email: a.externalEmail,
+          jobTitle: null,
+        });
+      }
+    }
 
     const q = query?.trim().toLowerCase();
 
-    return attendees
-      .map((a: any) =>
-        a.user
-          ? {
-              id: a.user.id,
-              name: a.user.name,
-              email: a.user.email,
-              jobTitle: a.user.jobTitle,
-            }
-          : a.externalEmail
-            ? {
-                id: `guest:${a.externalEmail.toLowerCase()}`,
-                name: a.externalName ?? a.externalEmail,
-                email: a.externalEmail,
-                jobTitle: null,
-              }
-            : null,
-      )
-      .filter(Boolean)
+    return [...byId.values()]
       .filter(
         (p: any) =>
           !q ||
