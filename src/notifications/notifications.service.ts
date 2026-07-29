@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { Queue } from 'bullmq';
 import { InjectQueue } from '@nestjs/bullmq';
 import { PrismaService } from '../prisma/prisma.service';
@@ -420,11 +420,28 @@ export class NotificationsService {
     });
   }
 
-  async markAsRead(notificationId: string) {
-    return (this.prisma as any).notification.update({
-      where: { id: notificationId },
+  /**
+   * Scoped to the owner, not just the id.
+   *
+   * These took a bare id and updated it, so any signed-in user could mark or
+   * delete anyone else's notifications by guessing or reading an id. The
+   * ownership test lives in the where clause rather than a separate read, so
+   * there is no window between checking and writing.
+   *
+   * A row belonging to someone else raises the same NotFoundException as one
+   * that does not exist — the distinction is not the caller's to learn.
+   */
+  async markAsRead(notificationId: string, userId: string) {
+    const { count } = await (this.prisma as any).notification.updateMany({
+      where: { id: notificationId, userId },
       data: { read: true, readAt: new Date() },
     });
+
+    if (count === 0) {
+      throw new NotFoundException('Notification not found');
+    }
+
+    return { success: true };
   }
 
   async markAllAsRead(userId: string) {
@@ -434,10 +451,17 @@ export class NotificationsService {
     });
   }
 
-  async deleteNotification(notificationId: string) {
-    return (this.prisma as any).notification.delete({
-      where: { id: notificationId },
+  /** Owner-scoped, for the same reason as markAsRead. */
+  async deleteNotification(notificationId: string, userId: string) {
+    const { count } = await (this.prisma as any).notification.deleteMany({
+      where: { id: notificationId, userId },
     });
+
+    if (count === 0) {
+      throw new NotFoundException('Notification not found');
+    }
+
+    return { success: true };
   }
 
   async deleteAllUserNotifications(userId: string) {
