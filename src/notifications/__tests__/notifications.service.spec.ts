@@ -7,6 +7,7 @@ import { NotificationsService } from '../notifications.service';
  */
 describe('NotificationsService', () => {
   let prisma: any;
+  let queue: any;
   let service: NotificationsService;
   let prefRows: any[];
 
@@ -20,7 +21,11 @@ describe('NotificationsService', () => {
       event: { findUnique: jest.fn() },
       actionItem: { findUnique: jest.fn() },
     };
-    service = new NotificationsService(prisma);
+    // Assignment now queues an email as well as writing in-app. enqueueEmail
+    // swallows failures, so without a real double the suite would pass while
+    // silently exercising nothing.
+    queue = { add: jest.fn().mockResolvedValue(undefined) };
+    service = new NotificationsService(prisma, queue as any);
   });
 
   const prefs = (userId: string, overrides: Record<string, boolean> = {}) => ({

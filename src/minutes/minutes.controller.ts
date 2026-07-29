@@ -7,6 +7,7 @@ import {
   Param,
   UseGuards,
   HttpCode,
+  NotFoundException,
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { MinutesService } from './minutes.service';
@@ -145,7 +146,9 @@ export class MinutesController {
     });
 
     if (!minutes) {
-      throw new Error('Minutes not found for event');
+      // Was a bare Error, which surfaced as a 500 for the ordinary case of an
+      // event whose minutes have not been drafted yet.
+      throw new NotFoundException('No minutes drafted for this event yet');
     }
 
     return this.actionItemsService.createActionItem(
@@ -153,6 +156,7 @@ export class MinutesController {
       dto,
       user.id,
       user.ministryId,
+      user.systemRole,
     );
   }
 
@@ -182,7 +186,7 @@ export class MinutesController {
     });
 
     if (!minutes) {
-      throw new Error('Minutes not found for event');
+      throw new NotFoundException('No minutes drafted for this event yet');
     }
 
     return this.actionItemsService.listByMinutes(minutes.id);

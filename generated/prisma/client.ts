@@ -105,6 +105,21 @@ export type QRToken = Prisma.QRTokenModel
  */
 export type Minutes = Prisma.MinutesModel
 /**
+ * Model MinutesAccessToken
+ * *
+ *  * Read access to one published minutes record for one person, so an attendee
+ *  * with no account can be sent the record.
+ *  *
+ *  * Keyed by email rather than by attendee row: a walk-in has no EventAttendee at
+ *  * all, and reusing rsvpTokenHash would mean fabricating one. Only the sha256 is
+ *  * stored, matching InvitesService, so a database read yields no usable link.
+ *  *
+ *  * There is no expiry column on purpose. A token resolves only while its minutes
+ *  * are PUBLISHED, so archiving is what ends access — one lifecycle rather than
+ *  * two clocks that can disagree.
+ */
+export type MinutesAccessToken = Prisma.MinutesAccessTokenModel
+/**
  * Model ActionItem
  * 
  */

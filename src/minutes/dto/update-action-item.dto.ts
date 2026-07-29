@@ -3,6 +3,7 @@ import {
   IsString,
   IsDateString,
   IsEnum,
+  IsEmail,
   ValidateIf,
 } from 'class-validator';
 
@@ -26,6 +27,29 @@ export class UpdateActionItemDto {
   @IsOptional()
   @IsDateString()
   dueDate?: string;
+
+  /** What has been done. Overwritten in place, not appended. */
+  @IsOptional()
+  @IsString()
+  progressNotes?: string;
+
+  /**
+   * A link to the work. Not @IsUrl: a ministry intranet address may have no
+   * public TLD, and rejecting it would block the common case.
+   */
+  @IsOptional()
+  @IsString()
+  progressLink?: string;
+
+  @IsOptional()
+  @IsString()
+  ownerName?: string;
+
+  /** Reassign to someone with no account. Clears ownerId when used. */
+  @IsOptional()
+  @ValidateIf((_, value) => value !== null)
+  @IsEmail()
+  ownerEmail?: string | null;
 
   @IsOptional()
   @IsEnum(ActionItemStatusEnum)
