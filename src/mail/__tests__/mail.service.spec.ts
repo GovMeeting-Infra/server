@@ -62,7 +62,7 @@ describe('MailService', () => {
   describe('with an API key', () => {
     beforeEach(() => {
       process.env.RESEND_API_KEY = 're_test_key';
-      process.env.EMAIL_FROM = 'noreply@ministry.gov.sl';
+      process.env.EMAIL_FROM = 'noreply@calendar.gov.sl';
     });
 
     it('reports success when Resend accepts the message', async () => {
@@ -81,7 +81,7 @@ describe('MailService', () => {
       expect(init.method).toBe('POST');
       expect(init.headers.Authorization).toBe('Bearer re_test_key');
       expect(JSON.parse(init.body)).toEqual({
-        from: 'noreply@ministry.gov.sl',
+        from: 'noreply@calendar.gov.sl',
         to: 'a@b.gov.sl',
         subject: 'Test subject',
         html: '<p>hi</p>',
@@ -93,12 +93,12 @@ describe('MailService', () => {
       // The single most likely production failure before DNS is configured.
       fetchMock.mockResolvedValue(
         jsonResponse(403, {
-          message: 'The ministry.gov.sl domain is not verified',
+          message: 'The calendar.gov.sl domain is not verified',
         }),
       );
       await expect(service.send('a@b.gov.sl', BODY)).resolves.toEqual({
         sent: false,
-        error: 'The ministry.gov.sl domain is not verified',
+        error: 'The calendar.gov.sl domain is not verified',
       });
     });
 
