@@ -1,3 +1,7 @@
+// First import on purpose: modules pulled in below can read process.env while
+// they are being evaluated, which is well before ConfigModule.forRoot() loads
+// .env. auth.config.ts did exactly that and connected to the wrong database.
+import 'dotenv/config';
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe, VersioningType } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';

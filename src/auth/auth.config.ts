@@ -1,3 +1,11 @@
+// Must come first. Everything below runs at module load, which is when
+// AppModule is imported — before NestFactory.create() gets as far as
+// ConfigModule.forRoot() and reads .env. Without this, DATABASE_URL was empty
+// here and BetterAuth quietly built its pool against localhost, so on a server
+// with no local Postgres every sign-in failed with DatabaseNotReachable
+// 127.0.0.1:5432 while the app's own PrismaService — a provider, constructed
+// later — reported a healthy connection to Neon.
+import 'dotenv/config';
 import { betterAuth } from 'better-auth';
 import { admin } from 'better-auth/plugins';
 import { prismaAdapter } from 'better-auth/adapters/prisma';
@@ -5,18 +13,19 @@ import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';
 import { PrismaClient } from '../../generated/prisma/client';
 
-let prisma: any;
-try {
-  const connectionString =
-    process.env.DATABASE_URL ||
-    'postgresql://govmeeting:devpass@localhost:5432/govmeeting_dev';
-  const pool = new Pool({ connectionString });
-  const adapter = new PrismaPg(pool);
-  prisma = new (PrismaClient as any)({ adapter });
-} catch (error) {
-  console.error('Failed to initialize Prisma for BetterAuth:', error);
-  prisma = null;
+const connectionString = process.env.DATABASE_URL;
+if (!connectionString) {
+  // Fail at boot rather than at the first sign-in. The old fallback to a local
+  // development database turned a missing variable into a 400 at login with
+  // nothing in the response to explain it.
+  throw new Error(
+    'DATABASE_URL is not set — BetterAuth cannot reach the database.',
+  );
 }
+
+const pool = new Pool({ connectionString });
+const adapter = new PrismaPg(pool);
+const prisma: any = new (PrismaClient as any)({ adapter });
 
 export const auth: any = betterAuth({
   database: prismaAdapter(prisma, {
