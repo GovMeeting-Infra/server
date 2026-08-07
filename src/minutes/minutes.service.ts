@@ -7,7 +7,10 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
+import { Queue } from 'bullmq';
+import { InjectQueue } from '@nestjs/bullmq';
 import { NotificationsService } from '../notifications/notifications.service';
+import { MinutesAccessService } from './minutes-access.service';
 import {
   ministryScope,
   assertSameMinistry,
@@ -25,6 +28,8 @@ export class MinutesService {
     private prisma: PrismaService,
     private audit: AuditService,
     private notifications: NotificationsService,
+    private access: MinutesAccessService,
+    @InjectQueue('email-queue') private emailQueue: Queue,
   ) {}
 
   async draftMinutes(
@@ -250,7 +255,54 @@ export class MinutesService {
     // publish that already succeeded.
     await this.notifications.notifyMinutesPublished(eventId);
 
+    // The record goes to everyone who was there, with the action items it
+    // produced. Guests get a link that works without an account; wrapped so a
+    // mail or Redis problem cannot undo a publish that already succeeded.
+    try {
+      await this.distribute(eventId, minutes.id);
+    } catch (error) {
+      this.logger.error('Failed to distribute published minutes', error as any);
+    }
+
     return published;
+  }
+
+  /**
+   * Send the published record to everyone entitled to it.
+   *
+   * Staff already have the in-app notification and a page they can open; guests
+   * get a tokenised link, which is the only route they have.
+   */
+  private async distribute(eventId: string, minutesId: string) {
+    const recipients = await this.access.recipientsFor(eventId);
+
+    for (const r of recipients) {
+      if (!r.email) continue;
+
+      const guestLink = r.userId
+        ? null
+        : await this.access.issueGuestLink(minutesId, r.email);
+
+      await this.emailQueue.add(
+        'send-minutes-published',
+        {
+          eventId,
+          userId: r.userId,
+          email: r.email,
+          name: r.name,
+          guestLink,
+        },
+        {
+          jobId: `minutes-published:${minutesId}:${r.userId ?? r.email.toLowerCase()}`,
+          removeOnComplete: { age: 24 * 60 * 60 },
+          removeOnFail: { age: 24 * 60 * 60 },
+        },
+      );
+    }
+
+    this.logger.log(
+      `Queued published minutes to ${recipients.length} recipient(s) for event ${eventId}`,
+    );
   }
 
   async canEditMinutes(

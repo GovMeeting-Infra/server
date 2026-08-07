@@ -35,6 +35,7 @@ export class ActionItemsService {
     dto: CreateActionItemDto,
     userId: string,
     ministryId: string,
+    systemRole?: string,
   ) {
     const minutes = await (this.prisma as any).minutes.findUnique({
       where: { id: minutesId },
@@ -52,13 +53,47 @@ export class ActionItemsService {
       );
     }
 
+    // The caller's ministry was never checked against the minutes' own — only
+    // @Roles, which is role-only. updateStatus has always done this; without it
+    // here, knowing an eventId was enough to file work against another ministry.
+    assertSameMinistry(
+      { systemRole: systemRole ?? '', ministryId },
+      minutes.event.ministryId,
+    );
+
     let ownerId: string | null = null;
     let ownerName = dto.ownerName ?? null;
+    let ownerEmail = dto.ownerEmail?.trim().toLowerCase() ?? null;
 
     if (dto.ownerId) {
       const owner = await this.resolveOwner(dto.ownerId, ministryId);
       ownerId = owner.id;
       ownerName = owner.name;
+      ownerEmail = owner.email;
+    } else if (ownerEmail) {
+      // Email is the reliable key — the name match below is a fallback for
+      // minutes typed up from paper. Mirrors manualCheckIn: resolve to an
+      // account when one exists, otherwise keep the raw details so the person
+      // can still be reached and the item still reads correctly.
+      const owner = await (this.prisma as any).user.findFirst({
+        where: { email: ownerEmail, active: true, deletedAt: null },
+        select: { id: true, name: true, email: true, ministryId: true },
+      });
+
+      if (owner) {
+        // The same bar resolveOwner applies. Without it, addressing someone by
+        // email instead of picking them was a way around the cross-ministry
+        // rule — and silently recording them as an external owner would not
+        // help, since they would still be emailed the work.
+        if (owner.ministryId !== ministryId) {
+          throw new ForbiddenException(
+            'Action items can only be assigned within the ministry that owns the meeting',
+          );
+        }
+        ownerId = owner.id;
+        ownerName = owner.name;
+        ownerEmail = owner.email;
+      }
     } else if (dto.ownerName) {
       // Name matching is a fallback for minutes typed up from paper. It is
       // deliberately exact rather than the substring match this used to do:
@@ -96,6 +131,7 @@ export class ActionItemsService {
         status: 'TODO',
         point: dto.point || 'ACTION_POINT',
         ownerName,
+        ownerEmail,
         assignedById: userId,
       },
     });
@@ -114,8 +150,8 @@ export class ActionItemsService {
 
     await this.cache.invalidateAnalytics();
 
-    // No-ops when owner resolution found nobody, which is the common case
-    // today — the create form does not collect an owner.
+    // Reaches an account holder in-app and by email, and an owner with no
+    // account by email alone.
     await this.notifications.notifyActionItemAssigned(actionItem.id);
 
     return actionItem;
@@ -130,7 +166,7 @@ export class ActionItemsService {
   private async resolveOwner(ownerId: string, ministryId: string) {
     const owner = await (this.prisma as any).user.findFirst({
       where: { id: ownerId, active: true, deletedAt: null },
-      select: { id: true, name: true, ministryId: true },
+      select: { id: true, name: true, email: true, ministryId: true },
     });
 
     if (!owner) {
@@ -198,7 +234,21 @@ export class ActionItemsService {
 
     if (dto.title !== undefined) updateData.title = dto.title;
     if (dto.description !== undefined) updateData.description = dto.description;
-    if (dto.dueDate !== undefined) updateData.dueDate = new Date(dto.dueDate);
+    if (dto.progressNotes !== undefined)
+      updateData.progressNotes = dto.progressNotes;
+    if (dto.progressLink !== undefined)
+      updateData.progressLink = dto.progressLink;
+
+    if (dto.dueDate !== undefined) {
+      const next = new Date(dto.dueDate);
+      updateData.dueDate = next;
+      // Re-arm the reminder. The stamp is what the 08:00 cron filters on, and
+      // it was never cleared, so rescheduling an item guaranteed it would never
+      // be reminded about again.
+      if (next.getTime() !== actionItem.dueDate.getTime()) {
+        updateData.reminderSentAt = null;
+      }
+    }
 
     // Undefined means "leave alone"; null means "unassign".
     const reassigning = dto.ownerId !== undefined;
@@ -206,16 +256,24 @@ export class ActionItemsService {
       if (dto.ownerId === null) {
         updateData.ownerId = null;
         updateData.ownerName = null;
+        updateData.ownerEmail = null;
       } else {
         const owner = await this.resolveOwner(
           dto.ownerId as string,
           actionItem.minutes.event.ministryId,
         );
         updateData.ownerId = owner.id;
-        // Kept in step with the account so the free-text field cannot drift
+        // Kept in step with the account so the free-text fields cannot drift
         // into naming somebody other than the actual owner.
         updateData.ownerName = owner.name;
+        updateData.ownerEmail = owner.email;
       }
+    } else if (dto.ownerEmail !== undefined) {
+      // Reassigning to someone with no account: keep the details, drop any
+      // account link so the two cannot disagree about who owns this.
+      updateData.ownerEmail = dto.ownerEmail?.trim().toLowerCase() ?? null;
+      updateData.ownerId = null;
+      if (dto.ownerName !== undefined) updateData.ownerName = dto.ownerName;
     }
 
     if (dto.status) {

@@ -363,6 +363,97 @@ export class EventsService {
    * ministry, or everyone for a super-admin. Self is excluded — you are
    * already the organizer.
    */
+  /**
+   * Everyone connected to one meeting, for assigning its action items.
+   *
+   * The whole ministry directory is the wrong list here: work coming out of a
+   * meeting belongs to someone who was in it. That means the organizer and
+   * co-organizers as well as the invitees — they run the meeting without
+   * necessarily appearing on its own invite list.
+   *
+   * Guests are included too, since an action item can be owned by someone with
+   * no account. They carry a `guest:` id because there is no user row to point
+   * at; callers must read that prefix and assign by email rather than by id.
+   */
+  async listAttendeeCandidates(
+    eventId: string,
+    user: { systemRole: string; ministryId?: string },
+    query?: string,
+  ) {
+    const event = await (this.prisma as any).event.findUnique({
+      where: { id: eventId },
+      select: {
+        ministryId: true,
+        organizer: {
+          select: { id: true, name: true, email: true, jobTitle: true },
+        },
+        coOrganizers: {
+          select: {
+            user: {
+              select: { id: true, name: true, email: true, jobTitle: true },
+            },
+          },
+        },
+        attendees: {
+          select: {
+            externalName: true,
+            externalEmail: true,
+            user: {
+              select: { id: true, name: true, email: true, jobTitle: true },
+            },
+          },
+        },
+      },
+    });
+
+    if (!event) {
+      throw new NotFoundException('Event not found');
+    }
+
+    assertSameMinistry(user, event.ministryId);
+
+    // Everyone who could reasonably own work from this meeting. The organizer
+    // and co-organizers run it without necessarily appearing on the invite
+    // list, so attendees alone left the very people most likely to be assigned
+    // something out of the picker entirely. Public activities have no
+    // organizer, hence the null check.
+    const byId = new Map<string, any>();
+
+    const add = (p: any) => {
+      if (p && !byId.has(p.id)) byId.set(p.id, p);
+    };
+
+    add(event.organizer);
+    for (const c of event.coOrganizers) add(c.user);
+
+    for (const a of event.attendees) {
+      if (a.user) {
+        add(a.user);
+      } else if (a.externalEmail) {
+        // No user row to point at, so callers assign these by email. An
+        // invitee recorded with a name but no address is left out: there
+        // would be no way to tell them.
+        add({
+          id: `guest:${a.externalEmail.toLowerCase()}`,
+          name: a.externalName ?? a.externalEmail,
+          email: a.externalEmail,
+          jobTitle: null,
+        });
+      }
+    }
+
+    const q = query?.trim().toLowerCase();
+
+    return [...byId.values()]
+      .filter(
+        (p: any) =>
+          !q ||
+          p.name.toLowerCase().includes(q) ||
+          p.email.toLowerCase().includes(q),
+      )
+      .sort((a: any, b: any) => a.name.localeCompare(b.name));
+  }
+
   async listCoOrganizerCandidates(user: {
     id: string;
     systemRole: string;

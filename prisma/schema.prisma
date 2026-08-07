@@ -397,9 +397,35 @@ model Minutes {
   draftedBy         User?    @relation("draftedBy", fields: [draftedById], references: [id])
   publishedBy       User?    @relation("publishedBy", fields: [publishedById], references: [id])
   actionItems       ActionItem[]
+  accessTokens      MinutesAccessToken[]
 
   @@index([eventId])
   @@index([status])
+}
+
+/**
+ * Read access to one published minutes record for one person, so an attendee
+ * with no account can be sent the record.
+ *
+ * Keyed by email rather than by attendee row: a walk-in has no EventAttendee at
+ * all, and reusing rsvpTokenHash would mean fabricating one. Only the sha256 is
+ * stored, matching InvitesService, so a database read yields no usable link.
+ *
+ * There is no expiry column on purpose. A token resolves only while its minutes
+ * are PUBLISHED, so archiving is what ends access — one lifecycle rather than
+ * two clocks that can disagree.
+ */
+model MinutesAccessToken {
+  id         String   @id @default(cuid())
+  minutesId  String
+  email      String
+  tokenHash  String   @unique
+  createdAt  DateTime @default(now())
+
+  minutes    Minutes  @relation(fields: [minutesId], references: [id], onDelete: Cascade)
+
+  @@unique([minutesId, email])
+  @@index([minutesId])
 }
 
 enum MinutesStatus {
@@ -415,11 +441,19 @@ model ActionItem {
   description       String?
   ownerId           String?
   ownerName         String?
+  // How to reach an owner who has no account. Without it an item assigned to
+  // an outside participant was unreachable by any channel.
+  ownerEmail        String?
   assignedById      String?
   dueDate           DateTime
   completedAt       DateTime?
   status            ActionItemStatus @default(TODO)
   point             PointType @default(ACTION_POINT)
+  // What has been done, and a link to it. Overwritten in place rather than
+  // appended, so this is the current state of the work, not a history.
+  progressNotes     String?  @db.Text
+  progressLink      String?
+  // Cleared when the due date moves, so a rescheduled item is reminded again.
   reminderSentAt    DateTime?
   priority          String   @default("medium")
   createdAt         DateTime @default(now())

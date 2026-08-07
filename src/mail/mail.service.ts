@@ -37,7 +37,7 @@ export class MailService {
   }
 
   private get from(): string {
-    return process.env.EMAIL_FROM || 'noreply@ministry.gov.sl';
+    return process.env.EMAIL_FROM || 'noreply@calendar.gov.sl';
   }
 
   /** Whether a send would actually be attempted. */

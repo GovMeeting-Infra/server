@@ -1,4 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Queue } from 'bullmq';
+import { InjectQueue } from '@nestjs/bullmq';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   NotificationType,
@@ -28,7 +30,29 @@ interface Recipient {
 export class NotificationsService {
   private logger = new Logger('NotificationsService');
 
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    @InjectQueue('email-queue') private emailQueue: Queue,
+  ) {}
+
+  /**
+   * Queue an email, swallowing failures.
+   *
+   * A notification is a side effect of doing something else — assigning work,
+   * publishing minutes — and Redis being unreachable must not fail that action.
+   */
+  private async enqueueEmail(name: string, data: any, jobId: string) {
+    try {
+      await this.emailQueue.add(name, data, {
+        // A stable id, so the same assignment queued twice sends once.
+        jobId,
+        removeOnComplete: { age: 2 * 60 * 60 },
+        removeOnFail: { age: 2 * 60 * 60 },
+      });
+    } catch (error) {
+      this.logger.error(`Failed to queue ${name}`, error as any);
+    }
+  }
 
   // ==========================================================================
   // Preferences
@@ -184,12 +208,57 @@ export class NotificationsService {
     });
   }
 
+  /**
+   * Tell the owner an item is theirs, in-app and by email.
+   *
+   * Previously this returned early whenever ownerId was null and never sent
+   * mail at all, so an item assigned to someone without an account reached
+   * nobody by any route. An owner recorded only as a name and email has no
+   * inbox in the app, so email is the whole channel for them.
+   */
   async notifyActionItemAssigned(actionItemId: string) {
     const item = await (this.prisma as any).actionItem.findUnique({
       where: { id: actionItemId },
       select: {
         id: true,
         title: true,
+        ownerId: true,
+        ownerEmail: true,
+        owner: { select: { ministryId: true } },
+      },
+    });
+
+    if (!item) return;
+    if (!item.ownerId && !item.ownerEmail) return;
+
+    if (item.ownerId) {
+      await this.notify({
+        userId: item.ownerId,
+        ministryId: item.owner?.ministryId ?? undefined,
+        type: 'ACTION_ITEM_ASSIGNED',
+        title: 'Action item assigned to you',
+        body: `You have been assigned: ${item.title}`,
+        link: '/administrative/action-items',
+        entityType: 'ActionItem',
+        entityId: actionItemId,
+      });
+    }
+
+    await this.enqueueEmail(
+      'send-action-item-assigned',
+      { itemId: actionItemId },
+      `action-item-assigned:${actionItemId}:${item.ownerId ?? item.ownerEmail}`,
+    );
+  }
+
+  /** The in-app half of the due-soon reminder; the email half is the cron's. */
+  async notifyActionItemDueSoon(actionItemId: string) {
+    const item = await (this.prisma as any).actionItem.findUnique({
+      where: { id: actionItemId },
+      select: {
+        id: true,
+        title: true,
+        dueDate: true,
         ownerId: true,
         owner: { select: { ministryId: true } },
       },
@@ -200,9 +269,68 @@ export class NotificationsService {
     await this.notify({
       userId: item.ownerId,
       ministryId: item.owner?.ministryId ?? undefined,
-      type: 'ACTION_ITEM_ASSIGNED',
-      title: 'Action item assigned to you',
-      body: `You have been assigned: ${item.title}`,
+      type: 'ACTION_ITEM_DUE_SOON',
+      title: 'Action item due soon',
+      body: `"${item.title}" is due ${item.dueDate.toLocaleDateString('en-GB', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      })}.`,
+      link: '/administrative/action-items',
+      entityType: 'ActionItem',
+      entityId: actionItemId,
+    });
+  }
+
+  /** One Monday summary per person, however many items they owe. */
+  async notifyActionItemWeeklyDigest(
+    userId: string,
+    ministryId: string | null,
+    openCount: number,
+  ) {
+    await this.notify({
+      userId,
+      ministryId: ministryId ?? (undefined as any),
+      type: 'ACTION_ITEM_WEEKLY_DIGEST',
+      title: 'Your open action items',
+      body:
+        openCount === 1
+          ? 'You have 1 action item still open.'
+          : `You have ${openCount} action items still open.`,
+      link: '/administrative/action-items',
+    });
+  }
+
+  /**
+   * Tell one named person an item moved, whoever owns it.
+   *
+   * notifyActionItemStatusChanged only ever targets the owner, which is no use
+   * when the owner is an external guest with no account — the people who need
+   * telling are the ones inside the ministry watching the work.
+   */
+  async notifyActionItemStatusChangedFor(actionItemId: string, userId: string) {
+    const [item, user] = await Promise.all([
+      (this.prisma as any).actionItem.findUnique({
+        where: { id: actionItemId },
+        select: { title: true, status: true, ownerName: true },
+      }),
+      (this.prisma as any).user.findUnique({
+        where: { id: userId },
+        select: { ministryId: true },
+      }),
+    ]);
+
+    if (!item || !user) return;
+
+    const who = item.ownerName ? `${item.ownerName} ` : '';
+    await this.notify({
+      userId,
+      ministryId: user.ministryId ?? (undefined as any),
+      type: 'ACTION_ITEM_STATUS_CHANGED',
+      title: 'Action item updated',
+      body: `${who}marked "${item.title}" as ${item.status
+        .replace('_', ' ')
+        .toLowerCase()}.`,
       link: '/administrative/action-items',
       entityType: 'ActionItem',
       entityId: actionItemId,
@@ -292,11 +420,28 @@ export class NotificationsService {
     });
   }
 
-  async markAsRead(notificationId: string) {
-    return (this.prisma as any).notification.update({
-      where: { id: notificationId },
+  /**
+   * Scoped to the owner, not just the id.
+   *
+   * These took a bare id and updated it, so any signed-in user could mark or
+   * delete anyone else's notifications by guessing or reading an id. The
+   * ownership test lives in the where clause rather than a separate read, so
+   * there is no window between checking and writing.
+   *
+   * A row belonging to someone else raises the same NotFoundException as one
+   * that does not exist — the distinction is not the caller's to learn.
+   */
+  async markAsRead(notificationId: string, userId: string) {
+    const { count } = await (this.prisma as any).notification.updateMany({
+      where: { id: notificationId, userId },
       data: { read: true, readAt: new Date() },
     });
+
+    if (count === 0) {
+      throw new NotFoundException('Notification not found');
+    }
+
+    return { success: true };
   }
 
   async markAllAsRead(userId: string) {
@@ -306,10 +451,17 @@ export class NotificationsService {
     });
   }
 
-  async deleteNotification(notificationId: string) {
-    return (this.prisma as any).notification.delete({
-      where: { id: notificationId },
+  /** Owner-scoped, for the same reason as markAsRead. */
+  async deleteNotification(notificationId: string, userId: string) {
+    const { count } = await (this.prisma as any).notification.deleteMany({
+      where: { id: notificationId, userId },
     });
+
+    if (count === 0) {
+      throw new NotFoundException('Notification not found');
+    }
+
+    return { success: true };
   }
 
   async deleteAllUserNotifications(userId: string) {

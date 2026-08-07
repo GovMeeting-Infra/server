@@ -5,8 +5,11 @@ import { PrismaService } from '../prisma/prisma.service';
 import { MailService } from '../mail/mail.service';
 import { NotificationsService } from './notifications.service';
 import {
+  actionItemAssignedEmail,
+  actionItemDigestEmail,
   actionItemReminderEmail,
   meetingReminderEmail,
+  minutesPublishedEmail,
 } from '../mail/templates';
 
 interface MeetingInvitationPayload {
@@ -18,6 +21,18 @@ interface ActionItemReminderPayload {
   itemId: string;
 }
 
+interface ActionItemAssignedPayload {
+  itemId: string;
+}
+
+interface ActionItemDigestPayload {
+  /** Null for an owner with no account, who is reached by email alone. */
+  userId: string | null;
+  email: string;
+  name: string;
+  items: { title: string; dueDate: string; eventTitle: string | null }[];
+}
+
 interface MeetingReminderPayload {
   eventId: string;
   userId: string;
@@ -25,6 +40,12 @@ interface MeetingReminderPayload {
 
 interface MinutesPublishedPayload {
   eventId: string;
+  /** Null for a guest, who has no account and no session to open a page with. */
+  userId: string | null;
+  email: string;
+  name: string;
+  /** Only set for guests — staff get the in-app URL instead. */
+  guestLink: string | null;
 }
 
 @Processor('email-queue')
@@ -43,8 +64,12 @@ export class EmailProcessor extends WorkerHost {
     switch (job.name) {
       case 'send-meeting-invitation':
         return this.sendMeetingInvitation(job);
+      case 'send-action-item-assigned':
+        return this.sendActionItemAssigned(job);
       case 'send-action-item-reminder':
         return this.sendActionItemReminder(job);
+      case 'send-action-item-digest':
+        return this.sendActionItemDigest(job);
       case 'send-meeting-reminder':
         return this.sendMeetingReminder(job);
       case 'send-minutes-published':
@@ -94,6 +119,94 @@ export class EmailProcessor extends WorkerHost {
     }
   }
 
+  /**
+   * Assignment email. Reaches an owner with no account too, which is the whole
+   * reason it exists — for them, email is the only channel there is.
+   */
+  private async sendActionItemAssigned(job: Job<ActionItemAssignedPayload>) {
+    const { itemId } = job.data;
+
+    try {
+      const actionItem = await (this.prisma as any).actionItem.findUnique({
+        where: { id: itemId },
+        include: {
+          owner: true,
+          assignedBy: { select: { name: true } },
+          minutes: { include: { event: true } },
+        },
+      });
+
+      if (!actionItem) {
+        this.logger.warn(`Action item ${itemId} not found for assignment`);
+        return { sent: 0, error: 'Action item not found' };
+      }
+
+      const to = actionItem.owner?.email ?? actionItem.ownerEmail;
+      if (!to) {
+        return { sent: 0, error: 'No owner address' };
+      }
+
+      // Only consult preferences when there is an account to have them. An
+      // external owner has no UserPreferences row, and running the check
+      // against a missing user would mute the one channel they have.
+      if (
+        actionItem.owner &&
+        !(await this.notifications.wantsEmail(
+          actionItem.owner.id,
+          'ACTION_ITEM_ASSIGNED',
+        ))
+      ) {
+        return { sent: 0, error: 'Muted by preference' };
+      }
+
+      const result = await this.mail.send(
+        to,
+        actionItemAssignedEmail({
+          name: actionItem.owner?.name ?? actionItem.ownerName ?? 'Colleague',
+          title: actionItem.title,
+          description: actionItem.description,
+          dueDate: actionItem.dueDate,
+          eventTitle: actionItem.minutes?.event?.title ?? null,
+          assignedByName: actionItem.assignedBy?.name ?? null,
+        }),
+      );
+
+      return result.sent ? { sent: 1 } : { sent: 0, error: result.error };
+    } catch (error) {
+      this.logger.error('Error sending action item assignment', error);
+      throw error;
+    }
+  }
+
+  /** The Monday summary. One message per person, prepared by the cron. */
+  private async sendActionItemDigest(job: Job<ActionItemDigestPayload>) {
+    const { userId, email, name, items } = job.data;
+
+    try {
+      if (items.length === 0) return { sent: 0 };
+
+      if (
+        userId &&
+        !(await this.notifications.wantsEmail(
+          userId,
+          'ACTION_ITEM_WEEKLY_DIGEST',
+        ))
+      ) {
+        return { sent: 0, error: 'Muted by preference' };
+      }
+
+      const result = await this.mail.send(
+        email,
+        actionItemDigestEmail({ name, items }),
+      );
+
+      return result.sent ? { sent: 1 } : { sent: 0, error: result.error };
+    } catch (error) {
+      this.logger.error('Error sending action item digest', error);
+      throw error;
+    }
+  }
+
   private async sendActionItemReminder(job: Job<ActionItemReminderPayload>) {
     const { itemId } = job.data;
 
@@ -124,6 +237,10 @@ export class EmailProcessor extends WorkerHost {
       ) {
         return { sent: 0, error: 'Muted by preference' };
       }
+
+      // The in-app half. Written here rather than in the cron so it lands
+      // only when the item genuinely reached the send stage.
+      await this.notifications.notifyActionItemDueSoon(itemId);
 
       const result = await this.mail.send(
         actionItem.owner.email,
@@ -193,42 +310,63 @@ export class EmailProcessor extends WorkerHost {
     }
   }
 
+  /**
+   * The published record, to one recipient.
+   *
+   * This used to loop attendees and only call logger.log — nothing was ever
+   * sent, and nothing enqueued the job in the first place. It is now one job
+   * per recipient, prepared by MinutesService.distribute, so a single bad
+   * address cannot cost everyone else their copy.
+   */
   private async sendMinutesPublished(job: Job<MinutesPublishedPayload>) {
-    const { eventId } = job.data;
+    const { eventId, userId, email, name, guestLink } = job.data;
 
     try {
-      const event = await (this.prisma as any).event.findUnique({
-        where: { id: eventId },
-        include: {
-          attendees: {
-            include: { user: true },
+      const minutes = await (this.prisma as any).minutes.findUnique({
+        where: { eventId },
+        select: {
+          summary: true,
+          event: { select: { title: true, startAt: true, id: true } },
+          actionItems: {
+            select: { title: true, ownerName: true, dueDate: true },
+            orderBy: { dueDate: 'asc' },
           },
         },
       });
 
-      if (!event) {
-        this.logger.warn(
-          `Event ${eventId} not found for minutes published notification`,
-        );
-        return { sent: 0, error: 'Event not found' };
+      if (!minutes) {
+        return { sent: 0, error: 'Minutes not found' };
       }
 
-      let sentCount = 0;
-
-      for (const attendee of event.attendees) {
-        if (attendee.user) {
-          try {
-            this.logger.log(
-              `Notifying ${attendee.user.email} about published minutes for: ${event.title}`,
-            );
-            sentCount++;
-          } catch (error) {
-            this.logger.error(`Failed to notify ${attendee.user.email}`, error);
-          }
-        }
+      // Preferences only exist for account holders. A guest has no row, and
+      // checking one would mute the only channel they have.
+      if (
+        userId &&
+        !(await this.notifications.wantsEmail(userId, 'MINUTES_PUBLISHED'))
+      ) {
+        return { sent: 0, error: 'Muted by preference' };
       }
 
-      return { sent: sentCount };
+      const base =
+        process.env.WEB_URL ??
+        process.env.NEXT_PUBLIC_WEB_URL ??
+        'http://localhost:3000';
+
+      const result = await this.mail.send(
+        email,
+        minutesPublishedEmail({
+          name,
+          eventTitle: minutes.event.title,
+          eventDate: minutes.event.startAt,
+          summary: minutes.summary,
+          actionItems: minutes.actionItems,
+          link:
+            guestLink ?? `${base}/administrative/events/${eventId}/minutes`,
+          isGuest: !userId,
+        }),
+      );
+
+      return result.sent ? { sent: 1 } : { sent: 0, error: result.error };
     } catch (error) {
       this.logger.error('Error sending minutes published notification', error);
       throw error;

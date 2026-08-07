@@ -410,6 +410,7 @@ export const ModelName = {
   Attendance: 'Attendance',
   QRToken: 'QRToken',
   Minutes: 'Minutes',
+  MinutesAccessToken: 'MinutesAccessToken',
   ActionItem: 'ActionItem',
   Room: 'Room',
   RoomBooking: 'RoomBooking',
@@ -430,7 +431,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "session" | "account" | "verification" | "ministry" | "userPreferences" | "event" | "eventSeries" | "eventCoOrganizer" | "eventAttendee" | "attendance" | "qRToken" | "minutes" | "actionItem" | "room" | "roomBooking" | "notification" | "auditLog"
+    modelProps: "user" | "session" | "account" | "verification" | "ministry" | "userPreferences" | "event" | "eventSeries" | "eventCoOrganizer" | "eventAttendee" | "attendance" | "qRToken" | "minutes" | "minutesAccessToken" | "actionItem" | "room" | "roomBooking" | "notification" | "auditLog"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1396,6 +1397,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    MinutesAccessToken: {
+      payload: Prisma.$MinutesAccessTokenPayload<ExtArgs>
+      fields: Prisma.MinutesAccessTokenFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.MinutesAccessTokenFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MinutesAccessTokenPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.MinutesAccessTokenFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MinutesAccessTokenPayload>
+        }
+        findFirst: {
+          args: Prisma.MinutesAccessTokenFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MinutesAccessTokenPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.MinutesAccessTokenFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MinutesAccessTokenPayload>
+        }
+        findMany: {
+          args: Prisma.MinutesAccessTokenFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MinutesAccessTokenPayload>[]
+        }
+        create: {
+          args: Prisma.MinutesAccessTokenCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MinutesAccessTokenPayload>
+        }
+        createMany: {
+          args: Prisma.MinutesAccessTokenCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.MinutesAccessTokenCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MinutesAccessTokenPayload>[]
+        }
+        delete: {
+          args: Prisma.MinutesAccessTokenDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MinutesAccessTokenPayload>
+        }
+        update: {
+          args: Prisma.MinutesAccessTokenUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MinutesAccessTokenPayload>
+        }
+        deleteMany: {
+          args: Prisma.MinutesAccessTokenDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.MinutesAccessTokenUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.MinutesAccessTokenUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MinutesAccessTokenPayload>[]
+        }
+        upsert: {
+          args: Prisma.MinutesAccessTokenUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MinutesAccessTokenPayload>
+        }
+        aggregate: {
+          args: Prisma.MinutesAccessTokenAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateMinutesAccessToken>
+        }
+        groupBy: {
+          args: Prisma.MinutesAccessTokenGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.MinutesAccessTokenGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.MinutesAccessTokenCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.MinutesAccessTokenCountAggregateOutputType> | number
+        }
+      }
+    }
     ActionItem: {
       payload: Prisma.$ActionItemPayload<ExtArgs>
       fields: Prisma.ActionItemFieldRefs
@@ -2035,6 +2110,17 @@ export const MinutesScalarFieldEnum = {
 export type MinutesScalarFieldEnum = (typeof MinutesScalarFieldEnum)[keyof typeof MinutesScalarFieldEnum]
 
 
+export const MinutesAccessTokenScalarFieldEnum = {
+  id: 'id',
+  minutesId: 'minutesId',
+  email: 'email',
+  tokenHash: 'tokenHash',
+  createdAt: 'createdAt'
+} as const
+
+export type MinutesAccessTokenScalarFieldEnum = (typeof MinutesAccessTokenScalarFieldEnum)[keyof typeof MinutesAccessTokenScalarFieldEnum]
+
+
 export const ActionItemScalarFieldEnum = {
   id: 'id',
   minutesId: 'minutesId',
@@ -2042,11 +2128,14 @@ export const ActionItemScalarFieldEnum = {
   description: 'description',
   ownerId: 'ownerId',
   ownerName: 'ownerName',
+  ownerEmail: 'ownerEmail',
   assignedById: 'assignedById',
   dueDate: 'dueDate',
   completedAt: 'completedAt',
   status: 'status',
   point: 'point',
+  progressNotes: 'progressNotes',
+  progressLink: 'progressLink',
   reminderSentAt: 'reminderSentAt',
   priority: 'priority',
   createdAt: 'createdAt',
@@ -2630,6 +2719,7 @@ export type GlobalOmitConfig = {
   attendance?: Prisma.AttendanceOmit
   qRToken?: Prisma.QRTokenOmit
   minutes?: Prisma.MinutesOmit
+  minutesAccessToken?: Prisma.MinutesAccessTokenOmit
   actionItem?: Prisma.ActionItemOmit
   room?: Prisma.RoomOmit
   roomBooking?: Prisma.RoomBookingOmit

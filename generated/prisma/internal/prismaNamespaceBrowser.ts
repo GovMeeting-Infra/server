@@ -64,6 +64,7 @@ export const ModelName = {
   Attendance: 'Attendance',
   QRToken: 'QRToken',
   Minutes: 'Minutes',
+  MinutesAccessToken: 'MinutesAccessToken',
   ActionItem: 'ActionItem',
   Room: 'Room',
   RoomBooking: 'RoomBooking',
@@ -317,6 +318,17 @@ export const MinutesScalarFieldEnum = {
 export type MinutesScalarFieldEnum = (typeof MinutesScalarFieldEnum)[keyof typeof MinutesScalarFieldEnum]
 
 
+export const MinutesAccessTokenScalarFieldEnum = {
+  id: 'id',
+  minutesId: 'minutesId',
+  email: 'email',
+  tokenHash: 'tokenHash',
+  createdAt: 'createdAt'
+} as const
+
+export type MinutesAccessTokenScalarFieldEnum = (typeof MinutesAccessTokenScalarFieldEnum)[keyof typeof MinutesAccessTokenScalarFieldEnum]
+
+
 export const ActionItemScalarFieldEnum = {
   id: 'id',
   minutesId: 'minutesId',
@@ -324,11 +336,14 @@ export const ActionItemScalarFieldEnum = {
   description: 'description',
   ownerId: 'ownerId',
   ownerName: 'ownerName',
+  ownerEmail: 'ownerEmail',
   assignedById: 'assignedById',
   dueDate: 'dueDate',
   completedAt: 'completedAt',
   status: 'status',
   point: 'point',
+  progressNotes: 'progressNotes',
+  progressLink: 'progressLink',
   reminderSentAt: 'reminderSentAt',
   priority: 'priority',
   createdAt: 'createdAt',

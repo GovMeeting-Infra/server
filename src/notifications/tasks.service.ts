@@ -3,7 +3,15 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { Queue } from 'bullmq';
 import { InjectQueue } from '@nestjs/bullmq';
 import { PrismaService } from '../prisma/prisma.service';
+import { NotificationsService } from './notifications.service';
 import { archiveCutoff } from '../minutes/archive.policy';
+
+/**
+ * Crons carry an explicit zone. Without one @Cron runs at the given hour in
+ * whatever timezone the process happens to be in, so a container change would
+ * silently move when people are emailed.
+ */
+const CRON_TZ = 'UTC';
 
 @Injectable()
 export class TasksService {
@@ -11,10 +19,11 @@ export class TasksService {
 
   constructor(
     private prisma: PrismaService,
+    private notifications: NotificationsService,
     @InjectQueue('email-queue') private emailQueue: Queue,
   ) {}
 
-  @Cron('0 8 * * *')
+  @Cron('0 8 * * *', { timeZone: CRON_TZ })
   async sendActionItemReminders() {
     this.logger.log('Starting action item reminders cron job...');
 
@@ -35,9 +44,15 @@ export class TasksService {
       );
 
       for (const item of dueItems) {
-        await this.emailQueue.add('send-action-item-reminder', {
-          itemId: item.id,
-        });
+        await this.emailQueue.add(
+          'send-action-item-reminder',
+          { itemId: item.id },
+          {
+            jobId: `action-item-reminder:${item.id}`,
+            removeOnComplete: { age: 2 * 60 * 60 },
+            removeOnFail: { age: 2 * 60 * 60 },
+          },
+        );
       }
 
       if (dueItems.length > 0) {
@@ -120,6 +135,91 @@ export class TasksService {
    * work rather than a record, and archiving would freeze it read-only and
    * hide it from the person still meaning to finish it.
    */
+  /**
+   * Monday morning: what everyone still owes.
+   *
+   * One message per person rather than per item — someone carrying eight items
+   * should not start the week with eight emails. Owners with no account are
+   * included and reached by email alone, since there is no inbox to file an
+   * in-app notification against.
+   */
+  @Cron('0 8 * * 1', { timeZone: CRON_TZ })
+  async sendWeeklyActionItemDigest() {
+    this.logger.log('Starting weekly action item digest...');
+
+    try {
+      const open = await (this.prisma as any).actionItem.findMany({
+        where: {
+          status: { in: ['TODO', 'IN_PROGRESS', 'BLOCKED'] },
+        },
+        select: {
+          title: true,
+          dueDate: true,
+          ownerId: true,
+          ownerName: true,
+          ownerEmail: true,
+          owner: {
+            select: { id: true, name: true, email: true, ministryId: true },
+          },
+          minutes: { select: { event: { select: { title: true } } } },
+        },
+        orderBy: { dueDate: 'asc' },
+      });
+
+      // Group by account where there is one, otherwise by address. Keying on
+      // the account id matters: the same person's email could differ in case
+      // from what was typed on an item.
+      const byRecipient = new Map<string, any>();
+
+      for (const item of open) {
+        const email = item.owner?.email ?? item.ownerEmail;
+        if (!email) continue;
+
+        const key = item.owner?.id ?? email.toLowerCase();
+        if (!byRecipient.has(key)) {
+          byRecipient.set(key, {
+            userId: item.owner?.id ?? null,
+            ministryId: item.owner?.ministryId ?? null,
+            email,
+            name: item.owner?.name ?? item.ownerName ?? 'Colleague',
+            items: [],
+          });
+        }
+
+        byRecipient.get(key).items.push({
+          title: item.title,
+          dueDate: item.dueDate.toISOString(),
+          eventTitle: item.minutes?.event?.title ?? null,
+        });
+      }
+
+      for (const [key, r] of byRecipient) {
+        await this.emailQueue.add(
+          'send-action-item-digest',
+          { userId: r.userId, email: r.email, name: r.name, items: r.items },
+          {
+            // Dated, so a redeploy on the same Monday cannot send it twice.
+            jobId: `action-item-digest:${key}:${new Date().toISOString().slice(0, 10)}`,
+            removeOnComplete: { age: 24 * 60 * 60 },
+            removeOnFail: { age: 24 * 60 * 60 },
+          },
+        );
+
+        if (r.userId) {
+          await this.notifications.notifyActionItemWeeklyDigest(
+            r.userId,
+            r.ministryId,
+            r.items.length,
+          );
+        }
+      }
+
+      this.logger.log(`Queued ${byRecipient.size} action item digests`);
+    } catch (error) {
+      this.logger.error('Error in weekly action item digest cron', error);
+    }
+  }
+
   @Cron(CronExpression.EVERY_DAY_AT_1AM)
   async archiveOldMinutes() {
     this.logger.log('Starting minutes archiving cron job...');

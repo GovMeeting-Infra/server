@@ -43,7 +43,7 @@ export class NotificationsController {
     @Param('notificationId') notificationId: string,
     @CurrentUser() user: any,
   ) {
-    return this.notificationsService.markAsRead(notificationId);
+    return this.notificationsService.markAsRead(notificationId, user.id);
   }
 
   @Patch('mark-all-read')
@@ -59,7 +59,10 @@ export class NotificationsController {
     @Param('notificationId') notificationId: string,
     @CurrentUser() user: any,
   ) {
-    await this.notificationsService.deleteNotification(notificationId);
+    await this.notificationsService.deleteNotification(
+      notificationId,
+      user.id,
+    );
   }
 
   @Delete()

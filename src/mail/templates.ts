@@ -179,6 +179,113 @@ export function passwordResetEmail({
   };
 }
 
+export function actionItemAssignedEmail({
+  name,
+  title,
+  description,
+  dueDate,
+  eventTitle,
+  assignedByName,
+}: {
+  name: string;
+  title: string;
+  description?: string | null;
+  dueDate: Date | string | null;
+  eventTitle?: string | null;
+  assignedByName?: string | null;
+}): EmailBody {
+  const due = dueDate ? formatDate(dueDate) : 'no due date';
+  const intro = assignedByName
+    ? `${name}, ${assignedByName} has assigned you an action item.`
+    : `${name}, an action item has been assigned to you.`;
+
+  const rows = [
+    `<p style="margin:0 0 6px;color:#0f172a;font-size:15px;font-weight:600;">${escapeHtml(title)}</p>`,
+    description
+      ? `<p style="margin:0 0 8px;color:#334155;font-size:14px;">${escapeHtml(description)}</p>`
+      : '',
+    eventTitle
+      ? `<p style="margin:0;color:#64748b;font-size:13px;">From: ${escapeHtml(eventTitle)}</p>`
+      : '',
+    `<p style="margin:8px 0 0;color:#64748b;font-size:13px;">Due: ${escapeHtml(due)}</p>`,
+  ].join('');
+
+  return {
+    subject: `Action item assigned to you: ${title}`,
+    html: layout({
+      heading: 'Action item assigned',
+      intro,
+      bodyHtml: `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:8px 0;background-color:#edf3fd;border:1px solid #cfdff8;border-radius:12px;">
+        <tr><td style="padding:16px 18px;">${rows}</td></tr>
+      </table>`,
+      footnote:
+        'If you do not have an account on the platform, the meeting organizer will record your progress for you.',
+    }),
+    text: [
+      intro,
+      '',
+      title,
+      description ?? '',
+      eventTitle ? `From: ${eventTitle}` : '',
+      `Due: ${due}`,
+    ]
+      .filter(Boolean)
+      .join('\n'),
+  };
+}
+
+/**
+ * One Monday summary listing everything a person still owes, rather than a
+ * message per item — someone carrying eight items should not get eight emails.
+ */
+export function actionItemDigestEmail({
+  name,
+  items,
+}: {
+  name: string;
+  items: { title: string; dueDate: Date | string; eventTitle?: string | null }[];
+}): EmailBody {
+  const count = items.length;
+  const intro =
+    count === 1
+      ? `${name}, you have 1 action item still open.`
+      : `${name}, you have ${count} action items still open.`;
+
+  const rows = items
+    .map(
+      (i) => `<tr><td style="padding:10px 18px;border-top:1px solid #e6eef8;">
+        <p style="margin:0 0 4px;color:#0f172a;font-size:14px;font-weight:600;">${escapeHtml(i.title)}</p>
+        <p style="margin:0;color:#64748b;font-size:13px;">Due ${escapeHtml(formatDate(i.dueDate))}${
+          i.eventTitle ? ` &middot; ${escapeHtml(i.eventTitle)}` : ''
+        }</p>
+      </td></tr>`,
+    )
+    .join('');
+
+  return {
+    subject:
+      count === 1
+        ? 'You have 1 open action item'
+        : `You have ${count} open action items`,
+    html: layout({
+      heading: 'Your open action items',
+      intro,
+      bodyHtml: `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:8px 0;background-color:#ffffff;border:1px solid #e6eef8;border-radius:12px;">
+        ${rows}
+      </table>`,
+      footnote: 'This summary goes out every Monday while items remain open.',
+    }),
+    text: [
+      intro,
+      '',
+      ...items.map(
+        (i) =>
+          `- ${i.title} (due ${formatDate(i.dueDate)}${i.eventTitle ? `, ${i.eventTitle}` : ''})`,
+      ),
+    ].join('\n'),
+  };
+}
+
 export function actionItemReminderEmail({
   name,
   title,
@@ -219,6 +326,81 @@ export function actionItemReminderEmail({
       `Due: ${due}`,
       '',
       'Update the status on the Action Items board once the work is done.',
+    ]
+      .filter(Boolean)
+      .join('\n'),
+  };
+}
+
+/**
+ * The published record, with the action items it produced.
+ *
+ * Carries a link for a guest and a different one for staff: a guest has no
+ * session, so the in-app URL would be a dead end for them.
+ */
+export function minutesPublishedEmail({
+  name,
+  eventTitle,
+  eventDate,
+  summary,
+  actionItems,
+  link,
+  isGuest,
+}: {
+  name: string;
+  eventTitle: string;
+  eventDate: Date | string;
+  summary?: string | null;
+  actionItems: { title: string; ownerName?: string | null; dueDate: Date | string }[];
+  link: string;
+  isGuest: boolean;
+}): EmailBody {
+  const when = formatDate(eventDate);
+  const intro = `${name}, the minutes for "${eventTitle}" (${when}) have been published.`;
+
+  const itemRows = actionItems
+    .map(
+      (i) => `<tr><td style="padding:10px 18px;border-top:1px solid #e6eef8;">
+        <p style="margin:0 0 4px;color:#0f172a;font-size:14px;font-weight:600;">${escapeHtml(i.title)}</p>
+        <p style="margin:0;color:#64748b;font-size:13px;">${
+          i.ownerName ? `${escapeHtml(i.ownerName)} &middot; ` : ''
+        }due ${escapeHtml(formatDate(i.dueDate))}</p>
+      </td></tr>`,
+    )
+    .join('');
+
+  const bodyHtml = [
+    summary
+      ? `<p style="margin:0 0 16px;color:#334155;font-size:14px;">${escapeHtml(summary)}</p>`
+      : '',
+    actionItems.length
+      ? `<p style="margin:16px 0 8px;color:#0f172a;font-size:14px;font-weight:600;">Action items (${actionItems.length})</p>
+         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#ffffff;border:1px solid #e6eef8;border-radius:12px;">${itemRows}</table>`
+      : `<p style="margin:16px 0 0;color:#64748b;font-size:14px;">No action items were raised.</p>`,
+  ].join('');
+
+  return {
+    subject: `Minutes published: ${eventTitle}`,
+    html: layout({
+      heading: 'Minutes published',
+      intro,
+      bodyHtml,
+      actionLabel: 'Read the minutes',
+      actionUrl: link,
+      footnote: isGuest
+        ? 'This link is personal to you and stops working once the record is archived.'
+        : 'You can also find this under Minutes on the platform.',
+    }),
+    text: [
+      intro,
+      '',
+      summary ?? '',
+      actionItems.length ? `Action items (${actionItems.length}):` : 'No action items were raised.',
+      ...actionItems.map(
+        (i) => `- ${i.title}${i.ownerName ? ` (${i.ownerName})` : ''}, due ${formatDate(i.dueDate)}`,
+      ),
+      '',
+      link,
     ]
       .filter(Boolean)
       .join('\n'),

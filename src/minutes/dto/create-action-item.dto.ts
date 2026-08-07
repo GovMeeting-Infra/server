@@ -1,4 +1,10 @@
-import { IsString, IsOptional, IsDateString, IsEnum } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsDateString,
+  IsEnum,
+  IsEmail,
+} from 'class-validator';
 
 export enum PointTypeEnum {
   ACTION_POINT = 'ACTION_POINT',
@@ -21,6 +27,14 @@ export class CreateActionItemDto {
   @IsOptional()
   @IsString()
   ownerName?: string;
+
+  /**
+   * How to reach an owner who has no account. When it matches one, the item is
+   * linked to that account instead and this becomes their address.
+   */
+  @IsOptional()
+  @IsEmail()
+  ownerEmail?: string;
 
   @IsDateString()
   dueDate: string;

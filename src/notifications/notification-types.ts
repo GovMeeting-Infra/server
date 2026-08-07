@@ -10,6 +10,8 @@ export type NotificationType =
   | 'MINUTES_PUBLISHED'
   | 'ACTION_ITEM_ASSIGNED'
   | 'ACTION_ITEM_STATUS_CHANGED'
+  | 'ACTION_ITEM_DUE_SOON'
+  | 'ACTION_ITEM_WEEKLY_DIGEST'
   | 'MEETING_INVITATION'
   | 'MEETING_REMINDER';
 
@@ -21,6 +23,12 @@ export const PREFERENCE_FOR: Record<NotificationType, PreferenceKey> = {
   MINUTES_PUBLISHED: 'minutesNotifications',
   ACTION_ITEM_ASSIGNED: 'actionItemNotifications',
   ACTION_ITEM_STATUS_CHANGED: 'actionItemNotifications',
+  // Both reuse the existing category rather than adding toggles: a new
+  // preference flag would mean a schema migration, a DTO change, a wider
+  // select in preferencesFor, and another switch in Settings — for a
+  // distinction nobody asked to control separately.
+  ACTION_ITEM_DUE_SOON: 'actionItemNotifications',
+  ACTION_ITEM_WEEKLY_DIGEST: 'actionItemNotifications',
   MEETING_INVITATION: 'meetingReminders',
   MEETING_REMINDER: 'meetingReminders',
 };

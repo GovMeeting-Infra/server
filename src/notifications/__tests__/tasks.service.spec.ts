@@ -24,7 +24,12 @@ describe('TasksService.sendMeetingReminders', () => {
     prisma = {
       event: { findMany: jest.fn().mockImplementation(() => events) },
     };
-    service = new TasksService(prisma, queue as any);
+    // The weekly digest writes in-app notifications as well as queueing mail,
+    // so the service now takes NotificationsService too.
+    const notifications = {
+      notifyActionItemWeeklyDigest: jest.fn().mockResolvedValue(undefined),
+    };
+    service = new TasksService(prisma, notifications as any, queue as any);
   });
 
   it('queues one reminder per attendee', async () => {
