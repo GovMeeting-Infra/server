@@ -51,30 +51,15 @@ jobs:
       - name: Build
         run: npm run build
 
-      # Against the DIRECT (non-pooled) Neon endpoint. Neon's pooler is PgBouncer
-      # in transaction mode, which breaks the advisory locks migrate relies on.
-      # prisma.config.ts prefers DIRECT_URL when it is set.
-      #
-      # Never add a seed step here. prisma/seed.ts creates super@gov.sl,
-      # admin@med.gov.sl and staff@moh.gov.sl with a shared password; those must
-      # not be recreated on a government production database by a push to main.
-      - name: Run migrations
-        env:
-          DIRECT_URL: ${{ secrets.DIRECT_URL }}
-        run: npx prisma migrate deploy
-
       - name: Configure SSH
         env:
           SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
-          KNOWN_HOSTS: ${{ secrets.EC2_KNOWN_HOSTS }}
+          HOST: ${{ secrets.EC2_HOST }}
         run: |
           mkdir -p ~/.ssh && chmod 700 ~/.ssh
           printf '%s\n' "$SSH_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
-          # Pinned rather than ssh-keyscan'd at run time, which would trust
-          # whatever answers. Generate with:
-          #   ssh-keyscan -H <elastic-ip>
-          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          ssh-keyscan -H "$HOST" >> ~/.ssh/known_hosts 2>/dev/null
           chmod 600 ~/.ssh/known_hosts
 
       # Excludes matter more than the includes here: .env holds the instance's
@@ -97,20 +82,30 @@ jobs:
             package.json package-lock.json ecosystem.config.js prisma/ \
             "$USER@$HOST:$APP_DIR/"
 
-      # --omit=dev keeps jest, eslint and the Prisma CLI off the box. Migrations
-      # run in CI, so nothing on the instance needs them. For ad-hoc work there
-      # (prisma studio, seed-accounts.ts) run `npm ci --legacy-peer-deps` first.
+      # Migrations run here rather than in CI so the database credentials never
+      # leave the instance — prisma.config.ts reads DIRECT_URL from its .env.
+      # That is also why this is a full install: --omit=dev would drop the
+      # Prisma CLI (and ts-node, which seed-accounts.ts needs).
+      #
+      # It must be the DIRECT endpoint. Neon's pooler is PgBouncer in
+      # transaction mode and breaks the advisory locks migrate relies on;
+      # prisma.config.ts already prefers DIRECT_URL over DATABASE_URL.
+      #
+      # Never add a seed step. prisma/seed.ts creates super@gov.sl,
+      # admin@med.gov.sl and staff@moh.gov.sl with a shared password, and a push
+      # to main must not recreate those on a government production database.
       #
       # Reload names one app on purpose. Both repos share a PM2 daemon, so
       # `pm2 reload all` would bounce the web app on every API deploy.
-      - name: Install production dependencies and reload
+      - name: Install, migrate and reload
         env:
           HOST: ${{ secrets.EC2_HOST }}
           USER: ${{ secrets.EC2_USER }}
         run: |
           ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes "$USER@$HOST" bash -euo pipefail <<EOF
             cd $APP_DIR
-            npm ci --omit=dev --legacy-peer-deps
+            npm ci --legacy-peer-deps
+            npx prisma migrate deploy
             mkdir -p logs
             pm2 reload $PM2_APP --update-env
             pm2 save
