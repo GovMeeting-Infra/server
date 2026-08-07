@@ -21,6 +21,7 @@ import { UploadsModule } from './uploads/uploads.module';
 import { SearchModule } from './search/search.module';
 import { InvitesModule } from './invites/invites.module';
 import { SessionMiddleware } from './auth/middleware/session.middleware';
+import { redisConnectionOptions } from './common/utils/redis-connection.util';
 
 @Global()
 @Module({
@@ -31,12 +32,7 @@ import { SessionMiddleware } from './auth/middleware/session.middleware';
     }),
     ScheduleModule.forRoot(),
     BullModule.forRoot({
-      connection: {
-        host:
-          process.env.REDIS_URL?.split('//')[1]?.split(':')[0] || 'localhost',
-        port: parseInt(process.env.REDIS_URL?.split(':')?.pop() || '6379', 10),
-        password: process.env.REDIS_PASSWORD || undefined,
-      },
+      connection: redisConnectionOptions(),
     }),
     // 'notification-queue' was registered here too but had no processor and no
     // producer. In-app notifications are written straight to the database.
