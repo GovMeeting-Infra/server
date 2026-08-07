@@ -243,7 +243,11 @@ export function actionItemDigestEmail({
   items,
 }: {
   name: string;
-  items: { title: string; dueDate: Date | string; eventTitle?: string | null }[];
+  items: {
+    title: string;
+    dueDate: Date | string;
+    eventTitle?: string | null;
+  }[];
 }): EmailBody {
   const count = items.length;
   const intro =
@@ -351,7 +355,11 @@ export function minutesPublishedEmail({
   eventTitle: string;
   eventDate: Date | string;
   summary?: string | null;
-  actionItems: { title: string; ownerName?: string | null; dueDate: Date | string }[];
+  actionItems: {
+    title: string;
+    ownerName?: string | null;
+    dueDate: Date | string;
+  }[];
   link: string;
   isGuest: boolean;
 }): EmailBody {
@@ -395,9 +403,12 @@ export function minutesPublishedEmail({
       intro,
       '',
       summary ?? '',
-      actionItems.length ? `Action items (${actionItems.length}):` : 'No action items were raised.',
+      actionItems.length
+        ? `Action items (${actionItems.length}):`
+        : 'No action items were raised.',
       ...actionItems.map(
-        (i) => `- ${i.title}${i.ownerName ? ` (${i.ownerName})` : ''}, due ${formatDate(i.dueDate)}`,
+        (i) =>
+          `- ${i.title}${i.ownerName ? ` (${i.ownerName})` : ''}, due ${formatDate(i.dueDate)}`,
       ),
       '',
       link,

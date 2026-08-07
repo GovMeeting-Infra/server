@@ -360,8 +360,7 @@ export class EmailProcessor extends WorkerHost {
           eventDate: minutes.event.startAt,
           summary: minutes.summary,
           actionItems: minutes.actionItems,
-          link:
-            guestLink ?? `${base}/administrative/events/${eventId}/minutes`,
+          link: guestLink ?? `${base}/administrative/events/${eventId}/minutes`,
           isGuest: !userId,
         }),
       );

@@ -59,10 +59,7 @@ export class NotificationsController {
     @Param('notificationId') notificationId: string,
     @CurrentUser() user: any,
   ) {
-    await this.notificationsService.deleteNotification(
-      notificationId,
-      user.id,
-    );
+    await this.notificationsService.deleteNotification(notificationId, user.id);
   }
 
   @Delete()
