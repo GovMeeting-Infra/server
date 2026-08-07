@@ -51,16 +51,55 @@ jobs:
       - name: Build
         run: npm run build
 
+      # GitHub masks secret values in logs, so a bad one cannot be printed. This
+      # reports its shape instead, and fails here rather than inside scp with
+      # "hostname contains invalid characters" and no indication which secret is
+      # at fault. Whitespace is stripped because a trailing newline pasted into
+      # the secret box is the usual culprit.
+      #
+      # Named SSH_USER, not USER: the runner already defines USER, and
+      # overriding it per step is a good way to confuse the next reader.
+      - name: Validate deploy secrets
+        env:
+          IN_HOST: ${{ secrets.EC2_HOST }}
+          IN_USER: ${{ secrets.EC2_USER }}
+          IN_KEY: ${{ secrets.EC2_SSH_KEY }}
+        run: |
+          host=$(printf '%s' "$IN_HOST" | tr -d '[:space:]')
+          user=$(printf '%s' "$IN_USER" | tr -d '[:space:]')
+          [ -n "$host" ] || { echo "::error::EC2_HOST is empty or unset"; exit 1; }
+          [ -n "$user" ] || { echo "::error::EC2_USER is empty or unset"; exit 1; }
+          [ -n "$IN_KEY" ] || { echo "::error::EC2_SSH_KEY is empty or unset"; exit 1; }
+          case "$host" in
+            *://*) echo "::error::EC2_HOST has a scheme. Use a bare host or IP: 44.215.193.61, not https://44.215.193.61"; exit 1 ;;
+            *@*)   echo "::error::EC2_HOST includes a user. Put the login in EC2_USER and only the host here"; exit 1 ;;
+            *:*)   echo "::error::EC2_HOST includes a port or path. Use only the host or IP"; exit 1 ;;
+            */*)   echo "::error::EC2_HOST includes a path. Use only the host or IP"; exit 1 ;;
+          esac
+          case "$user" in
+            *@*|*/*|*:*) echo "::error::EC2_USER must be just the login name, e.g. ec2-user"; exit 1 ;;
+          esac
+          case "$IN_KEY" in
+            *"OPENSSH PRIVATE KEY"*|*"RSA PRIVATE KEY"*|*"EC PRIVATE KEY"*) ;;
+            *) echo "::error::EC2_SSH_KEY does not look like a private key. Paste the whole file including the BEGIN/END lines — not the .pub"; exit 1 ;;
+          esac
+          echo "host length ${#host}, user length ${#user}, key length ${#IN_KEY}"
+          echo "SSH_HOST=$host" >> "$GITHUB_ENV"
+          echo "SSH_USER=$user" >> "$GITHUB_ENV"
+
       - name: Configure SSH
         env:
           SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
-          HOST: ${{ secrets.EC2_HOST }}
         run: |
           mkdir -p ~/.ssh && chmod 700 ~/.ssh
           printf '%s\n' "$SSH_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan -H "$HOST" >> ~/.ssh/known_hosts 2>/dev/null
+          ssh-keyscan -H "$SSH_HOST" >> ~/.ssh/known_hosts 2>/dev/null
           chmod 600 ~/.ssh/known_hosts
+          # Fails clearly on a wrong key or a closed port 22, rather than
+          # letting the first real command carry the blame.
+          ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes -o BatchMode=yes \
+            "$SSH_USER@$SSH_HOST" 'echo "connected to $(hostname)"'
 
       # tar over scp rather than rsync: rsync has to exist on BOTH ends, and the
       # Amazon Linux AMI does not ship it. tar and scp are always there.
@@ -75,12 +114,9 @@ jobs:
           ls -lh deploy.tar.gz
 
       - name: Upload
-        env:
-          HOST: ${{ secrets.EC2_HOST }}
-          USER: ${{ secrets.EC2_USER }}
         run: |
           scp -i ~/.ssh/deploy_key -o IdentitiesOnly=yes \
-            deploy.tar.gz "$USER@$HOST:/tmp/api-deploy.tar.gz"
+            deploy.tar.gz "$SSH_USER@$SSH_HOST:/tmp/api-deploy.tar.gz"
 
       # Migrations run here rather than in CI so the database credentials never
       # leave the instance — prisma.config.ts reads DIRECT_URL from its .env.
@@ -98,11 +134,8 @@ jobs:
       # Reload names one app on purpose. Both repos share a PM2 daemon, so
       # `pm2 reload all` would bounce the web app on every API deploy.
       - name: Install, migrate and reload
-        env:
-          HOST: ${{ secrets.EC2_HOST }}
-          USER: ${{ secrets.EC2_USER }}
         run: |
-          ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes "$USER@$HOST" bash -euo pipefail <<EOF
+          ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes "$SSH_USER@$SSH_HOST" bash -euo pipefail <<EOF
             cd $APP_DIR
             # Replace rather than merge, so a file deleted in this release does
             # not linger in dist/ and get required by something stale.
@@ -119,11 +152,8 @@ jobs:
       # /health pings Postgres and Redis, so this catches a bad DATABASE_URL or
       # REDIS_URL that a plain "is it listening" check would pass.
       - name: Verify
-        env:
-          HOST: ${{ secrets.EC2_HOST }}
-          USER: ${{ secrets.EC2_USER }}
         run: |
-          ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes "$USER@$HOST" bash -euo pipefail <<'EOF'
+          ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes "$SSH_USER@$SSH_HOST" bash -euo pipefail <<'EOF'
             body=""
             # `if` rather than `curl ... && break`, so a failed attempt does not
             # trip set -e and abort the retry loop on the first try.
