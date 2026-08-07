@@ -705,7 +705,9 @@ export class CheckinService {
     // compound-unique input no longer accepts it cleanly. Which of the two
     // unique indexes applies depends on whether this resolved to an account.
     const existing = await (this.prisma as any).attendance.findFirst({
-      where: target ? { eventId, userId: target.id } : { eventId, guestEmail: email },
+      where: target
+        ? { eventId, userId: target.id }
+        : { eventId, guestEmail: email },
     });
 
     if (existing) {

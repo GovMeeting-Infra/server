@@ -1,0 +1,60 @@
+name: PR checks
+
+on:
+  pull_request:
+    branches: [main]
+
+# A new push to the same PR supersedes the run in flight.
+concurrency:
+  group: pr-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: Format, lint, build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Next 16 needs 20+, and the API shares the floor. The old workflow pinned
+      # 18, which is end-of-life.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      # --legacy-peer-deps is required, not optional: @nestjs/swagger@7.4.2
+      # declares a peer of @nestjs/common ^10 while this project is on 11, and a
+      # plain `npm ci` fails with ERESOLVE.
+      - name: Install
+        run: npm ci --legacy-peer-deps
+
+      # The client is committed, but generate anyway so a schema change that was
+      # not regenerated fails here rather than at runtime.
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      # --check, not the repo's `format` script, which is prettier --write and
+      # would report success after silently rewriting the files.
+      - name: Format check
+        run: npx prettier --check "src/**/*.ts" "test/**/*.ts"
+
+      # Advisory, not a gate. main currently has ~2250 eslint errors, almost all
+      # no-unsafe-member-access / no-unsafe-assignment from the `(this.prisma as
+      # any)` pattern used throughout the services. Blocking on that would fail
+      # every PR from day one and teach everyone to ignore CI. Drop
+      # continue-on-error once the count is at zero — the annotations here are
+      # how it gets there.
+      - name: Lint (advisory)
+        continue-on-error: true
+        run: npx eslint "{src,apps,libs,test}/**/*.ts"
+
+      - name: Build
+        run: npm run build
+
+      # Not run yet: 9 tests in src/events/__tests__/events.service.spec.ts fail
+      # on main (type errors in the fixtures, not the service). Add
+      # `npm test` here once they are fixed, so this gate means something.
