@@ -8,6 +8,11 @@ import { PrismaService } from '../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
 import { SignInDto } from './dto/sign-in.dto';
 import { auth } from './auth.config';
+import { APIError } from 'better-auth/api';
+
+/** Failures allowed before the account is locked. */
+const MAX_LOGIN_ATTEMPTS = 5;
+const LOCKOUT_MS = 15 * 60 * 1000;
 
 /**
  * How long a session survives without activity. Must match auth.config.ts,
@@ -84,29 +89,10 @@ export class AuthService {
         },
       });
 
+      // Kept for a future better-auth that signals failure by returning falsy
+      // instead of throwing. Today the APIError branch below is the live path.
       if (!result) {
-        await (this.prisma as any).user.update({
-          where: { id: user.id },
-          data: {
-            loginAttempts: user.loginAttempts + 1,
-            lockedUntil:
-              user.loginAttempts >= 4
-                ? new Date(Date.now() + 15 * 60 * 1000)
-                : null,
-          },
-        });
-
-        await this.audit.log({
-          action: 'LOGIN_FAILED',
-          entityType: 'User',
-          entityId: user.id,
-          status: 'FAILURE',
-          description: 'Invalid password',
-          ministryId: user.ministryId,
-          actorId: user.id,
-          ipAddress,
-        });
-
+        await this.recordFailedAttempt(user, ipAddress);
         throw new UnauthorizedException('Invalid credentials');
       }
 
@@ -135,9 +121,68 @@ export class AuthService {
         throw error;
       }
 
-      this.logger.error('BetterAuth sign-in error:', error);
+      // better-auth rejects a bad password by throwing an APIError, not by
+      // returning falsy. Without this branch the throw skipped the failed-attempt
+      // bookkeeping above and surfaced as a 400 "Sign-in failed", which is both
+      // the wrong status and the reason lockout never engaged.
+      if (this.isInvalidCredentials(error)) {
+        await this.recordFailedAttempt(user, ipAddress);
+        throw new UnauthorizedException('Invalid credentials');
+      }
+
+      // Anything else is ours to fix, so say what it was: this used to be the
+      // only trace, and it read as an unexplained 400.
+      this.logger.error(
+        `BetterAuth sign-in error for ${email}: ${(error as Error)?.message}`,
+        (error as Error)?.stack,
+      );
       throw new BadRequestException('Sign-in failed');
     }
+  }
+
+  /** Whether better-auth rejected the password, as opposed to failing. */
+  private isInvalidCredentials(error: unknown): boolean {
+    if (!(error instanceof APIError)) return false;
+    return (
+      error.statusCode === 401 ||
+      (error.body as { code?: string } | undefined)?.code ===
+        'INVALID_EMAIL_OR_PASSWORD'
+    );
+  }
+
+  /**
+   * Counts a failed sign-in and locks the account once it hits the limit.
+   *
+   * `loginAttempts` is the count *before* this attempt, so the lock lands on the
+   * MAX_LOGIN_ATTEMPTS-th failure.
+   */
+  private async recordFailedAttempt(
+    user: { id: string; loginAttempts: number; ministryId: string | null },
+    ipAddress?: string,
+  ): Promise<void> {
+    const attempts = user.loginAttempts + 1;
+    const locked = attempts >= MAX_LOGIN_ATTEMPTS;
+
+    await (this.prisma as any).user.update({
+      where: { id: user.id },
+      data: {
+        loginAttempts: attempts,
+        lockedUntil: locked ? new Date(Date.now() + LOCKOUT_MS) : null,
+      },
+    });
+
+    await this.audit.log({
+      action: 'LOGIN_FAILED',
+      entityType: 'User',
+      entityId: user.id,
+      status: 'FAILURE',
+      description: locked
+        ? `Invalid password — account locked after ${attempts} attempts`
+        : 'Invalid password',
+      ministryId: user.ministryId ?? undefined,
+      actorId: user.id,
+      ipAddress,
+    });
   }
 
   private isGovDomain(email: string): boolean {
