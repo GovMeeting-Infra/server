@@ -62,25 +62,25 @@ jobs:
           ssh-keyscan -H "$HOST" >> ~/.ssh/known_hosts 2>/dev/null
           chmod 600 ~/.ssh/known_hosts
 
-      # Excludes matter more than the includes here: .env holds the instance's
-      # real credentials and logs/ is written by PM2. Neither is ours to
-      # overwrite, and there is no --delete for the same reason.
-      - name: Ship build output
+      # tar over scp rather than rsync: rsync has to exist on BOTH ends, and the
+      # Amazon Linux AMI does not ship it. tar and scp are always there.
+      #
+      # Only build output and manifests travel. .env and logs/ live on the
+      # instance and are never in the archive, so they cannot be clobbered.
+      - name: Package build output
+        run: |
+          tar czf deploy.tar.gz \
+            dist generated prisma \
+            package.json package-lock.json ecosystem.config.js
+          ls -lh deploy.tar.gz
+
+      - name: Upload
         env:
           HOST: ${{ secrets.EC2_HOST }}
           USER: ${{ secrets.EC2_USER }}
         run: |
-          rsync -az --delete \
-            -e "ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes" \
-            dist/ "$USER@$HOST:$APP_DIR/dist/"
-          rsync -az \
-            -e "ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes" \
-            generated/ "$USER@$HOST:$APP_DIR/generated/"
-          rsync -az \
-            --exclude '.env' \
-            -e "ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes" \
-            package.json package-lock.json ecosystem.config.js prisma/ \
-            "$USER@$HOST:$APP_DIR/"
+          scp -i ~/.ssh/deploy_key -o IdentitiesOnly=yes \
+            deploy.tar.gz "$USER@$HOST:/tmp/api-deploy.tar.gz"
 
       # Migrations run here rather than in CI so the database credentials never
       # leave the instance — prisma.config.ts reads DIRECT_URL from its .env.
@@ -104,6 +104,11 @@ jobs:
         run: |
           ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes "$USER@$HOST" bash -euo pipefail <<EOF
             cd $APP_DIR
+            # Replace rather than merge, so a file deleted in this release does
+            # not linger in dist/ and get required by something stale.
+            rm -rf dist generated
+            tar xzf /tmp/api-deploy.tar.gz
+            rm -f /tmp/api-deploy.tar.gz
             npm ci --legacy-peer-deps
             npx prisma migrate deploy
             mkdir -p logs
@@ -137,4 +142,4 @@ jobs:
       - name: Report failure
         if: failure()
         run: |
-          echo "::error::Deploy failed. The previous build is still running on the instance — PM2 only reloads after a successful rsync."
+          echo "::error::Deploy failed. The previous build is still running on the instance — PM2 only reloads after the new build has landed."
