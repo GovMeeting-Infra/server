@@ -76,13 +76,18 @@ export class HealthController {
       healthStatus.status = 'degraded';
     }
 
-    // Check Redis
-    try {
-      const redisStart = Date.now();
-      await this.cache.get('health-check');
-      const redisLatency = Date.now() - redisStart;
-      healthStatus.redis = { status: 'connected', latency: redisLatency };
-    } catch (error) {
+    // Check Redis.
+    // ping() rather than get(): every CacheService read swallows its error and
+    // returns a miss, so a `null` from get() cannot tell a cold cache apart
+    // from a dead one — this check called Redis "connected" all through an
+    // outage.
+    const redisStart = Date.now();
+    if (await this.cache.ping()) {
+      healthStatus.redis = {
+        status: 'connected',
+        latency: Date.now() - redisStart,
+      };
+    } else {
       healthStatus.redis.status = 'disconnected';
       healthStatus.services.cache = 'error';
       healthStatus.status = 'degraded';
@@ -104,10 +109,11 @@ export class HealthController {
   @ApiResponse({ status: 200, description: 'Service is ready' })
   async readiness(): Promise<{ ready: boolean }> {
     try {
-      // Check if database is accessible
+      // The database only. Losing Redis costs the cache and delays queued
+      // email; the API still serves every request, so reporting "not ready"
+      // would pull a working instance out of rotation. Redis state is in
+      // /health, which reports degraded instead.
       await (this.prisma as any).user.findFirst();
-      // Check if Redis is accessible
-      await this.cache.get('health-check');
       return { ready: true };
     } catch (error) {
       return { ready: false };

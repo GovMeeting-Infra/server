@@ -9,31 +9,91 @@ export const CACHE_TTL = {
   DEFAULT: 5 * 60,
 } as const;
 
+/** How long bootstrap waits for the first Redis connection before giving up on
+ *  it and starting anyway. The client keeps reconnecting in the background. */
+const INITIAL_CONNECT_TIMEOUT_MS = 5_000;
+
 @Injectable()
 export class CacheService {
   private client: RedisClientType;
   private logger = new Logger('CacheService');
+  private ready = false;
 
   constructor() {
     this.client = createClient({
       url: process.env.REDIS_URL || 'redis://localhost:6379',
+      // Empty means "credentials are in the URL", which is how Upstash works.
       password: process.env.REDIS_PASSWORD || undefined,
+      // Fail commands immediately while disconnected instead of queueing them.
+      // The queue is worse than a cache miss: every request that touched the
+      // cache would block until Redis came back, turning a cache outage into a
+      // site outage. Callers below already treat an error as a miss.
+      disableOfflineQueue: true,
       socket: {
-        reconnectStrategy: (retries: number) => Math.min(retries * 50, 500),
+        connectTimeout: INITIAL_CONNECT_TIMEOUT_MS,
+        // Retry forever so the cache heals on its own, but back off to 5s
+        // rather than hammering a downed server 20 times a second.
+        reconnectStrategy: (retries: number) => Math.min(retries * 200, 5_000),
       },
     });
 
     this.client.on('error', (err) =>
       this.logger.error('Redis Client Error', err),
     );
-    this.client.on('connect', () => this.logger.log('✅ Redis connected'));
+    this.client.on('ready', () => {
+      this.ready = true;
+      this.logger.log('✅ Redis connected');
+    });
+    this.client.on('end', () => (this.ready = false));
+    this.client.on('reconnecting', () => (this.ready = false));
   }
 
+  /**
+   * Starts the connection without letting it hold up bootstrap.
+   *
+   * This used to `await client.connect()` outright. Because `reconnectStrategy`
+   * never gives up, that promise neither resolves nor rejects while Redis is
+   * unreachable — so `onModuleInit` never returned, Nest never finished
+   * `app.init()`, and `app.listen()` was never called. A Redis outage did not
+   * degrade the API; it stopped it from opening its port at all, and the
+   * symptom was an empty `ss -lntp` with no error to explain it.
+   */
   async onModuleInit() {
+    const connected = this.client
+      .connect()
+      .then(() => true)
+      .catch((error) => {
+        this.logger.error('Failed to connect to Redis:', error);
+        return false;
+      });
+
+    const timedOut = new Promise<false>((resolve) =>
+      setTimeout(() => resolve(false), INITIAL_CONNECT_TIMEOUT_MS).unref(),
+    );
+
+    if (!(await Promise.race([connected, timedOut]))) {
+      this.logger.warn(
+        `Redis not reachable within ${INITIAL_CONNECT_TIMEOUT_MS}ms — starting without a cache and retrying in the background.`,
+      );
+    }
+  }
+
+  /**
+   * Whether the cache is actually usable right now.
+   *
+   * The health endpoint needs this because every method below swallows its
+   * error and returns a miss: a `get()` that comes back `null` says nothing
+   * about whether Redis answered, so health checks built on it reported
+   * "connected" throughout an outage.
+   */
+  async ping(): Promise<boolean> {
+    if (!this.ready) return false;
     try {
-      await this.client.connect();
+      await this.client.ping();
+      return true;
     } catch (error) {
-      this.logger.error('Failed to connect to Redis:', error);
+      this.logger.error('Redis ping failed:', error);
+      return false;
     }
   }
 
@@ -141,6 +201,13 @@ export class CacheService {
   }
 
   async onModuleDestroy() {
-    await this.client.quit();
+    // quit() rejects if the client never opened, which would turn a shutdown
+    // during a Redis outage into a noisy failure.
+    if (!this.client.isOpen) return;
+    try {
+      await this.client.quit();
+    } catch (error) {
+      this.logger.error('Error closing Redis connection:', error);
+    }
   }
 }
