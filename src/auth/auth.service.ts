@@ -53,6 +53,7 @@ export class AuthService {
 
     const user = await (this.prisma as any).user.findUnique({
       where: { email },
+      include: { ministry: { select: { active: true, name: true } } },
     });
 
     if (!user || !user.active) {
@@ -62,6 +63,24 @@ export class AuthService {
         entityId: email,
         status: 'FAILURE',
         description: user ? 'Account inactive' : 'User not found',
+        ipAddress,
+      });
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    // PRD §8: deactivating a ministry locks out its users, which is what makes
+    // deactivation a usable alternative to deleting one. Super admins are
+    // platform-wide and hold no ministry, so they are unaffected — and must be,
+    // or deactivating the wrong ministry could not be undone.
+    if (user.ministry && !user.ministry.active) {
+      await this.audit.log({
+        action: 'LOGIN_FAILED',
+        entityType: 'User',
+        entityId: user.id,
+        status: 'FAILURE',
+        description: `Ministry deactivated: ${user.ministry.name}`,
+        ministryId: user.ministryId ?? undefined,
+        actorId: user.id,
         ipAddress,
       });
       throw new UnauthorizedException('Invalid credentials');

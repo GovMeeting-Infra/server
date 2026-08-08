@@ -1,11 +1,13 @@
 import {
   Injectable,
+  BadRequestException,
   ConflictException,
   NotFoundException,
   Logger,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
+import { InvitesService } from '../invites/invites.service';
 import { CreateMinistryDto } from './dto/create-ministry.dto';
 import { UpdateMinistryDto } from './dto/update-ministry.dto';
 import { ministryScope } from '../common/utils/ministry-scope.util';
@@ -17,35 +19,123 @@ export class MinistriesService {
   constructor(
     private prisma: PrismaService,
     private audit: AuditService,
+    private invites: InvitesService,
   ) {}
 
   async create(dto: CreateMinistryDto, userId: string, ministryId?: string) {
+    const emailDomain = dto.emailDomain.toLowerCase().trim();
+    const firstAdminEmail = dto.firstAdmin?.email.toLowerCase().trim();
+
+    // Checked before the ministry is written, so a bad address does not leave
+    // an adminless ministry behind.
+    if (
+      firstAdminEmail &&
+      !firstAdminEmail.endsWith(`@${emailDomain}`) &&
+      !firstAdminEmail.endsWith(`.${emailDomain}`)
+    ) {
+      throw new BadRequestException(
+        `The first administrator's email must be on the ministry's own domain (@${emailDomain})`,
+      );
+    }
+
+    let ministry: any;
+
     try {
-      const ministry = await (this.prisma as any).ministry.create({
+      ministry = await (this.prisma as any).ministry.create({
         data: {
-          name: dto.name,
-          code: dto.code,
-          emailDomain: dto.emailDomain,
+          name: dto.name.trim(),
+          // PRD §8: codes are uppercase. Normalising here rather than trusting
+          // the caller keeps the unique index from holding both MOH and moh.
+          code: dto.code.toUpperCase().trim(),
+          emailDomain,
+          ...(dto.compoundMaxGpsAccuracy !== undefined && {
+            compoundMaxGpsAccuracy: dto.compoundMaxGpsAccuracy,
+          }),
+          ...(dto.logoUrl !== undefined && { logoUrl: dto.logoUrl }),
         },
       });
-
-      await this.audit.log({
-        action: 'MINISTRY_CREATED',
-        actionCategory: 'MINISTRY_MANAGEMENT',
-        entityType: 'Ministry',
-        entityId: ministry.id,
-        entityName: ministry.name,
-        status: 'SUCCESS',
-        ministryId: ministryId || 'SYSTEM',
-        actorId: userId,
-        description: `Created ministry: ${ministry.name}`,
-      });
-
-      return ministry;
     } catch (error: any) {
       if (error.code === 'P2002') {
         const target = error.meta?.target?.[0];
         throw new ConflictException(`Ministry ${target} already exists`);
+      }
+      throw error;
+    }
+
+    await this.audit.log({
+      action: 'MINISTRY_CREATED',
+      actionCategory: 'MINISTRY_MANAGEMENT',
+      entityType: 'Ministry',
+      entityId: ministry.id,
+      entityName: ministry.name,
+      status: 'SUCCESS',
+      ministryId: ministryId || 'SYSTEM',
+      actorId: userId,
+      description: `Created ministry: ${ministry.name}`,
+    });
+
+    if (!dto.firstAdmin) {
+      return ministry;
+    }
+
+    const firstAdmin = await this.createFirstAdmin(
+      ministry,
+      { ...dto.firstAdmin, email: firstAdminEmail! },
+      userId,
+    );
+
+    return { ...ministry, firstAdmin };
+  }
+
+  /**
+   * Creates the ministry's first MINISTRY_ADMIN and sends their invitation.
+   *
+   * Deliberately not inside a transaction with the ministry: issuing the invite
+   * sends mail, and a rollback cannot unsend it. If this fails the ministry
+   * still exists and an administrator can be added from the users page, so the
+   * error is reported rather than swallowed but the ministry is not lost.
+   */
+  private async createFirstAdmin(
+    ministry: { id: string; name: string },
+    admin: { email: string; name: string; jobTitle: string },
+    actorId: string,
+  ) {
+    try {
+      const user = await (this.prisma as any).user.create({
+        data: {
+          email: admin.email,
+          name: admin.name,
+          jobTitle: admin.jobTitle,
+          systemRole: 'MINISTRY_ADMIN',
+          ministryId: ministry.id,
+          active: true,
+        },
+      });
+
+      await (this.prisma as any).userPreferences.create({
+        data: { userId: user.id },
+      });
+
+      await this.audit.log({
+        action: 'USER_CREATED',
+        actionCategory: 'USER_MANAGEMENT',
+        entityType: 'User',
+        entityId: user.id,
+        entityName: user.email,
+        status: 'SUCCESS',
+        ministryId: ministry.id,
+        actorId,
+        description: `Created first administrator for ${ministry.name}: ${user.email}`,
+      });
+
+      const invite = await this.invites.issue(user.id, actorId, ministry.id);
+
+      return { id: user.id, email: user.email, invite };
+    } catch (error: any) {
+      if (error.code === 'P2002') {
+        throw new ConflictException(
+          `${ministry.name} was created, but ${admin.email} already exists — add the administrator from the users page`,
+        );
       }
       throw error;
     }
@@ -55,6 +145,9 @@ export class MinistriesService {
     const where = ministryScope(user);
     return (this.prisma as any).ministry.findMany({
       where,
+      // The admin page shows how many accounts a ministry holds, which is what
+      // makes deactivating it a decision rather than a guess.
+      include: { _count: { select: { users: true, events: true } } },
       orderBy: { name: 'asc' },
     });
   }

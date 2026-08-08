@@ -1,5 +1,6 @@
 import {
   Injectable,
+  BadRequestException,
   ConflictException,
   NotFoundException,
   ForbiddenException,
@@ -13,8 +14,11 @@ import {
   ministryScope,
   assertSameMinistry,
 } from '../common/utils/ministry-scope.util';
-import { auth } from '../auth/auth.config';
-import { hashPassword } from 'better-auth/crypto';
+// `auth` and better-auth's hashPassword used to be imported here, from when
+// this service set passwords itself. Users now set their own from an invitation
+// link, so both were dead — and they dragged better-auth's ESM build and
+// auth.config's database pool into anything that imported this file, tests
+// included.
 import { v4 as uuid } from 'uuid';
 import { InvitesService } from '../invites/invites.service';
 
@@ -71,9 +75,9 @@ export class UsersService {
 
   async create(
     dto: CreateUserDto,
-    ministryId: string,
     userId: string,
     userMinistryId?: string,
+    userSystemRole?: string,
   ) {
     if (dto.systemRole === 'SUPER_ADMIN' && userMinistryId) {
       throw new ForbiddenException(
@@ -81,14 +85,22 @@ export class UsersService {
       );
     }
 
+    const email = dto.email.toLowerCase().trim();
+    const ministryId = await this.resolveTargetMinistry(
+      dto,
+      email,
+      userMinistryId,
+      userSystemRole,
+    );
+
     try {
       const user = await (this.prisma as any).user.create({
         data: {
-          email: dto.email.toLowerCase(),
+          email,
           name: dto.name,
           jobTitle: dto.jobTitle,
           systemRole: dto.systemRole,
-          ministryId: dto.systemRole === 'SUPER_ADMIN' ? null : ministryId,
+          ministryId,
           active: true,
         },
       });
@@ -133,6 +145,72 @@ export class UsersService {
       }
       throw error;
     }
+  }
+
+  /**
+   * Decides which ministry a new user belongs to, and checks their email is
+   * allowed there.
+   *
+   * Mirrors the override in RoomsService.createRoom and EventsService
+   * .createEvent: only a super admin may file a record under another ministry,
+   * and the target has to exist. A super admin has no ministry of its own, so
+   * for them the field is required rather than optional.
+   */
+  private async resolveTargetMinistry(
+    dto: CreateUserDto,
+    email: string,
+    actorMinistryId?: string,
+    actorSystemRole?: string,
+  ): Promise<string | null> {
+    // Super admins are platform-wide and deliberately hold no ministry.
+    if (dto.systemRole === 'SUPER_ADMIN') {
+      return null;
+    }
+
+    const isSuperAdmin = actorSystemRole === 'SUPER_ADMIN';
+
+    if (dto.ministryId && !isSuperAdmin && dto.ministryId !== actorMinistryId) {
+      throw new ForbiddenException(
+        'Only a SUPER_ADMIN can create users in another ministry',
+      );
+    }
+
+    const targetMinistryId = isSuperAdmin
+      ? dto.ministryId
+      : dto.ministryId || actorMinistryId;
+
+    if (!targetMinistryId) {
+      throw new BadRequestException(
+        'ministryId is required when creating a user as a SUPER_ADMIN',
+      );
+    }
+
+    const ministry = await (this.prisma as any).ministry.findUnique({
+      where: { id: targetMinistryId },
+      select: { id: true, active: true, emailDomain: true, name: true },
+    });
+
+    if (!ministry) {
+      throw new NotFoundException(`Ministry ${targetMinistryId} not found`);
+    }
+
+    if (!ministry.active) {
+      throw new BadRequestException(
+        `${ministry.name} is deactivated — its users cannot sign in`,
+      );
+    }
+
+    // PRD §8: the address must sit under the ministry's own domain, not merely
+    // under .gov.sl. The leading dot stops "notmoh.gov.sl" passing as
+    // "moh.gov.sl".
+    const domain = String(ministry.emailDomain).toLowerCase();
+    if (!email.endsWith(`@${domain}`) && !email.endsWith(`.${domain}`)) {
+      throw new BadRequestException(
+        `Email must be on the ${ministry.name} domain (@${domain})`,
+      );
+    }
+
+    return ministry.id;
   }
 
   async findAll(

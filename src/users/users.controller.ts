@@ -28,8 +28,16 @@ export class UsersController {
   @Post()
   @Roles('SUPER_ADMIN', 'MINISTER', 'MINISTRY_ADMIN')
   create(@Body() dto: CreateUserDto, @CurrentUser() user: any) {
-    const ministryId = user.ministryId || '';
-    return this.usersService.create(dto, ministryId, user.id, user.ministryId);
+    // The service resolves which ministry the new user lands in. It used to be
+    // decided here as `user.ministryId || ''`, which meant a super admin — who
+    // has no ministry by design — created users against an empty string and hit
+    // a foreign key error.
+    return this.usersService.create(
+      dto,
+      user.id,
+      user.ministryId,
+      user.systemRole,
+    );
   }
 
   @Get()
