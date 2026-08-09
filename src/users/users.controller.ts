@@ -118,6 +118,31 @@ export class UsersController {
     );
   }
 
+  /** Signs the user out everywhere, leaving the account itself alone. */
+  @Delete(':id/sessions')
+  @Roles('SUPER_ADMIN', 'MINISTER', 'MINISTRY_ADMIN')
+  revokeSessions(@Param('id') id: string, @CurrentUser() user: any) {
+    return this.usersService.revokeSessions(
+      id,
+      user.id,
+      user.ministryId,
+      user.systemRole,
+    );
+  }
+
+  /** Releases a lockout early, rather than waiting out the 15 minutes. */
+  @Post(':id/unlock')
+  @HttpCode(200)
+  @Roles('SUPER_ADMIN', 'MINISTER', 'MINISTRY_ADMIN')
+  unlock(@Param('id') id: string, @CurrentUser() user: any) {
+    return this.usersService.unlock(
+      id,
+      user.id,
+      user.ministryId,
+      user.systemRole,
+    );
+  }
+
   @Delete(':id')
   @Roles('SUPER_ADMIN', 'MINISTER', 'MINISTRY_ADMIN')
   anonymize(@Param('id') id: string, @CurrentUser() user: any) {

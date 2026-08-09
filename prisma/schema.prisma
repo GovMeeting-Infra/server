@@ -43,6 +43,7 @@ model User {
   roomBookings   RoomBooking[]
   auditLogs      AuditLog[]
   notifications  Notification[]
+  settingsChanged PlatformSetting[]
 
   @@index([ministryId])
   @@index([systemRole])
@@ -616,4 +617,22 @@ enum AuditStatus {
   SUCCESS
   FAILURE
   PARTIAL
+}
+
+// ============================================================================
+// PLATFORM SETTINGS (super-admin editable, environment-backed)
+// ============================================================================
+
+/// Runtime configuration a super admin can change without a redeploy.
+///
+/// Only values that something actually reads belong here. A row is the
+/// override; with no row, the code falls back to the environment variable it
+/// always used, so an empty table means unchanged behaviour.
+model PlatformSetting {
+  key         String   @id
+  value       String
+  updatedAt   DateTime @updatedAt
+  updatedById String?
+
+  updatedBy   User?    @relation(fields: [updatedById], references: [id], onDelete: SetNull)
 }

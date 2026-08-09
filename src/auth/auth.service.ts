@@ -9,19 +9,11 @@ import { AuditService } from '../audit/audit.service';
 import { SignInDto } from './dto/sign-in.dto';
 import { auth } from './auth.config';
 import { APIError } from 'better-auth/api';
+import { SettingsService, SETTINGS } from '../common/settings/settings.service';
 
 /** Failures allowed before the account is locked. */
 const MAX_LOGIN_ATTEMPTS = 5;
 const LOCKOUT_MS = 15 * 60 * 1000;
-
-/**
- * How long a session survives without activity. Must match auth.config.ts,
- * which better-auth uses when it first creates the row.
- */
-export const SESSION_TTL_SECONDS = parseInt(
-  process.env.SESSION_INACTIVITY_TIMEOUT_SECONDS || '43200',
-  10,
-);
 
 /** Don't rewrite the row for every request in a burst. */
 const EXTEND_THROTTLE_MS = 60 * 1000;
@@ -29,17 +21,22 @@ const EXTEND_THROTTLE_MS = 60 * 1000;
 @Injectable()
 export class AuthService {
   private logger = new Logger('AuthService');
-  private govEmailDomain = process.env.GOVERNMENT_EMAIL_DOMAIN || '.gov.sl';
 
   constructor(
     private prisma: PrismaService,
     private audit: AuditService,
+    // The session timeout and the permitted email domain were a module-level
+    // const and a field initializer, both frozen at import. Reading them
+    // through SettingsService means a super admin can change either without a
+    // redeploy; with no override stored, it returns the same environment value
+    // as before.
+    private settings: SettingsService,
   ) {}
 
   async signIn(dto: SignInDto, ipAddress?: string) {
     const email = dto.email.toLowerCase().trim();
 
-    if (!this.isGovDomain(email)) {
+    if (!(await this.isGovDomain(email))) {
       await this.audit.log({
         action: 'LOGIN_FAILED',
         entityType: 'User',
@@ -204,10 +201,20 @@ export class AuthService {
     });
   }
 
-  private isGovDomain(email: string): boolean {
-    const domain = email.split('@')[1];
+  private async isGovDomain(email: string): Promise<boolean> {
+    const domain = email.split('@')[1]?.toLowerCase();
     if (!domain) return false;
-    return domain === 'gov.sl' || domain.endsWith(this.govEmailDomain);
+
+    const configured = await this.settings.get(
+      SETTINGS.GOVERNMENT_EMAIL_DOMAIN,
+    );
+    const bare = configured.trim().toLowerCase().replace(/^\./, '');
+
+    // Anchored on a dot. The old check was `domain.endsWith(suffix)`, and
+    // .env.production sets the suffix without a leading dot ("gov.sl"), so
+    // evilgov.sl ended with it and passed the government-email gate. The bare
+    // domain still counts, so gov.sl itself is accepted alongside moh.gov.sl.
+    return domain === bare || domain.endsWith(`.${bare}`);
   }
 
   /**
@@ -256,7 +263,9 @@ export class AuthService {
     try {
       const session = await (this.prisma as any).session.findUnique({
         where: { token: sessionToken },
-        include: { user: true },
+        include: {
+          user: { include: { ministry: { select: { active: true } } } },
+        },
       });
 
       if (!session) {
@@ -269,6 +278,24 @@ export class AuthService {
         return null;
       }
 
+      // Revocation is checked on every request, not only at sign-in.
+      //
+      // Deactivating a user, deactivating their ministry and anonymising an
+      // account all used to leave open sessions untouched, and the window below
+      // slides forward on every request — so someone working continuously was
+      // never ejected at all. Deleting their sessions (which the callers now do)
+      // handles the common case; this handles the session created a millisecond
+      // before the delete, and any that outlives it.
+      const user = session.user;
+      const revoked =
+        !user.active ||
+        user.deletedAt !== null ||
+        (user.ministry !== null && !user.ministry.active);
+
+      if (revoked) {
+        return null;
+      }
+
       // Slide the window forward on activity. Without this the timeout is
       // absolute — someone working continuously was signed out a fixed period
       // after signing in, despite the setting being named for inactivity.
@@ -276,7 +303,9 @@ export class AuthService {
       // Throttled because SessionMiddleware runs on every single request:
       // extending only once the window has moved on by more than a minute
       // turns one UPDATE per request into one per minute of activity.
-      const ttlMs = SESSION_TTL_SECONDS * 1000;
+      const ttlMs =
+        (await this.settings.getNumber(SETTINGS.SESSION_TIMEOUT_SECONDS)) *
+        1000;
       const freshExpiry = new Date(now.getTime() + ttlMs);
       const elapsedSinceExtension =
         freshExpiry.getTime() - new Date(session.expiresAt).getTime();

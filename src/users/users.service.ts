@@ -10,6 +10,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserRoleDto } from './dto/update-user-role.dto';
+import { UpdateUserDetailsDto } from './dto/update-user-details.dto';
 import {
   ministryScope,
   assertSameMinistry,
@@ -148,6 +149,96 @@ export class UsersService {
   }
 
   /**
+   * Ends every session this user holds, without touching the account itself.
+   *
+   * For the case where access must stop now but the person is not leaving — a
+   * lost phone, a shared laptop, a suspected compromise. Deactivating them
+   * would also do it, but that is a different statement to make about someone.
+   */
+  async revokeSessions(
+    id: string,
+    actorId: string,
+    actorMinistryId?: string,
+    actorRole = 'SUPER_ADMIN',
+  ) {
+    const user = await (this.prisma as any).user.findUnique({
+      where: { id },
+    });
+
+    if (!user) {
+      throw new NotFoundException(`User ${id} not found`);
+    }
+
+    this.assertCanManage(user, actorRole, actorMinistryId);
+
+    const { count } = await (this.prisma as any).session.deleteMany({
+      where: { userId: id },
+    });
+
+    await this.audit.log({
+      action: 'USER_SESSIONS_REVOKED',
+      actionCategory: 'USER_MANAGEMENT',
+      entityType: 'User',
+      entityId: user.id,
+      entityName: user.email,
+      status: 'SUCCESS',
+      ministryId: actorMinistryId || 'SYSTEM',
+      actorId,
+      description: `Signed out ${user.email} on all devices (${count} session${count === 1 ? '' : 's'})`,
+    });
+
+    return { revoked: count };
+  }
+
+  /**
+   * Releases a lockout immediately.
+   *
+   * Five wrong passwords locks an account for 15 minutes. That is the right
+   * default against someone guessing, and the wrong one for a minister who
+   * mistyped their password before a meeting starts, with nobody able to help.
+   */
+  async unlock(
+    id: string,
+    actorId: string,
+    actorMinistryId?: string,
+    actorRole = 'SUPER_ADMIN',
+  ) {
+    const user = await (this.prisma as any).user.findUnique({
+      where: { id },
+    });
+
+    if (!user) {
+      throw new NotFoundException(`User ${id} not found`);
+    }
+
+    this.assertCanManage(user, actorRole, actorMinistryId);
+
+    const wasLocked =
+      user.lockedUntil !== null && new Date(user.lockedUntil) > new Date();
+
+    await (this.prisma as any).user.update({
+      where: { id },
+      data: { lockedUntil: null, loginAttempts: 0 },
+    });
+
+    await this.audit.log({
+      action: 'USER_UNLOCKED',
+      actionCategory: 'USER_MANAGEMENT',
+      entityType: 'User',
+      entityId: user.id,
+      entityName: user.email,
+      status: 'SUCCESS',
+      ministryId: actorMinistryId || 'SYSTEM',
+      actorId,
+      description: wasLocked
+        ? `Unlocked ${user.email} before the lockout expired`
+        : `Reset the failed sign-in count for ${user.email}`,
+    });
+
+    return { unlocked: true, wasLocked };
+  }
+
+  /**
    * Decides which ministry a new user belongs to, and checks their email is
    * allowed there.
    *
@@ -250,6 +341,8 @@ export class UsersService {
         active: true,
         deletedAt: true,
         createdAt: true,
+        // So the list can offer Unlock only where it means something.
+        lockedUntil: true,
       },
       orderBy: { email: 'asc' },
     });
@@ -326,7 +419,7 @@ export class UsersService {
    */
   async updateDetails(
     id: string,
-    dto: { name?: string; jobTitle?: string },
+    dto: UpdateUserDetailsDto,
     actorId: string,
     actorMinistryId?: string,
     actorRole = 'SUPER_ADMIN',
@@ -339,14 +432,41 @@ export class UsersService {
 
     this.assertCanManage(user, actorRole, actorMinistryId);
 
+    const isSuperAdmin = actorRole === 'SUPER_ADMIN';
+
+    if ((dto.ministryId || dto.email) && !isSuperAdmin) {
+      throw new ForbiddenException(
+        'Only a SUPER_ADMIN can change a user’s ministry or email',
+      );
+    }
+
+    const transfer = await this.resolveTransfer(user, dto);
+
     const updated = await (this.prisma as any).user.update({
       where: { id },
       data: {
         ...(dto.name !== undefined && { name: dto.name }),
         ...(dto.jobTitle !== undefined && { jobTitle: dto.jobTitle }),
+        ...(transfer.email !== undefined && { email: transfer.email }),
+        ...(transfer.ministryId !== undefined && {
+          ministryId: transfer.ministryId,
+        }),
       },
-      select: { id: true, email: true, name: true, jobTitle: true },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        jobTitle: true,
+        ministryId: true,
+      },
     });
+
+    // The session payload carries ministryId and email, and every scoping
+    // decision downstream trusts it. Leaving the old session alive would let
+    // the user keep reading their previous ministry's data.
+    if (transfer.ministryId !== undefined || transfer.email !== undefined) {
+      await (this.prisma as any).session.deleteMany({ where: { userId: id } });
+    }
 
     await this.audit.log({
       action: 'USER_UPDATED',
@@ -357,11 +477,96 @@ export class UsersService {
       status: 'SUCCESS',
       ministryId: actorMinistryId || 'SYSTEM',
       actorId,
-      description: `Updated user details: ${updated.email}`,
-      changes: dto,
+      description:
+        transfer.ministryId !== undefined
+          ? `Moved ${user.email} to ${transfer.ministryName} as ${updated.email}`
+          : `Updated user details: ${updated.email}`,
+      changes: dto as unknown as Record<string, unknown>,
     });
 
     return updated;
+  }
+
+  /**
+   * Works out the email and ministry a transfer lands on, and refuses the
+   * combinations that would leave the account inconsistent.
+   *
+   * The domain rule and transfers collide: aminata@moh.gov.sl moving to
+   * Education no longer satisfies med.gov.sl. Rather than quietly exempting
+   * transfers from the rule that every other account obeys, the move has to
+   * carry an address on the destination's domain.
+   */
+  private async resolveTransfer(
+    user: { email: string; ministryId: string | null; systemRole: string },
+    dto: UpdateUserDetailsDto,
+  ): Promise<{
+    email?: string;
+    ministryId?: string;
+    ministryName?: string;
+  }> {
+    const email = dto.email?.toLowerCase().trim();
+
+    if (!dto.ministryId) {
+      // An email change on its own still has to satisfy the ministry they are
+      // already in.
+      if (email && user.ministryId && user.systemRole !== 'SUPER_ADMIN') {
+        const current = await this.requireMinistry(user.ministryId);
+        this.assertEmailOnDomain(email, current);
+      }
+      return { email };
+    }
+
+    if (dto.ministryId === user.ministryId) {
+      return { email };
+    }
+
+    const destination = await this.requireMinistry(dto.ministryId);
+
+    if (!destination.active) {
+      throw new BadRequestException(
+        `${destination.name} is deactivated — reactivate it before moving anyone into it`,
+      );
+    }
+
+    const finalEmail = email ?? user.email.toLowerCase();
+    this.assertEmailOnDomain(finalEmail, destination, true);
+
+    return {
+      email,
+      ministryId: destination.id,
+      ministryName: destination.name,
+    };
+  }
+
+  private async requireMinistry(id: string) {
+    const ministry = await (this.prisma as any).ministry.findUnique({
+      where: { id },
+      select: { id: true, name: true, active: true, emailDomain: true },
+    });
+
+    if (!ministry) {
+      throw new NotFoundException(`Ministry ${id} not found`);
+    }
+
+    return ministry;
+  }
+
+  private assertEmailOnDomain(
+    email: string,
+    ministry: { name: string; emailDomain: string },
+    isTransfer = false,
+  ): void {
+    const domain = String(ministry.emailDomain).toLowerCase();
+
+    if (email.endsWith(`@${domain}`) || email.endsWith(`.${domain}`)) {
+      return;
+    }
+
+    throw new BadRequestException(
+      isTransfer
+        ? `Moving to ${ministry.name} needs an email on @${domain} — send the new address with the transfer`
+        : `Email must be on the ${ministry.name} domain (@${domain})`,
+    );
   }
 
   /** Re-issues an invitation for a user who hasn't set a password yet. */
@@ -410,6 +615,13 @@ export class UsersService {
       },
     });
 
+    // Deactivation only blocked the next sign-in before this. getSession now
+    // refuses an inactive user as well, but ending the sessions here is what
+    // makes "deactivate" take effect at the moment it is clicked.
+    if (!active) {
+      await (this.prisma as any).session.deleteMany({ where: { userId: id } });
+    }
+
     await this.audit.log({
       action: active ? 'USER_REACTIVATED' : 'USER_DEACTIVATED',
       actionCategory: 'USER_MANAGEMENT',
@@ -455,6 +667,13 @@ export class UsersService {
     });
 
     await (this.prisma as any).account.deleteMany({
+      where: { userId: id },
+    });
+
+    // Deleting the credential stops them signing in again but does nothing to
+    // the session they are holding right now, which is the one that matters
+    // when an account is being erased.
+    await (this.prisma as any).session.deleteMany({
       where: { userId: id },
     });
 

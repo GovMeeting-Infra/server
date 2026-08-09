@@ -178,6 +178,19 @@ export class MinistriesService {
         data: dto,
       });
 
+      // Sign-in already refuses a deactivated ministry, and getSession refuses
+      // one on every request. Cutting the sessions here is what makes it
+      // immediate rather than "at some point": deactivating a ministry is
+      // usually a response to something, not routine housekeeping.
+      if (dto.active === false && ministry.active) {
+        const { count } = await (this.prisma as any).session.deleteMany({
+          where: { user: { ministryId: id } },
+        });
+        this.logger.log(
+          `Deactivated ${ministry.name}: ended ${count} session(s)`,
+        );
+      }
+
       await this.audit.log({
         action: 'MINISTRY_UPDATED',
         actionCategory: 'MINISTRY_MANAGEMENT',

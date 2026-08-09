@@ -102,8 +102,8 @@ async function main() {
       '\n📝 Note: User accounts (email/password) are managed by BetterAuth.',
       '\n   When you start the app, use the auth endpoint to create accounts.',
       '\n   Test credentials to create:',
-      '\n   - super@gov.sl / Password@123',
-      '\n   - admin@med.gov.sl / Password@123',
+      '\n   - super@gov.sl / u',
+      '\n   - admin@med.gov.sl / works ',
       '\n   - staff@moh.gov.sl / Password@123',
     );
   } finally {

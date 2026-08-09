@@ -19,6 +19,7 @@ import { AuthService } from '../auth.service';
 describe('AuthService.signIn — ministry status', () => {
   let prisma: any;
   let audit: any;
+  let settings: any;
   let service: AuthService;
 
   const staffOf = (ministry: { active: boolean; name: string } | null) => ({
@@ -36,7 +37,12 @@ describe('AuthService.signIn — ministry status', () => {
       user: { findUnique: jest.fn(), update: jest.fn().mockResolvedValue({}) },
     };
     audit = { log: jest.fn().mockResolvedValue(undefined) };
-    service = new AuthService(prisma, audit);
+    // The email suffix and session timeout are settings now, not constants.
+    settings = {
+      get: jest.fn().mockResolvedValue('.gov.sl'),
+      getNumber: jest.fn().mockResolvedValue(43200),
+    };
+    service = new AuthService(prisma, audit, settings);
   });
 
   const signIn = (email = 'aminata@moh.gov.sl') =>
@@ -100,5 +106,108 @@ describe('AuthService.signIn — ministry status', () => {
         description: expect.stringContaining('Ministry deactivated'),
       }),
     );
+  });
+});
+
+/**
+ * getSession runs on every request, and used to return the user without asking
+ * whether they were still allowed in. Deactivating someone, deactivating their
+ * ministry and anonymising an account all left open sessions working — and
+ * because the window slides forward on each request, an active user was never
+ * ejected at all. These are the cases that were silently passing.
+ */
+describe('AuthService.getSession — revocation', () => {
+  let prisma: any;
+  let service: AuthService;
+
+  const sessionFor = (overrides: Record<string, unknown>) => ({
+    id: 'sess-1',
+    token: 'tok',
+    // Well in the future, so nothing here turns on expiry.
+    expiresAt: new Date(Date.now() + 60 * 60 * 1000),
+    user: {
+      id: 'user-1',
+      email: 'aminata@moh.gov.sl',
+      name: 'Aminata',
+      systemRole: 'STAFF',
+      jobTitle: 'Director',
+      ministryId: 'min-moh',
+      active: true,
+      deletedAt: null,
+      ministry: { active: true },
+      ...overrides,
+    },
+  });
+
+  beforeEach(() => {
+    prisma = {
+      session: {
+        findUnique: jest.fn(),
+        update: jest.fn().mockResolvedValue({}),
+      },
+    };
+    service = new AuthService(
+      prisma,
+      { log: jest.fn() } as any,
+      {
+        get: jest.fn().mockResolvedValue('.gov.sl'),
+        getNumber: jest.fn().mockResolvedValue(43200),
+      } as any,
+    );
+  });
+
+  it('returns the user when nothing is wrong', async () => {
+    prisma.session.findUnique.mockResolvedValue(sessionFor({}));
+
+    await expect(service.getSession('tok')).resolves.toMatchObject({
+      id: 'user-1',
+      ministryId: 'min-moh',
+    });
+  });
+
+  it('refuses a deactivated user holding a live session', async () => {
+    prisma.session.findUnique.mockResolvedValue(sessionFor({ active: false }));
+
+    await expect(service.getSession('tok')).resolves.toBeNull();
+  });
+
+  it('refuses a soft-deleted user', async () => {
+    prisma.session.findUnique.mockResolvedValue(
+      sessionFor({ deletedAt: new Date() }),
+    );
+
+    await expect(service.getSession('tok')).resolves.toBeNull();
+  });
+
+  it('refuses a user whose ministry was deactivated under them', async () => {
+    prisma.session.findUnique.mockResolvedValue(
+      sessionFor({ ministry: { active: false } }),
+    );
+
+    await expect(service.getSession('tok')).resolves.toBeNull();
+  });
+
+  it('still admits a super admin, who has no ministry', async () => {
+    prisma.session.findUnique.mockResolvedValue(
+      sessionFor({
+        systemRole: 'SUPER_ADMIN',
+        ministryId: null,
+        ministry: null,
+      }),
+    );
+
+    await expect(service.getSession('tok')).resolves.toMatchObject({
+      systemRole: 'SUPER_ADMIN',
+    });
+  });
+
+  it('does not extend the window for a revoked session', async () => {
+    // Expiring soon, so a healthy session here would be extended.
+    const stale = sessionFor({ active: false });
+    stale.expiresAt = new Date(Date.now() + 1000);
+    prisma.session.findUnique.mockResolvedValue(stale);
+
+    await service.getSession('tok');
+    expect(prisma.session.update).not.toHaveBeenCalled();
   });
 });
