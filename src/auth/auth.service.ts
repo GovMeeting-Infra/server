@@ -296,21 +296,28 @@ export class AuthService {
         return null;
       }
 
-      // Slide the window forward on activity. Without this the timeout is
-      // absolute — someone working continuously was signed out a fixed period
-      // after signing in, despite the setting being named for inactivity.
+      // Move the window to now + timeout, in whichever direction that is.
+      //
+      // Forward, so the timeout measures inactivity rather than total time —
+      // otherwise someone working continuously is signed out a fixed period
+      // after signing in. Backward, because better-auth stamps expiresAt from
+      // auth.config's import-time expiresIn: a session created after the
+      // timeout was lowered still carried the old, longer window, so the
+      // setting appeared to do nothing. This is what makes it authoritative.
       //
       // Throttled because SessionMiddleware runs on every single request:
-      // extending only once the window has moved on by more than a minute
-      // turns one UPDATE per request into one per minute of activity.
+      // moving it only once the gap exceeds a minute turns one UPDATE per
+      // request into one per minute of activity. After a pull-back the gap is
+      // the elapsed time, so it settles immediately rather than rewriting.
       const ttlMs =
         (await this.settings.getNumber(SETTINGS.SESSION_TIMEOUT_SECONDS)) *
         1000;
       const freshExpiry = new Date(now.getTime() + ttlMs);
-      const elapsedSinceExtension =
-        freshExpiry.getTime() - new Date(session.expiresAt).getTime();
+      const drift = Math.abs(
+        freshExpiry.getTime() - new Date(session.expiresAt).getTime(),
+      );
 
-      if (elapsedSinceExtension > EXTEND_THROTTLE_MS) {
+      if (drift > EXTEND_THROTTLE_MS) {
         await (this.prisma as any).session.update({
           where: { id: session.id },
           data: { expiresAt: freshExpiry, updatedAt: now },

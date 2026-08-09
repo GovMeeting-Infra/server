@@ -6,7 +6,9 @@ async function main() {
   console.log('🌱 Starting database seed...');
 
   // Initialize Prisma with the adapter config
-  const connectionString = process.env.DATABASE_URL || 'postgresql://govmeeting:devpass@localhost:5432/govmeeting_dev';
+  const connectionString =
+    process.env.DATABASE_URL ||
+    'postgresql://govmeeting:devpass@localhost:5432/govmeeting_dev';
   const pool = new Pool({ connectionString });
   const adapter = new PrismaPg(pool);
   const prisma = new PrismaClient({ adapter });
@@ -45,7 +47,12 @@ async function main() {
         name: 'Super Admin',
         emailVerified: true,
         systemRole: SystemRole.SUPER_ADMIN,
-        ministryId: 'moh-001',
+        // A super admin belongs to no ministry (PRD:84). Seeding one into MOH
+        // meant ministryScope treated them correctly but everything keyed on
+        // "has a ministry" did not — they could not create another super admin,
+        // and deactivating MOH would have locked them out of the platform they
+        // administer.
+        ministryId: null,
         jobTitle: 'Administrator',
         active: true,
       },
@@ -102,8 +109,8 @@ async function main() {
       '\n📝 Note: User accounts (email/password) are managed by BetterAuth.',
       '\n   When you start the app, use the auth endpoint to create accounts.',
       '\n   Test credentials to create:',
-      '\n   - super@gov.sl / u',
-      '\n   - admin@med.gov.sl / works ',
+      '\n   - super@gov.sl / Password@123',
+      '\n   - admin@med.gov.sl / Password@123',
       '\n   - staff@moh.gov.sl / Password@123',
     );
   } finally {
@@ -112,8 +119,7 @@ async function main() {
   }
 }
 
-main()
-  .catch((error) => {
-    console.error('❌ Seed failed:', error);
-    process.exit(1);
-  });
+main().catch((error) => {
+  console.error('❌ Seed failed:', error);
+  process.exit(1);
+});

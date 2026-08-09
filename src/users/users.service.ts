@@ -80,7 +80,11 @@ export class UsersService {
     userMinistryId?: string,
     userSystemRole?: string,
   ) {
-    if (dto.systemRole === 'SUPER_ADMIN' && userMinistryId) {
+    // Checks the role, not whether the actor happens to hold a ministry. The
+    // old proxy — "has a ministryId, therefore not a super admin" — broke the
+    // moment a super admin was seeded with one, and then the only role able to
+    // create another super admin could not.
+    if (dto.systemRole === 'SUPER_ADMIN' && userSystemRole !== 'SUPER_ADMIN') {
       throw new ForbiddenException(
         'Only SUPER_ADMIN can create SUPER_ADMIN users',
       );
