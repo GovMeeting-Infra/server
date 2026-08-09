@@ -101,18 +101,58 @@ describe('UsersService.create — which ministry the user lands in', () => {
     ).rejects.toBeInstanceOf(BadRequestException);
   });
 
-  it('keeps a new SUPER_ADMIN out of every ministry', async () => {
-    await asSuperAdmin(
-      dto({ systemRole: 'SUPER_ADMIN', email: 'root@gov.sl' }),
+  it('refuses to create a second SUPER_ADMIN, even for a super admin', async () => {
+    // The platform has exactly one, provisioned directly against the database.
+    // Nothing reachable over HTTP can mint another, including the account that
+    // already holds the role.
+    await expect(
+      asSuperAdmin(dto({ systemRole: 'SUPER_ADMIN', email: 'root@gov.sl' })),
+    ).rejects.toBeInstanceOf(ForbiddenException);
+
+    expect(prisma.user.create).not.toHaveBeenCalled();
+  });
+
+  it('refuses a MINISTER from anyone below a super admin', async () => {
+    await expect(
+      service.create(
+        dto({ systemRole: 'MINISTER' }),
+        'actor-ma',
+        MOH.id,
+        'MINISTRY_ADMIN',
+      ),
+    ).rejects.toBeInstanceOf(ForbiddenException);
+  });
+
+  it('lets a super admin appoint a MINISTER', async () => {
+    await asSuperAdmin(dto({ systemRole: 'MINISTER', ministryId: MOH.id }));
+
+    expect(prisma.user.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          systemRole: 'MINISTER',
+          ministryId: MOH.id,
+        }),
+      }),
+    );
+  });
+
+  it('lets a minister add a ministry admin in their own ministry', async () => {
+    // A minister is the super admin of their own ministry.
+    await service.create(
+      dto({ systemRole: 'MINISTRY_ADMIN' }),
+      'actor-minister',
+      MOH.id,
+      'MINISTER',
     );
 
     expect(prisma.user.create).toHaveBeenCalledWith(
       expect.objectContaining({
-        data: expect.objectContaining({ ministryId: null }),
+        data: expect.objectContaining({
+          systemRole: 'MINISTRY_ADMIN',
+          ministryId: MOH.id,
+        }),
       }),
     );
-    // No ministry to check the address against, so none is looked up.
-    expect(prisma.ministry.findUnique).not.toHaveBeenCalled();
   });
 
   describe('email domain', () => {

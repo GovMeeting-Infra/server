@@ -10,8 +10,14 @@ export class CreateUserDto {
   @IsString()
   jobTitle: string;
 
+  /**
+   * SUPER_ADMIN is absent on purpose — the platform has exactly one, and it is
+   * not creatable through the API by anyone, including itself.
+   */
   @IsString()
-  @Matches(/^(SUPER_ADMIN|MINISTER|MINISTRY_ADMIN|STAFF)$/)
+  @Matches(/^(MINISTER|MINISTRY_ADMIN|STAFF)$/, {
+    message: 'systemRole must be MINISTER, MINISTRY_ADMIN or STAFF',
+  })
   systemRole: string;
 
   /**

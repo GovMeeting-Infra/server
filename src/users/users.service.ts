@@ -65,9 +65,29 @@ export class UsersService {
   }
 
   /** A ministry admin must not be able to mint a peer above themselves. */
+  /**
+   * Who may hand out which role.
+   *
+   *   SUPER_ADMIN     nobody — the platform has exactly one, provisioned
+   *                   directly against the database
+   *   MINISTER        super admin only
+   *   MINISTRY_ADMIN  super admin, minister, ministry admin
+   *   STAFF           the same
+   *
+   * A minister is the super admin of their own ministry, so they administer
+   * their people; they still cannot mint a second minister. Staff never reach
+   * here — the controller's @Roles keeps them out of user administration
+   * entirely.
+   *
+   * The DTOs already reject SUPER_ADMIN, so that branch is unreachable through
+   * HTTP. It stays because this method is the rule, and a future caller that
+   * skips the DTO should meet it too.
+   */
   private assertCanAssignRole(role: string, actorRole: string) {
-    if (role === 'SUPER_ADMIN' && actorRole !== 'SUPER_ADMIN') {
-      throw new ForbiddenException('Only a super-admin can assign SUPER_ADMIN');
+    if (role === 'SUPER_ADMIN') {
+      throw new ForbiddenException(
+        'SUPER_ADMIN cannot be assigned. The platform has a single super administrator.',
+      );
     }
     if (role === 'MINISTER' && actorRole !== 'SUPER_ADMIN') {
       throw new ForbiddenException('Only a super-admin can assign MINISTER');
@@ -80,15 +100,9 @@ export class UsersService {
     userMinistryId?: string,
     userSystemRole?: string,
   ) {
-    // Checks the role, not whether the actor happens to hold a ministry. The
-    // old proxy — "has a ministryId, therefore not a super admin" — broke the
-    // moment a super admin was seeded with one, and then the only role able to
-    // create another super admin could not.
-    if (dto.systemRole === 'SUPER_ADMIN' && userSystemRole !== 'SUPER_ADMIN') {
-      throw new ForbiddenException(
-        'Only SUPER_ADMIN can create SUPER_ADMIN users',
-      );
-    }
+    // One rule for both creating and promoting, rather than a second copy here
+    // that can drift from the first.
+    this.assertCanAssignRole(dto.systemRole, userSystemRole ?? 'STAFF');
 
     const email = dto.email.toLowerCase().trim();
     const ministryId = await this.resolveTargetMinistry(
@@ -257,11 +271,9 @@ export class UsersService {
     actorMinistryId?: string,
     actorSystemRole?: string,
   ): Promise<string | null> {
-    // Super admins are platform-wide and deliberately hold no ministry.
-    if (dto.systemRole === 'SUPER_ADMIN') {
-      return null;
-    }
-
+    // No SUPER_ADMIN branch: assertCanAssignRole has already refused that role
+    // before anything reaches here, so every user created through this path
+    // belongs to a ministry.
     const isSuperAdmin = actorSystemRole === 'SUPER_ADMIN';
 
     if (dto.ministryId && !isSuperAdmin && dto.ministryId !== actorMinistryId) {
