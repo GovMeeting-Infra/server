@@ -26,12 +26,17 @@ export class AuditController {
     @Query('actorId') actorId?: string,
     @Query('from') from?: string,
     @Query('to') to?: string,
+    // Super-admins only, and enforced in the service rather than here: a
+    // minister's scope comes from their own record, so a value supplied on the
+    // URL is ignored rather than obeyed.
+    @Query('ministryId') ministryId?: string,
     @Query('skip') skip?: string,
     @Query('take') take?: string,
   ) {
     return this.auditService.list(user, {
       q,
       category,
+      ministryId,
       // Anything unrecognised is ignored rather than rejected, so a stale
       // bookmark shows everything instead of erroring.
       status:
@@ -48,7 +53,12 @@ export class AuditController {
 
   @Get('categories')
   @Roles('MINISTER', 'SUPER_ADMIN')
-  async categories(@CurrentUser() user: any) {
-    return this.auditService.categories(user);
+  async categories(
+    @CurrentUser() user: any,
+    @Query('ministryId') ministryId?: string,
+  ) {
+    // Takes the same filter so the category list matches the ministry on
+    // screen, rather than offering categories with no rows behind them.
+    return this.auditService.categories(user, ministryId);
   }
 }

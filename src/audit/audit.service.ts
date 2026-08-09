@@ -70,6 +70,8 @@ export class AuditService {
       actorId?: string;
       from?: string;
       to?: string;
+      /** Super-admins only. 'none' isolates entries belonging to no ministry. */
+      ministryId?: string;
       skip?: number;
       take?: number;
     } = {},
@@ -91,7 +93,13 @@ export class AuditService {
       // Never `undefined` here: Prisma drops an undefined filter, which would
       // turn "a minister with no ministry" into "every ministry". null matches
       // nothing, which is the safe reading.
-      ...(isPlatformWide ? {} : { ministryId: viewer.ministryId ?? null }),
+      //
+      // A minister's clause is derived from their own record and a ministryId
+      // on the URL is discarded — otherwise editing the query string would read
+      // another ministry's log. Only the platform-wide view honours it.
+      ...(isPlatformWide
+        ? this.ministryFilter(opts.ministryId)
+        : { ministryId: viewer.ministryId ?? null }),
       ...(opts.category ? { actionCategory: opts.category } : {}),
       ...(opts.status ? { status: opts.status } : {}),
       ...(opts.actorId ? { actorId: opts.actorId } : {}),
@@ -135,12 +143,28 @@ export class AuditService {
     return { data, total, scope: isPlatformWide ? 'all' : 'ministry' };
   }
 
+  /**
+   * The ministry clause for a platform-wide viewer.
+   *
+   * Nothing selected means every ministry, as before. 'none' means the entries
+   * that belong to none — a failed sign-in for an unknown address has no
+   * ministry to file it under, and those are worth being able to isolate.
+   */
+  private ministryFilter(ministryId?: string): Record<string, unknown> {
+    if (!ministryId) return {};
+    if (ministryId === 'none') return { ministryId: null };
+    return { ministryId };
+  }
+
   /** The distinct categories present, for the filter control. */
-  async categories(viewer: { systemRole: string; ministryId?: string | null }) {
+  async categories(
+    viewer: { systemRole: string; ministryId?: string | null },
+    ministryId?: string,
+  ) {
     const rows = await (this.prisma as any).auditLog.findMany({
       where:
         viewer.systemRole === 'SUPER_ADMIN'
-          ? {}
+          ? this.ministryFilter(ministryId)
           : { ministryId: viewer.ministryId ?? null },
       select: { actionCategory: true },
       distinct: ['actionCategory'],
