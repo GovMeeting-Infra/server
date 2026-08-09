@@ -1,12 +1,4 @@
-import {
-  IsBoolean,
-  IsInt,
-  IsOptional,
-  IsString,
-  Matches,
-  Max,
-  Min,
-} from 'class-validator';
+import { IsBoolean, IsOptional, IsString, Matches } from 'class-validator';
 
 export class UpdateMinistryDto {
   @IsOptional()
@@ -24,12 +16,7 @@ export class UpdateMinistryDto {
   })
   emailDomain?: string;
 
-  /** See CreateMinistryDto — metres, and bounded for the same reasons. */
-  @IsOptional()
-  @IsInt()
-  @Min(10)
-  @Max(1000)
-  compoundMaxGpsAccuracy?: number;
+  // No GPS tolerance — see CreateMinistryDto. The geofence is platform-wide.
 
   @IsOptional()
   @IsString()

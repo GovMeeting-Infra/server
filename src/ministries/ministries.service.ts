@@ -48,9 +48,9 @@ export class MinistriesService {
           // the caller keeps the unique index from holding both MOH and moh.
           code: dto.code.toUpperCase().trim(),
           emailDomain,
-          ...(dto.compoundMaxGpsAccuracy !== undefined && {
-            compoundMaxGpsAccuracy: dto.compoundMaxGpsAccuracy,
-          }),
+          // compoundMaxGpsAccuracy is left at its schema default. Nothing reads
+          // it — the geofence is fixed platform-wide in
+          // attendance/geofence.constants.ts.
           ...(dto.logoUrl !== undefined && { logoUrl: dto.logoUrl }),
         },
       });

@@ -1,11 +1,8 @@
 import {
   IsEmail,
-  IsInt,
   IsOptional,
   IsString,
   Matches,
-  Max,
-  Min,
   ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
@@ -41,16 +38,11 @@ export class CreateMinistryDto {
   })
   emailDomain: string;
 
-  /**
-   * GPS tolerance in metres for every geofence check in this ministry.
-   * Bounded: below ~10m no ordinary phone can produce a fix good enough to
-   * check in, and above 1km the geofence stops meaning anything.
-   */
-  @IsOptional()
-  @IsInt()
-  @Min(10)
-  @Max(1000)
-  compoundMaxGpsAccuracy?: number;
+  // No GPS tolerance here. The geofence is platform-wide and lives in
+  // attendance/geofence.constants.ts: attendees must be within 100m of wherever
+  // the organizer generated the QR code. Ministry.compoundMaxGpsAccuracy is in
+  // the schema and the PRD but no code has ever read it, so accepting it would
+  // be offering a setting that does nothing.
 
   @IsOptional()
   @IsString()
