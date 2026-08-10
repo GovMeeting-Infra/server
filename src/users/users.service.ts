@@ -328,7 +328,7 @@ export class UsersService {
     const scope = ministryScope(user);
     const q = filters.q?.trim();
 
-    return (this.prisma as any).user.findMany({
+    const rows = await (this.prisma as any).user.findMany({
       where: {
         ...scope,
         // Super-admins are never listed as manageable rows.
@@ -359,9 +359,59 @@ export class UsersService {
         createdAt: true,
         // So the list can offer Unlock only where it means something.
         lockedUntil: true,
+        // Whether they have ever set a password. A user is created without a
+        // credential — they make their own from the invitation link — so the
+        // absence of this row is what "invited but not yet accepted" means.
+        // Bounded and id-only: no credential material leaves this method.
+        accounts: {
+          where: { providerId: 'credential' },
+          select: { id: true },
+          take: 1,
+        },
       },
       orderBy: { email: 'asc' },
     });
+
+    const expiries = await this.inviteExpiries(
+      rows
+        .filter((r: { accounts: unknown[] }) => r.accounts.length === 0)
+        .map((r: { id: string }) => r.id),
+    );
+
+    return rows.map(
+      ({ accounts, ...rest }: { accounts: unknown[]; id: string }) => ({
+        ...rest,
+        hasCredential: accounts.length > 0,
+        // Only meaningful while they have no credential; null once accepted,
+        // because setPassword deletes the token.
+        inviteExpiresAt: expiries.get(rest.id) ?? null,
+      }),
+    );
+  }
+
+  /**
+   * When each user's outstanding invitation lapses, keyed by user id.
+   *
+   * Verification has no relation to User — the invite is stored under the
+   * identifier `invite:<userId>` — so this is a second query rather than an
+   * include. One for the whole page, not one per row.
+   */
+  private async inviteExpiries(
+    userIds: string[],
+  ): Promise<Map<string, Date | null>> {
+    if (userIds.length === 0) return new Map();
+
+    const rows = await (this.prisma as any).verification.findMany({
+      where: { identifier: { in: userIds.map((id) => `invite:${id}`) } },
+      select: { identifier: true, expiresAt: true },
+    });
+
+    return new Map(
+      rows.map((r: { identifier: string; expiresAt: Date }) => [
+        r.identifier.slice('invite:'.length),
+        r.expiresAt,
+      ]),
+    );
   }
 
   async findOne(id: string) {
