@@ -23,7 +23,26 @@ if (!connectionString) {
   );
 }
 
-const pool = new Pool({ connectionString });
+// Same settings as PrismaService's pool, and for the same reason: Neon closes
+// idle connections, and a pooled client that died underneath us fails the next
+// request with "Connection terminated unexpectedly". This pool serves every
+// sign-in, so a dead client here reads as "Sign-in failed" to a user whose
+// password was perfectly good.
+const pool = new Pool({
+  connectionString,
+  idleTimeoutMillis: 30_000,
+  connectionTimeoutMillis: 10_000,
+  keepAlive: true,
+  max: 10,
+});
+
+// An unhandled 'error' event on a pg Pool ends the process.
+pool.on('error', (error) => {
+  console.warn(
+    `[auth] Idle database connection dropped (${error.message}). The pool will open a new one.`,
+  );
+});
+
 const adapter = new PrismaPg(pool);
 const prisma: any = new (PrismaClient as any)({ adapter });
 
