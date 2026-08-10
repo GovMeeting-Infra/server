@@ -329,6 +329,9 @@ export class MeService {
       ...(dto.sessionTimeout !== undefined && {
         sessionTimeout: dto.sessionTimeout,
       }),
+      ...(dto.tourCompletedVersion !== undefined && {
+        tourCompletedVersion: dto.tourCompletedVersion,
+      }),
     };
 
     return (this.prisma as any).userPreferences.upsert({
