@@ -22,6 +22,7 @@ import { SearchModule } from './search/search.module';
 import { InvitesModule } from './invites/invites.module';
 import { SessionMiddleware } from './auth/middleware/session.middleware';
 import { redisConnectionOptions } from './common/utils/redis-connection.util';
+import { SettingsModule } from './common/settings/settings.module';
 
 @Global()
 @Module({
@@ -38,6 +39,8 @@ import { redisConnectionOptions } from './common/utils/redis-connection.util';
     // producer. In-app notifications are written straight to the database.
     BullModule.registerQueue({ name: 'email-queue' }),
     PrismaModule,
+    // Global: AuthService reads the session timeout on every request.
+    SettingsModule,
     AuditModule,
     AuthModule,
     MinistriesModule,
