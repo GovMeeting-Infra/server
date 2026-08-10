@@ -1,6 +1,7 @@
 import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';
 import { PrismaClient, SystemRole } from '../generated/prisma/client';
+import { assertSafeToSeed } from './seed-guard';
 
 async function main() {
   console.log('🌱 Starting database seed...');
@@ -9,6 +10,11 @@ async function main() {
   const connectionString =
     process.env.DATABASE_URL ||
     'postgresql://govmeeting:devpass@localhost:5432/govmeeting_dev';
+
+  // Before the pool, let alone a write: this creates accounts whose password is
+  // published in this repository.
+  assertSafeToSeed(connectionString);
+
   const pool = new Pool({ connectionString });
   const adapter = new PrismaPg(pool);
   const prisma = new PrismaClient({ adapter });

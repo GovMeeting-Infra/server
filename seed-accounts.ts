@@ -9,12 +9,22 @@ import { PrismaClient } from './generated/prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';
 import crypto from 'crypto';
+import { assertSafeToSeed } from './prisma/seed-guard';
 
 const connectionString = process.env.DATABASE_URL;
 if (!connectionString) {
   console.error(
     '❌ DATABASE_URL is not set. Run this from the directory holding .env, or pass it inline.',
   );
+  process.exit(1);
+}
+
+// This script is the more dangerous of the two: it sets the passwords that make
+// the seeded accounts usable. Refuse anything that is not a local database.
+try {
+  assertSafeToSeed(connectionString);
+} catch (error) {
+  console.error(`❌ ${(error as Error).message}`);
   process.exit(1);
 }
 
@@ -36,12 +46,12 @@ const testUsers = [
 
 function hashPasswordSync(password: string): string {
   const salt = crypto.randomBytes(16).toString('hex');
-  const key = crypto.scryptSync(
-    password.normalize('NFKC'),
-    salt,
-    64,
-    { N: 16384, r: 16, p: 1, maxmem: 128 * 16384 * 16 * 2 }
-  );
+  const key = crypto.scryptSync(password.normalize('NFKC'), salt, 64, {
+    N: 16384,
+    r: 16,
+    p: 1,
+    maxmem: 128 * 16384 * 16 * 2,
+  });
   return `${salt}:${key.toString('hex')}`;
 }
 
