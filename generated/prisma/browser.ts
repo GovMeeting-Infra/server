@@ -122,3 +122,12 @@ export type Notification = Prisma.NotificationModel
  * 
  */
 export type AuditLog = Prisma.AuditLogModel
+/**
+ * Model PlatformSetting
+ * Runtime configuration a super admin can change without a redeploy.
+ * 
+ * Only values that something actually reads belong here. A row is the
+ * override; with no row, the code falls back to the environment variable it
+ * always used, so an empty table means unchanged behaviour.
+ */
+export type PlatformSetting = Prisma.PlatformSettingModel

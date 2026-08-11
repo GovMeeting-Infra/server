@@ -69,7 +69,8 @@ export const ModelName = {
   Room: 'Room',
   RoomBooking: 'RoomBooking',
   Notification: 'Notification',
-  AuditLog: 'AuditLog'
+  AuditLog: 'AuditLog',
+  PlatformSetting: 'PlatformSetting'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -182,6 +183,7 @@ export const UserPreferencesScalarFieldEnum = {
   consentTimestamp: 'consentTimestamp',
   consentVersion: 'consentVersion',
   geoLocationConsent: 'geoLocationConsent',
+  tourCompletedVersion: 'tourCompletedVersion',
   updatedAt: 'updatedAt'
 } as const
 
@@ -428,6 +430,16 @@ export const AuditLogScalarFieldEnum = {
 } as const
 
 export type AuditLogScalarFieldEnum = (typeof AuditLogScalarFieldEnum)[keyof typeof AuditLogScalarFieldEnum]
+
+
+export const PlatformSettingScalarFieldEnum = {
+  key: 'key',
+  value: 'value',
+  updatedAt: 'updatedAt',
+  updatedById: 'updatedById'
+} as const
+
+export type PlatformSettingScalarFieldEnum = (typeof PlatformSettingScalarFieldEnum)[keyof typeof PlatformSettingScalarFieldEnum]
 
 
 export const SortOrder = {

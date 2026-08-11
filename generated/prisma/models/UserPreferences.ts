@@ -47,6 +47,7 @@ export type UserPreferencesMinAggregateOutputType = {
   consentTimestamp: Date | null
   consentVersion: string | null
   geoLocationConsent: boolean | null
+  tourCompletedVersion: string | null
   updatedAt: Date | null
 }
 
@@ -63,6 +64,7 @@ export type UserPreferencesMaxAggregateOutputType = {
   consentTimestamp: Date | null
   consentVersion: string | null
   geoLocationConsent: boolean | null
+  tourCompletedVersion: string | null
   updatedAt: Date | null
 }
 
@@ -79,6 +81,7 @@ export type UserPreferencesCountAggregateOutputType = {
   consentTimestamp: number
   consentVersion: number
   geoLocationConsent: number
+  tourCompletedVersion: number
   updatedAt: number
   _all: number
 }
@@ -105,6 +108,7 @@ export type UserPreferencesMinAggregateInputType = {
   consentTimestamp?: true
   consentVersion?: true
   geoLocationConsent?: true
+  tourCompletedVersion?: true
   updatedAt?: true
 }
 
@@ -121,6 +125,7 @@ export type UserPreferencesMaxAggregateInputType = {
   consentTimestamp?: true
   consentVersion?: true
   geoLocationConsent?: true
+  tourCompletedVersion?: true
   updatedAt?: true
 }
 
@@ -137,6 +142,7 @@ export type UserPreferencesCountAggregateInputType = {
   consentTimestamp?: true
   consentVersion?: true
   geoLocationConsent?: true
+  tourCompletedVersion?: true
   updatedAt?: true
   _all?: true
 }
@@ -240,6 +246,7 @@ export type UserPreferencesGroupByOutputType = {
   consentTimestamp: Date
   consentVersion: string
   geoLocationConsent: boolean
+  tourCompletedVersion: string | null
   updatedAt: Date
   _count: UserPreferencesCountAggregateOutputType | null
   _avg: UserPreferencesAvgAggregateOutputType | null
@@ -279,6 +286,7 @@ export type UserPreferencesWhereInput = {
   consentTimestamp?: Prisma.DateTimeFilter<"UserPreferences"> | Date | string
   consentVersion?: Prisma.StringFilter<"UserPreferences"> | string
   geoLocationConsent?: Prisma.BoolFilter<"UserPreferences"> | boolean
+  tourCompletedVersion?: Prisma.StringNullableFilter<"UserPreferences"> | string | null
   updatedAt?: Prisma.DateTimeFilter<"UserPreferences"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
 }
@@ -296,6 +304,7 @@ export type UserPreferencesOrderByWithRelationInput = {
   consentTimestamp?: Prisma.SortOrder
   consentVersion?: Prisma.SortOrder
   geoLocationConsent?: Prisma.SortOrder
+  tourCompletedVersion?: Prisma.SortOrderInput | Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   user?: Prisma.UserOrderByWithRelationInput
 }
@@ -316,6 +325,7 @@ export type UserPreferencesWhereUniqueInput = Prisma.AtLeast<{
   consentTimestamp?: Prisma.DateTimeFilter<"UserPreferences"> | Date | string
   consentVersion?: Prisma.StringFilter<"UserPreferences"> | string
   geoLocationConsent?: Prisma.BoolFilter<"UserPreferences"> | boolean
+  tourCompletedVersion?: Prisma.StringNullableFilter<"UserPreferences"> | string | null
   updatedAt?: Prisma.DateTimeFilter<"UserPreferences"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
 }, "id" | "userId">
@@ -333,6 +343,7 @@ export type UserPreferencesOrderByWithAggregationInput = {
   consentTimestamp?: Prisma.SortOrder
   consentVersion?: Prisma.SortOrder
   geoLocationConsent?: Prisma.SortOrder
+  tourCompletedVersion?: Prisma.SortOrderInput | Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.UserPreferencesCountOrderByAggregateInput
   _avg?: Prisma.UserPreferencesAvgOrderByAggregateInput
@@ -357,6 +368,7 @@ export type UserPreferencesScalarWhereWithAggregatesInput = {
   consentTimestamp?: Prisma.DateTimeWithAggregatesFilter<"UserPreferences"> | Date | string
   consentVersion?: Prisma.StringWithAggregatesFilter<"UserPreferences"> | string
   geoLocationConsent?: Prisma.BoolWithAggregatesFilter<"UserPreferences"> | boolean
+  tourCompletedVersion?: Prisma.StringNullableWithAggregatesFilter<"UserPreferences"> | string | null
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"UserPreferences"> | Date | string
 }
 
@@ -372,6 +384,7 @@ export type UserPreferencesCreateInput = {
   consentTimestamp?: Date | string
   consentVersion?: string
   geoLocationConsent?: boolean
+  tourCompletedVersion?: string | null
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutPreferencesInput
 }
@@ -389,6 +402,7 @@ export type UserPreferencesUncheckedCreateInput = {
   consentTimestamp?: Date | string
   consentVersion?: string
   geoLocationConsent?: boolean
+  tourCompletedVersion?: string | null
   updatedAt?: Date | string
 }
 
@@ -404,6 +418,7 @@ export type UserPreferencesUpdateInput = {
   consentTimestamp?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   consentVersion?: Prisma.StringFieldUpdateOperationsInput | string
   geoLocationConsent?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  tourCompletedVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutPreferencesNestedInput
 }
@@ -421,6 +436,7 @@ export type UserPreferencesUncheckedUpdateInput = {
   consentTimestamp?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   consentVersion?: Prisma.StringFieldUpdateOperationsInput | string
   geoLocationConsent?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  tourCompletedVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -437,6 +453,7 @@ export type UserPreferencesCreateManyInput = {
   consentTimestamp?: Date | string
   consentVersion?: string
   geoLocationConsent?: boolean
+  tourCompletedVersion?: string | null
   updatedAt?: Date | string
 }
 
@@ -452,6 +469,7 @@ export type UserPreferencesUpdateManyMutationInput = {
   consentTimestamp?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   consentVersion?: Prisma.StringFieldUpdateOperationsInput | string
   geoLocationConsent?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  tourCompletedVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -468,6 +486,7 @@ export type UserPreferencesUncheckedUpdateManyInput = {
   consentTimestamp?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   consentVersion?: Prisma.StringFieldUpdateOperationsInput | string
   geoLocationConsent?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  tourCompletedVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -489,6 +508,7 @@ export type UserPreferencesCountOrderByAggregateInput = {
   consentTimestamp?: Prisma.SortOrder
   consentVersion?: Prisma.SortOrder
   geoLocationConsent?: Prisma.SortOrder
+  tourCompletedVersion?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
 
@@ -509,6 +529,7 @@ export type UserPreferencesMaxOrderByAggregateInput = {
   consentTimestamp?: Prisma.SortOrder
   consentVersion?: Prisma.SortOrder
   geoLocationConsent?: Prisma.SortOrder
+  tourCompletedVersion?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
 
@@ -525,6 +546,7 @@ export type UserPreferencesMinOrderByAggregateInput = {
   consentTimestamp?: Prisma.SortOrder
   consentVersion?: Prisma.SortOrder
   geoLocationConsent?: Prisma.SortOrder
+  tourCompletedVersion?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
 
@@ -576,6 +598,7 @@ export type UserPreferencesCreateWithoutUserInput = {
   consentTimestamp?: Date | string
   consentVersion?: string
   geoLocationConsent?: boolean
+  tourCompletedVersion?: string | null
   updatedAt?: Date | string
 }
 
@@ -591,6 +614,7 @@ export type UserPreferencesUncheckedCreateWithoutUserInput = {
   consentTimestamp?: Date | string
   consentVersion?: string
   geoLocationConsent?: boolean
+  tourCompletedVersion?: string | null
   updatedAt?: Date | string
 }
 
@@ -622,6 +646,7 @@ export type UserPreferencesUpdateWithoutUserInput = {
   consentTimestamp?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   consentVersion?: Prisma.StringFieldUpdateOperationsInput | string
   geoLocationConsent?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  tourCompletedVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -637,6 +662,7 @@ export type UserPreferencesUncheckedUpdateWithoutUserInput = {
   consentTimestamp?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   consentVersion?: Prisma.StringFieldUpdateOperationsInput | string
   geoLocationConsent?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  tourCompletedVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -655,6 +681,7 @@ export type UserPreferencesSelect<ExtArgs extends runtime.Types.Extensions.Inter
   consentTimestamp?: boolean
   consentVersion?: boolean
   geoLocationConsent?: boolean
+  tourCompletedVersion?: boolean
   updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["userPreferences"]>
@@ -672,6 +699,7 @@ export type UserPreferencesSelectCreateManyAndReturn<ExtArgs extends runtime.Typ
   consentTimestamp?: boolean
   consentVersion?: boolean
   geoLocationConsent?: boolean
+  tourCompletedVersion?: boolean
   updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["userPreferences"]>
@@ -689,6 +717,7 @@ export type UserPreferencesSelectUpdateManyAndReturn<ExtArgs extends runtime.Typ
   consentTimestamp?: boolean
   consentVersion?: boolean
   geoLocationConsent?: boolean
+  tourCompletedVersion?: boolean
   updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["userPreferences"]>
@@ -706,10 +735,11 @@ export type UserPreferencesSelectScalar = {
   consentTimestamp?: boolean
   consentVersion?: boolean
   geoLocationConsent?: boolean
+  tourCompletedVersion?: boolean
   updatedAt?: boolean
 }
 
-export type UserPreferencesOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "emailNotifications" | "minutesNotifications" | "meetingReminders" | "actionItemNotifications" | "theme" | "compactMode" | "sessionTimeout" | "consentTimestamp" | "consentVersion" | "geoLocationConsent" | "updatedAt", ExtArgs["result"]["userPreferences"]>
+export type UserPreferencesOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "emailNotifications" | "minutesNotifications" | "meetingReminders" | "actionItemNotifications" | "theme" | "compactMode" | "sessionTimeout" | "consentTimestamp" | "consentVersion" | "geoLocationConsent" | "tourCompletedVersion" | "updatedAt", ExtArgs["result"]["userPreferences"]>
 export type UserPreferencesInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }
@@ -738,6 +768,12 @@ export type $UserPreferencesPayload<ExtArgs extends runtime.Types.Extensions.Int
     consentTimestamp: Date
     consentVersion: string
     geoLocationConsent: boolean
+    /**
+     * Which version of the guided tour this user has finished or dismissed.
+     * Null means they have never seen it. A version rather than a boolean so a
+     * materially rewritten tour can be shown again without clearing the column.
+     */
+    tourCompletedVersion: string | null
     updatedAt: Date
   }, ExtArgs["result"]["userPreferences"]>
   composites: {}
@@ -1175,6 +1211,7 @@ export interface UserPreferencesFieldRefs {
   readonly consentTimestamp: Prisma.FieldRef<"UserPreferences", 'DateTime'>
   readonly consentVersion: Prisma.FieldRef<"UserPreferences", 'String'>
   readonly geoLocationConsent: Prisma.FieldRef<"UserPreferences", 'Boolean'>
+  readonly tourCompletedVersion: Prisma.FieldRef<"UserPreferences", 'String'>
   readonly updatedAt: Prisma.FieldRef<"UserPreferences", 'DateTime'>
 }
     
