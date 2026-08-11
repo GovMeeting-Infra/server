@@ -140,16 +140,12 @@ export class UsersService {
         entityId: user.id,
         entityName: user.email,
         status: 'SUCCESS',
-        ministryId: userMinistryId || 'SYSTEM',
+        ministryId: userMinistryId ?? undefined,
         actorId: userId,
         description: `Created user: ${user.email}`,
       });
 
-      const invite = await this.invites.issue(
-        user.id,
-        userId,
-        userMinistryId || 'SYSTEM',
-      );
+      const invite = await this.invites.issue(user.id, userId, userMinistryId);
 
       return {
         id: user.id,
@@ -200,7 +196,7 @@ export class UsersService {
       entityId: user.id,
       entityName: user.email,
       status: 'SUCCESS',
-      ministryId: actorMinistryId || 'SYSTEM',
+      ministryId: actorMinistryId ?? undefined,
       actorId,
       description: `Signed out ${user.email} on all devices (${count} session${count === 1 ? '' : 's'})`,
     });
@@ -246,7 +242,7 @@ export class UsersService {
       entityId: user.id,
       entityName: user.email,
       status: 'SUCCESS',
-      ministryId: actorMinistryId || 'SYSTEM',
+      ministryId: actorMinistryId ?? undefined,
       actorId,
       description: wasLocked
         ? `Unlocked ${user.email} before the lockout expired`
@@ -470,7 +466,7 @@ export class UsersService {
       entityId: user.id,
       entityName: user.email,
       status: 'SUCCESS',
-      ministryId: actorMinistryId || 'SYSTEM',
+      ministryId: actorMinistryId ?? undefined,
       actorId,
       description: `Updated user role to ${dto.systemRole}`,
       changes: { systemRole: dto.systemRole },
@@ -541,7 +537,7 @@ export class UsersService {
       entityId: id,
       entityName: updated.email,
       status: 'SUCCESS',
-      ministryId: actorMinistryId || 'SYSTEM',
+      ministryId: actorMinistryId ?? undefined,
       actorId,
       description:
         transfer.ministryId !== undefined
@@ -650,7 +646,7 @@ export class UsersService {
 
     this.assertCanManage(user, actorRole, actorMinistryId);
 
-    return this.invites.issue(id, actorId, actorMinistryId || 'SYSTEM');
+    return this.invites.issue(id, actorId, actorMinistryId);
   }
 
   /** Reversible access toggle. Replaces the previous one-way deactivate. */
@@ -695,7 +691,7 @@ export class UsersService {
       entityId: user.id,
       entityName: user.email,
       status: 'SUCCESS',
-      ministryId: actorMinistryId || 'SYSTEM',
+      ministryId: actorMinistryId ?? undefined,
       actorId,
       description: `${active ? 'Reactivated' : 'Deactivated'} user: ${user.email}`,
       changes: { active },
@@ -764,7 +760,7 @@ export class UsersService {
       entityId: user.id,
       entityName: user.email,
       status: 'SUCCESS',
-      ministryId: actorMinistryId || 'SYSTEM',
+      ministryId: actorMinistryId ?? undefined,
       actorId,
       description: `Anonymized user data (GDPR right-to-be-forgotten): ${user.email}`,
     });

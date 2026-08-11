@@ -50,7 +50,9 @@ export class InvitesService {
    * Issues (or re-issues) an invite. Any previous invite for the user is
    * dropped first, so re-inviting invalidates the old link.
    */
-  async issue(userId: string, actorId: string, ministryId: string) {
+  // ministryId is optional: a super admin has none, and the audit column is
+  // nullable for exactly that case.
+  async issue(userId: string, actorId: string, ministryId?: string | null) {
     const user = await (this.prisma as any).user.findUnique({
       where: { id: userId },
       select: { id: true, email: true, name: true, deletedAt: true },
@@ -82,7 +84,7 @@ export class InvitesService {
       entityId: userId,
       entityName: user.email,
       status: 'SUCCESS',
-      ministryId,
+      ministryId: ministryId ?? undefined,
       actorId,
       description: `Issued account invitation for ${user.email}`,
     });

@@ -200,3 +200,58 @@ describe('UsersService.create — which ministry the user lands in', () => {
     });
   });
 });
+
+/**
+ * The audit log is the platform's whole compliance story, and it was silently
+ * dropping every action a super admin took: the code passed the literal string
+ * 'SYSTEM' as ministryId, no Ministry row has that id, the insert violated the
+ * foreign key, and AuditService swallows failures by design so nothing ever
+ * surfaced.
+ */
+describe('UsersService — audit entries for an actor with no ministry', () => {
+  let prisma: any;
+  let audit: any;
+  let service: UsersService;
+
+  beforeEach(() => {
+    prisma = {
+      user: {
+        create: jest
+          .fn()
+          .mockImplementation(({ data }: any) => ({ id: 'new-user', ...data })),
+      },
+      userPreferences: { create: jest.fn().mockResolvedValue({}) },
+      ministry: {
+        findUnique: jest.fn().mockResolvedValue({
+          id: 'min-moh',
+          name: 'Ministry of Health',
+          emailDomain: 'moh.gov.sl',
+          active: true,
+        }),
+      },
+    };
+    audit = { log: jest.fn().mockResolvedValue(undefined) };
+    service = new UsersService(prisma, audit, {
+      issue: jest.fn().mockResolvedValue({ link: 'x' }),
+    } as any);
+  });
+
+  it('records ministryId as undefined, never the string SYSTEM', async () => {
+    await service.create(
+      {
+        email: 'a@moh.gov.sl',
+        name: 'A',
+        jobTitle: 'J',
+        systemRole: 'STAFF',
+        ministryId: 'min-moh',
+      } as any,
+      'actor-super',
+      undefined, // a super admin has no ministry
+      'SUPER_ADMIN',
+    );
+
+    const entry = audit.log.mock.calls[0][0];
+    expect(entry.ministryId).toBeUndefined();
+    expect(entry.ministryId).not.toBe('SYSTEM');
+  });
+});

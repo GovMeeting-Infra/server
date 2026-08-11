@@ -69,7 +69,7 @@ export class MinistriesService {
       entityId: ministry.id,
       entityName: ministry.name,
       status: 'SUCCESS',
-      ministryId: ministryId || 'SYSTEM',
+      ministryId: ministryId ?? undefined,
       actorId: userId,
       description: `Created ministry: ${ministry.name}`,
     });
@@ -198,7 +198,7 @@ export class MinistriesService {
         entityId: ministry.id,
         entityName: updated.name,
         status: 'SUCCESS',
-        ministryId: userMinistryId || 'SYSTEM',
+        ministryId: userMinistryId ?? undefined,
         actorId: userId,
         description: `Updated ministry: ${ministry.name}`,
         changes: dto as unknown as Record<string, unknown>,
@@ -227,7 +227,7 @@ export class MinistriesService {
       entityId: ministry.id,
       entityName: ministry.name,
       status: 'SUCCESS',
-      ministryId: userMinistryId || 'SYSTEM',
+      ministryId: userMinistryId ?? undefined,
       actorId: userId,
       description: `Deleted ministry: ${ministry.name}`,
     });

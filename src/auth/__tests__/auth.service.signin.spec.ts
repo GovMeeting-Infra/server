@@ -95,6 +95,45 @@ describe('AuthService.signIn — ministry status', () => {
     );
   });
 
+  describe('the government-email gate', () => {
+    it('refuses an ordinary user on a non-government address', async () => {
+      prisma.user.findUnique.mockResolvedValue({
+        ...staffOf({ active: true, name: 'Ministry of Health' }),
+        email: 'someone@gmail.com',
+        systemRole: 'STAFF',
+      });
+
+      await expect(signIn('someone@gmail.com')).rejects.toThrow(
+        'Government email required',
+      );
+    });
+
+    it('lets the super admin through on any address', async () => {
+      // The single super admin is provisioned directly against the database,
+      // belongs to no ministry, and is not a civil servant reachable at a
+      // ministry domain. Enforcing the rule on that account locked the only
+      // person who can administer the platform out of it.
+      prisma.user.findUnique.mockResolvedValue({
+        ...staffOf(null),
+        email: 'someone@gmail.com',
+        systemRole: 'SUPER_ADMIN',
+      });
+
+      // Gets past the domain gate to the password check, which is what matters.
+      await expect(signIn('someone@gmail.com')).rejects.not.toThrow(
+        'Government email required',
+      );
+    });
+
+    it('still refuses an unknown address, so this cannot probe for accounts', async () => {
+      prisma.user.findUnique.mockResolvedValue(null);
+
+      await expect(signIn('stranger@gmail.com')).rejects.toThrow(
+        'Government email required',
+      );
+    });
+  });
+
   it('passes the ministry gate when the ministry is active', async () => {
     prisma.user.findUnique.mockResolvedValue(
       staffOf({ active: true, name: 'Ministry of Health' }),

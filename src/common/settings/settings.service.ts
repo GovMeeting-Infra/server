@@ -143,7 +143,7 @@ export class SettingsService {
       entityId: key,
       entityName: key,
       status: 'SUCCESS',
-      ministryId: actorMinistryId || 'SYSTEM',
+      ministryId: actorMinistryId ?? undefined,
       actorId,
       description: `Changed ${key} from ${previous} to ${value}`,
       changes: { from: previous, to: value },

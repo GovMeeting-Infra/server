@@ -36,7 +36,24 @@ export class AuthService {
   async signIn(dto: SignInDto, ipAddress?: string) {
     const email = dto.email.toLowerCase().trim();
 
-    if (!(await this.isGovDomain(email))) {
+    const user = await (this.prisma as any).user.findUnique({
+      where: { email },
+      include: { ministry: { select: { active: true, name: true } } },
+    });
+
+    // The government-domain rule governs who may be *given* an account: every
+    // ordinary user is a civil servant reachable at their ministry's domain.
+    // The platform's single super administrator is provisioned directly against
+    // the database, belongs to no ministry, and may hold any address — so the
+    // gate is skipped for that one account and enforced for everyone else.
+    //
+    // The lookup moved above this check to make that possible. An address that
+    // matches no account is still refused here, so this cannot be used to probe
+    // for accounts: the answer is the same either way.
+    if (
+      user?.systemRole !== 'SUPER_ADMIN' &&
+      !(await this.isGovDomain(email))
+    ) {
       await this.audit.log({
         action: 'LOGIN_FAILED',
         entityType: 'User',
@@ -47,11 +64,6 @@ export class AuthService {
       });
       throw new UnauthorizedException('Government email required');
     }
-
-    const user = await (this.prisma as any).user.findUnique({
-      where: { email },
-      include: { ministry: { select: { active: true, name: true } } },
-    });
 
     if (!user || !user.active) {
       await this.audit.log({
