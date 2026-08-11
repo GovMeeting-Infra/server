@@ -94,23 +94,35 @@ jobs:
           mkdir -p ~/.ssh && chmod 700 ~/.ssh
           printf '%s\n' "$SSH_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan -H "$SSH_HOST" >> ~/.ssh/known_hosts 2>/dev/null
+          # `|| true` and touch: if keyscan returns nothing, the chmod that
+          # followed used to fail on a missing file and end the step with a bare
+          # exit 1 — hiding whatever ssh would have said. Let ssh report the
+          # real problem instead.
+          touch ~/.ssh/known_hosts
+          ssh-keyscan -H "$SSH_HOST" >> ~/.ssh/known_hosts 2>/dev/null || true
           chmod 600 ~/.ssh/known_hosts
           # Fails clearly on a wrong key or a closed port 22, rather than
           # letting the first real command carry the blame.
           ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes -o BatchMode=yes \
             "$SSH_USER@$SSH_HOST" 'echo "connected to $(hostname)"'
 
+      # Only dist/ travels. The instance is a git checkout, so everything else —
+      # prisma/ for migrate deploy, generated/, the manifests — arrives by
+      # resetting that checkout to this very commit. Shipping tracked files in
+      # the archive instead left them modified-or-untracked on the box, which
+      # aborted the next `git pull` with "untracked working tree files would be
+      # overwritten". Source from git, build artifact from CI, no overlap.
+      #
       # tar over scp rather than rsync: rsync has to exist on BOTH ends, and the
       # Amazon Linux AMI does not ship it. tar and scp are always there.
       #
-      # Only build output and manifests travel. .env and logs/ live on the
-      # instance and are never in the archive, so they cannot be clobbered.
+      # COPYFILE_DISABLE stops macOS tar writing ._name sidecars for extended
+      # attributes; irrelevant on this Linux runner, but the manual deploy in
+      # EC2_DEPLOYMENT.md is run from a Mac and once littered the instance with
+      # 568 of them.
       - name: Package build output
         run: |
-          tar czf deploy.tar.gz \
-            dist generated prisma \
-            package.json package-lock.json ecosystem.config.js
+          COPYFILE_DISABLE=1 tar czf deploy.tar.gz dist
           ls -lh deploy.tar.gz
 
       - name: Upload
@@ -137,9 +149,16 @@ jobs:
         run: |
           ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes "$SSH_USER@$SSH_HOST" bash -euo pipefail <<EOF
             cd $APP_DIR
+            # Pinned to the commit that triggered this run, not to origin/main,
+            # so a push landing mid-deploy cannot install something nobody
+            # tested. reset --hard leaves untracked files alone, so .env and
+            # .env.production survive it — and the checkout can no longer drift
+            # into a state that blocks the next pull.
+            git fetch --quiet origin ${{ github.sha }}
+            git reset --hard --quiet ${{ github.sha }}
             # Replace rather than merge, so a file deleted in this release does
             # not linger in dist/ and get required by something stale.
-            rm -rf dist generated
+            rm -rf dist
             tar xzf /tmp/api-deploy.tar.gz
             rm -f /tmp/api-deploy.tar.gz
             npm ci --legacy-peer-deps
