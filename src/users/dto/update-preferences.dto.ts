@@ -1,4 +1,12 @@
-import { IsBoolean, IsInt, IsOptional, Max, Min } from 'class-validator';
+import {
+  IsBoolean,
+  IsInt,
+  IsOptional,
+  IsString,
+  Max,
+  MaxLength,
+  Min,
+} from 'class-validator';
 
 export class UpdatePreferencesDto {
   @IsOptional()
@@ -27,4 +35,15 @@ export class UpdatePreferencesDto {
   @Min(-1)
   @Max(86400)
   sessionTimeout?: number;
+
+  /**
+   * The guided tour version this user has finished or dismissed.
+   *
+   * Written by the tour itself rather than by a settings control. Bounded
+   * because it is user-supplied and only ever holds something like "1".
+   */
+  @IsOptional()
+  @IsString()
+  @MaxLength(16)
+  tourCompletedVersion?: string;
 }

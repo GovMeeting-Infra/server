@@ -23,6 +23,25 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
     try {
       const pool = new Pool({
         connectionString,
+        // Neon closes idle connections — the pooler recycles them, and an
+        // autosuspending compute drops every one. A pooled client that has
+        // been closed underneath us fails the next request with "Connection
+        // terminated unexpectedly", which surfaces as a 500 on whatever
+        // unlucky request picked it up. Retiring our own idle clients first
+        // means the pool hands out live ones.
+        idleTimeoutMillis: 30_000,
+        // Fail a stalled connect rather than holding the request open.
+        connectionTimeoutMillis: 10_000,
+        keepAlive: true,
+        max: 10,
+      });
+
+      // Required, not optional: an error on an *idle* client is emitted here,
+      // and an unhandled 'error' event on the pool takes the process down.
+      pool.on('error', (error) => {
+        this.logger.warn(
+          `Idle database connection dropped (${error.message}). The pool will open a new one.`,
+        );
       });
 
       const adapter = new PrismaPg(pool);

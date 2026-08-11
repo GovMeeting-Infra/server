@@ -43,6 +43,7 @@ model User {
   roomBookings   RoomBooking[]
   auditLogs      AuditLog[]
   notifications  Notification[]
+  settingsChanged PlatformSetting[]
 
   @@index([ministryId])
   @@index([systemRole])
@@ -144,6 +145,10 @@ model UserPreferences {
   consentTimestamp        DateTime @default(now())
   consentVersion          String   @default("1.0")
   geoLocationConsent      Boolean  @default(false)
+  /// Which version of the guided tour this user has finished or dismissed.
+  /// Null means they have never seen it. A version rather than a boolean so a
+  /// materially rewritten tour can be shown again without clearing the column.
+  tourCompletedVersion    String?
   updatedAt               DateTime @updatedAt
 
   user                    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -616,4 +621,22 @@ enum AuditStatus {
   SUCCESS
   FAILURE
   PARTIAL
+}
+
+// ============================================================================
+// PLATFORM SETTINGS (super-admin editable, environment-backed)
+// ============================================================================
+
+/// Runtime configuration a super admin can change without a redeploy.
+///
+/// Only values that something actually reads belong here. A row is the
+/// override; with no row, the code falls back to the environment variable it
+/// always used, so an empty table means unchanged behaviour.
+model PlatformSetting {
+  key         String   @id
+  value       String
+  updatedAt   DateTime @updatedAt
+  updatedById String?
+
+  updatedBy   User?    @relation(fields: [updatedById], references: [id], onDelete: SetNull)
 }
