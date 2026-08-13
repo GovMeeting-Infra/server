@@ -37,7 +37,12 @@ describe('UsersService.findAll — invitation state', () => {
       user: { findMany: jest.fn() },
       verification: { findMany: jest.fn().mockResolvedValue([]) },
     };
-    service = new UsersService(prisma, { log: jest.fn() } as any, {} as any);
+    service = new UsersService(
+      prisma,
+      { log: jest.fn() } as any,
+      {} as any,
+      { invalidateAnalyticsFor: jest.fn() } as any,
+    );
   });
 
   it('reports a user with no credential as not yet accepted', async () => {

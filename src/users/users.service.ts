@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
+import { CacheService } from '../cache/cache.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserRoleDto } from './dto/update-user-role.dto';
 import { UpdateUserDetailsDto } from './dto/update-user-details.dto';
@@ -31,6 +32,7 @@ export class UsersService {
     private prisma: PrismaService,
     private audit: AuditService,
     private invites: InvitesService,
+    private cache: CacheService,
   ) {}
 
   /** Roles that may administer other users. */
@@ -144,6 +146,8 @@ export class UsersService {
         actorId: userId,
         description: `Created user: ${user.email}`,
       });
+
+      await this.cache.invalidateAnalyticsFor(user.ministryId ?? null);
 
       const invite = await this.invites.issue(user.id, userId, userMinistryId);
 
@@ -472,6 +476,8 @@ export class UsersService {
       changes: { systemRole: dto.systemRole },
     });
 
+    await this.cache.invalidateAnalyticsFor(user.ministryId ?? null);
+
     return updated;
   }
 
@@ -697,6 +703,8 @@ export class UsersService {
       changes: { active },
     });
 
+    await this.cache.invalidateAnalyticsFor(user.ministryId ?? null);
+
     return updated;
   }
 
@@ -764,6 +772,8 @@ export class UsersService {
       actorId,
       description: `Anonymized user data (GDPR right-to-be-forgotten): ${user.email}`,
     });
+
+    await this.cache.invalidateAnalyticsFor(user.ministryId ?? null);
 
     return {
       id: updated.id,
