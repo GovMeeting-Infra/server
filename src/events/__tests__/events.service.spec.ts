@@ -10,6 +10,7 @@ import { AuditService } from '../../audit/audit.service';
 import { getQueueToken } from '@nestjs/bullmq';
 import { CacheService } from '../../cache/cache.service';
 import { EventsRepository } from '../events.repository';
+import { MailService } from '../../mail/mail.service';
 import { NotificationsService } from '../../notifications/notifications.service';
 import { CreateEventDto } from '../dto/create-event.dto';
 
@@ -37,11 +38,17 @@ describe('EventsService', () => {
         .mockImplementation(({ where }: any) =>
           where.id.in.map((id: string) => ({ id })),
         ),
+      findUnique: jest.fn().mockResolvedValue({ name: 'Aminata Kamara' }),
+    },
+    ministry: {
+      findUnique: jest.fn().mockResolvedValue({ name: 'Ministry of Health' }),
     },
     eventCoOrganizer: { createMany: jest.fn().mockResolvedValue({ count: 1 }) },
     eventAttendee: {
       createMany: jest.fn().mockResolvedValue({ count: 0 }),
       findMany: jest.fn().mockResolvedValue([]),
+      findFirst: jest.fn(),
+      update: jest.fn().mockResolvedValue({}),
     },
   };
 
@@ -82,10 +89,21 @@ describe('EventsService', () => {
     add: jest.fn().mockResolvedValue(undefined),
   };
 
+  // The single-attendee resend sends inline rather than queueing, so the
+  // service holds a MailService as well as the queue.
+  const mockMail = {
+    send: jest.fn().mockResolvedValue({ sent: true }),
+  };
+
   /** getOne and listEvents take the acting user, not a bare ministry id. */
   const staff = { systemRole: 'STAFF', ministryId: 'ministry-1' };
 
   beforeEach(async () => {
+    // Call history only — mockClear keeps the implementations set above, but
+    // without this, assertions that a call did NOT happen see the previous
+    // test's calls and pass or fail for the wrong reason.
+    jest.clearAllMocks();
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         EventsService,
@@ -94,6 +112,7 @@ describe('EventsService', () => {
         { provide: CacheService, useValue: mockCache },
         { provide: EventsRepository, useValue: mockRepository },
         { provide: NotificationsService, useValue: mockNotifications },
+        { provide: MailService, useValue: mockMail },
         { provide: getQueueToken('email-queue'), useValue: mockQueue },
       ],
     }).compile();
@@ -259,6 +278,146 @@ describe('EventsService', () => {
       await expect(service.getOne('event-1', staff)).rejects.toThrow(
         ForbiddenException,
       );
+    });
+  });
+
+  /**
+   * Re-sending an invitation on request, as opposed to the automatic sweep.
+   * The decisions worth pinning down are that it does not rotate the RSVP
+   * token, and that it records a send only when one actually happened.
+   */
+  describe('resendInvitation', () => {
+    const attendee = {
+      id: 'att-1',
+      userId: 'user-2',
+      externalName: null,
+      externalEmail: null,
+      rsvpTokenHash: 'existing-token',
+      user: { id: 'user-2', name: 'Fatmata Sesay', email: 'fatmata@moh.gov.sl' },
+    };
+
+    beforeEach(() => {
+      mockRepository.findOne.mockResolvedValue({
+        id: 'event-1',
+        title: 'Cabinet Meeting',
+        ministryId: 'ministry-1',
+        organizerId: 'user-1',
+        startAt: new Date('2026-09-01T10:00:00'),
+        endAt: new Date('2026-09-01T11:00:00'),
+        venueName: 'Cabinet Room',
+      });
+      mockPrisma.eventAttendee.findFirst.mockResolvedValue(attendee);
+      mockMail.send.mockResolvedValue({ sent: true });
+    });
+
+    it('reuses the existing RSVP token rather than rotating it', async () => {
+      await service.resendInvitation(
+        'event-1',
+        'att-1',
+        'user-1',
+        'ministry-1',
+        'STAFF',
+      );
+
+      // Rotating would break the link in every copy already sitting in
+      // someone's inbox, which is the opposite of what a chase-up is for.
+      const [, body] = mockMail.send.mock.calls[0];
+      expect(body.text).toContain('/rsvp/existing-token');
+
+      const rotations = mockPrisma.eventAttendee.update.mock.calls.filter(
+        (c: any) => c[0].data.rsvpTokenHash !== undefined,
+      );
+      expect(rotations).toHaveLength(0);
+    });
+
+    it('mints a token only when the row has none', async () => {
+      mockPrisma.eventAttendee.findFirst.mockResolvedValue({
+        ...attendee,
+        rsvpTokenHash: null,
+      });
+
+      await service.resendInvitation(
+        'event-1',
+        'att-1',
+        'user-1',
+        'ministry-1',
+        'STAFF',
+      );
+
+      const minted = mockPrisma.eventAttendee.update.mock.calls.find(
+        (c: any) => c[0].data.rsvpTokenHash !== undefined,
+      );
+      expect(minted).toBeDefined();
+    });
+
+    it('stamps lastInvitedAt and reports success', async () => {
+      const result = await service.resendInvitation(
+        'event-1',
+        'att-1',
+        'user-1',
+        'ministry-1',
+        'STAFF',
+      );
+
+      expect(result.emailSent).toBe(true);
+      const stamped = mockPrisma.eventAttendee.update.mock.calls.find(
+        (c: any) => c[0].data.lastInvitedAt !== undefined,
+      );
+      expect(stamped).toBeDefined();
+    });
+
+    it('does not stamp lastInvitedAt when the send fails, and says so', async () => {
+      mockMail.send.mockResolvedValue({ sent: false, error: 'Mailbox full' });
+
+      const result = await service.resendInvitation(
+        'event-1',
+        'att-1',
+        'user-1',
+        'ministry-1',
+        'STAFF',
+      );
+
+      // The whole reason this route sends inline rather than queueing is so
+      // the organizer learns the real outcome.
+      expect(result.emailSent).toBe(false);
+      expect(result.emailError).toBe('Mailbox full');
+
+      const stamped = mockPrisma.eventAttendee.update.mock.calls.find(
+        (c: any) => c[0].data.lastInvitedAt !== undefined,
+      );
+      expect(stamped).toBeUndefined();
+    });
+
+    it('refuses an attendee that does not belong to the event', async () => {
+      mockPrisma.eventAttendee.findFirst.mockResolvedValue(null);
+
+      await expect(
+        service.resendInvitation(
+          'event-1',
+          'att-other',
+          'user-1',
+          'ministry-1',
+          'STAFF',
+        ),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('refuses someone with no address to send to', async () => {
+      mockPrisma.eventAttendee.findFirst.mockResolvedValue({
+        ...attendee,
+        user: null,
+        externalEmail: null,
+      });
+
+      await expect(
+        service.resendInvitation(
+          'event-1',
+          'att-1',
+          'user-1',
+          'ministry-1',
+          'STAFF',
+        ),
+      ).rejects.toThrow(BadRequestException);
     });
   });
 });

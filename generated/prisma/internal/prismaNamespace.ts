@@ -2126,6 +2126,7 @@ export const EventAttendeeScalarFieldEnum = {
   status: 'status',
   rsvpTokenHash: 'rsvpTokenHash',
   respondedAt: 'respondedAt',
+  lastInvitedAt: 'lastInvitedAt',
   createdAt: 'createdAt'
 } as const
 

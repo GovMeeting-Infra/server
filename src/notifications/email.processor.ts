@@ -15,6 +15,8 @@ import {
 
 interface MeetingInvitationPayload {
   eventId: string;
+  /** The EventAttendee row to stamp once the email is actually delivered. */
+  attendeeId: string;
   /** Null for an external invitee, who has no account and no preferences. */
   userId: string | null;
   email: string;
@@ -99,7 +101,7 @@ export class EmailProcessor extends WorkerHost {
    * why a guest invited to a meeting was never told about it.
    */
   private async sendMeetingInvitation(job: Job<MeetingInvitationPayload>) {
-    const { eventId, userId, email, name, rsvpUrl } = job.data;
+    const { eventId, attendeeId, userId, email, name, rsvpUrl } = job.data;
 
     try {
       const event = await (this.prisma as any).event.findUnique({
@@ -141,6 +143,16 @@ export class EmailProcessor extends WorkerHost {
           rsvpUrl,
         }),
       );
+
+      // Stamped on delivery, not on enqueue. A job that fails permanently
+      // leaves this null, so the next sweep picks the person up again rather
+      // than recording an invitation that never arrived.
+      if (result.sent && attendeeId) {
+        await (this.prisma as any).eventAttendee.update({
+          where: { id: attendeeId },
+          data: { lastInvitedAt: new Date() },
+        });
+      }
 
       return result.sent ? { sent: 1 } : { sent: 0, error: result.error };
     } catch (error) {

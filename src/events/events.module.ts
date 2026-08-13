@@ -10,6 +10,7 @@ import { PrismaModule } from '../prisma/prisma.module';
 import { AuditModule } from '../audit/audit.module';
 import { CacheModule } from '../cache/cache.module';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { MailModule } from '../mail/mail.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { NotificationsModule } from '../notifications/notifications.module';
     AuditModule,
     CacheModule,
     NotificationsModule,
+    MailModule,
     BullModule.registerQueue({ name: 'email-queue' }),
   ],
   providers: [

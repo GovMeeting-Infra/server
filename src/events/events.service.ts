@@ -12,6 +12,8 @@ import { PrismaService } from '../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
 import { CacheService } from '../cache/cache.service';
 import { EventsRepository } from './events.repository';
+import { MailService } from '../mail/mail.service';
+import { meetingInvitationEmail } from '../mail/templates';
 import { NotificationsService } from '../notifications/notifications.service';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
@@ -32,33 +34,44 @@ export class EventsService {
     private cache: CacheService,
     private eventsRepository: EventsRepository,
     private notifications: NotificationsService,
+    private mail: MailService,
     @InjectQueue('email-queue') private emailQueue: Queue,
   ) {}
 
+  /** Where the RSVP link points: the web frontend, not this API's own origin. */
+  private webUrl(): string {
+    return (
+      process.env.WEB_URL ||
+      process.env.NEXT_PUBLIC_WEB_URL ||
+      'http://localhost:3000'
+    );
+  }
+
+  private rsvpUrlFor(attendee: { rsvpTokenHash: string | null }): string | null {
+    return attendee.rsvpTokenHash
+      ? `${this.webUrl()}/rsvp/${attendee.rsvpTokenHash}`
+      : null;
+  }
+
   /**
-   * Emails everyone currently invited to an event who has not been emailed for
-   * it already.
+   * Emails everyone invited to an event who has never been emailed about it.
    *
    * One job per recipient, like published minutes: a single undeliverable
    * address must not cost everyone else their invitation, and BullMQ then
    * retries only the one that failed.
    *
-   * The jobId is what makes this safe to call from both creation and later
-   * additions — BullMQ drops a duplicate id, so re-running over the full
-   * attendee list never sends anyone a second copy of the same invitation.
+   * lastInvitedAt is what makes this safe to call from both creation and later
+   * additions. The jobId used to carry that job alone, but BullMQ evicts a
+   * completed job after 24 hours — so adding one attendee the next day
+   * re-emailed everyone already invited, while adding one an hour later did
+   * not. The column does not expire, so the guard no longer depends on timing;
+   * the jobId stays as a cheap backstop against a double click.
    */
   private async sendInvitations(eventId: string) {
     const attendees = await (this.prisma as any).eventAttendee.findMany({
-      where: { eventId },
+      where: { eventId, lastInvitedAt: null },
       include: { user: { select: { id: true, name: true, email: true } } },
     });
-
-    // The link points at the web frontend that serves /rsvp/[token], not at
-    // this API's own origin.
-    const webUrl =
-      process.env.WEB_URL ||
-      process.env.NEXT_PUBLIC_WEB_URL ||
-      'http://localhost:3000';
 
     let queued = 0;
 
@@ -66,16 +79,15 @@ export class EventsService {
       const email = a.user?.email ?? a.externalEmail;
       if (!email) continue;
 
-      const name = a.user?.name ?? a.externalName ?? 'there';
-
       await this.emailQueue.add(
         'send-meeting-invitation',
         {
           eventId,
+          attendeeId: a.id,
           userId: a.userId ?? null,
           email,
-          name,
-          rsvpUrl: a.rsvpTokenHash ? `${webUrl}/rsvp/${a.rsvpTokenHash}` : null,
+          name: a.user?.name ?? a.externalName ?? 'there',
+          rsvpUrl: this.rsvpUrlFor(a),
         },
         {
           jobId: `meeting-invitation:${eventId}:${a.userId ?? email.toLowerCase()}`,
@@ -83,11 +95,14 @@ export class EventsService {
           removeOnFail: { age: 24 * 60 * 60 },
         },
       );
+      // Counted after the add, so a throw does not inflate the total. It still
+      // counts jobs accepted rather than emails sent — a duplicate jobId is
+      // dropped silently by design.
       queued++;
     }
 
     this.logger.log(
-      `Queued invitations to ${queued} attendee(s) for event ${eventId}`,
+      `Queued invitations to ${queued} not-yet-invited attendee(s) for event ${eventId}`,
     );
   }
 
@@ -883,6 +898,201 @@ export class EventsService {
     });
 
     return { success: true };
+  }
+
+  /**
+   * Loads an event and checks the caller may invite to it, for the resend
+   * routes. Same rule as addAttendees, so a resend is never permitted where a
+   * first send would not have been.
+   */
+  private async assertCanInvite(
+    eventId: string,
+    actorId: string,
+    actorRole?: string,
+  ) {
+    const event = await this.eventsRepository.findOne(eventId);
+
+    if (!event) {
+      throw new NotFoundException(`Event ${eventId} not found`);
+    }
+
+    this.assertCanAdminister(
+      event,
+      actorId,
+      actorRole,
+      'invite attendees to this event',
+      true,
+    );
+
+    return event;
+  }
+
+  /**
+   * Re-sends one attendee's invitation, on request.
+   *
+   * Sent inline rather than queued, following InvitesService.issue: the whole
+   * point of pressing this is to find out whether the mail actually goes, and
+   * "queued" answers a different question. The caller gets the real outcome.
+   *
+   * The RSVP token is deliberately NOT rotated — only minted where one is
+   * missing. Rotating is right for an account invitation, where the link sets a
+   * credential and the old one must die; here it would break the link in every
+   * copy already sitting in someone's inbox, which is the opposite of what a
+   * chase-up is for.
+   */
+  async resendInvitation(
+    eventId: string,
+    attendeeId: string,
+    actorId: string,
+    ministryId: string,
+    actorRole?: string,
+  ) {
+    const event = await this.assertCanInvite(eventId, actorId, actorRole);
+
+    const attendee = await (this.prisma as any).eventAttendee.findFirst({
+      where: { id: attendeeId, eventId },
+      include: { user: { select: { id: true, name: true, email: true } } },
+    });
+
+    if (!attendee) {
+      throw new NotFoundException('Attendee not found on this event');
+    }
+
+    const email = attendee.user?.email ?? attendee.externalEmail;
+    if (!email) {
+      throw new BadRequestException(
+        'This attendee has no email address to send to',
+      );
+    }
+
+    let { rsvpTokenHash } = attendee;
+    if (!rsvpTokenHash) {
+      rsvpTokenHash = randomBytes(24).toString('base64url');
+      await (this.prisma as any).eventAttendee.update({
+        where: { id: attendee.id },
+        data: { rsvpTokenHash },
+      });
+    }
+
+    const [ministry, organizer] = await Promise.all([
+      event.ministryId
+        ? (this.prisma as any).ministry.findUnique({
+            where: { id: event.ministryId },
+            select: { name: true },
+          })
+        : Promise.resolve(null),
+      event.organizerId
+        ? (this.prisma as any).user.findUnique({
+            where: { id: event.organizerId },
+            select: { name: true },
+          })
+        : Promise.resolve(null),
+    ]);
+
+    const result = await this.mail.send(
+      email,
+      meetingInvitationEmail({
+        name: attendee.user?.name ?? attendee.externalName ?? 'there',
+        eventTitle: event.title,
+        startAt: event.startAt,
+        endAt: event.endAt,
+        venueName: event.venueName,
+        ministryName: ministry?.name ?? null,
+        organizerName: organizer?.name ?? null,
+        rsvpUrl: `${this.webUrl()}/rsvp/${rsvpTokenHash}`,
+      }),
+    );
+
+    if (result.sent) {
+      await (this.prisma as any).eventAttendee.update({
+        where: { id: attendee.id },
+        data: { lastInvitedAt: new Date() },
+      });
+    }
+
+    await this.audit.log({
+      action: 'ATTENDEE_INVITE_RESENT',
+      actionCategory: 'EVENT_MANAGEMENT',
+      entityType: 'EventAttendee',
+      entityId: attendee.id,
+      entityName: email,
+      // Recorded even when the send failed, because "we tried and it bounced"
+      // is exactly what someone reading this back needs to know.
+      status: result.sent ? 'SUCCESS' : 'FAILURE',
+      ministryId,
+      actorId,
+      description: `Re-sent invitation to ${email} for event: ${event.title}`,
+      metadata: { eventId, emailError: result.error ?? null },
+    });
+
+    return {
+      attendeeId: attendee.id,
+      email,
+      emailSent: result.sent,
+      emailError: result.error ?? null,
+    };
+  }
+
+  /**
+   * Re-sends to everyone still awaiting a reply.
+   *
+   * Queued rather than inline, unlike the single resend: this fans out across
+   * the whole list, and holding the request open for that many round trips to
+   * Resend would time out. The jobId carries the current timestamp so BullMQ
+   * cannot mistake a deliberate chase-up for the automatic sweep and drop it.
+   */
+  async resendInvitationsToAwaiting(
+    eventId: string,
+    actorId: string,
+    ministryId: string,
+    actorRole?: string,
+  ) {
+    const event = await this.assertCanInvite(eventId, actorId, actorRole);
+
+    const attendees = await (this.prisma as any).eventAttendee.findMany({
+      where: { eventId, status: 'INVITED', respondedAt: null },
+      include: { user: { select: { id: true, name: true, email: true } } },
+    });
+
+    const stamp = Date.now();
+    let queued = 0;
+
+    for (const a of attendees) {
+      const email = a.user?.email ?? a.externalEmail;
+      if (!email) continue;
+
+      await this.emailQueue.add(
+        'send-meeting-invitation',
+        {
+          eventId,
+          attendeeId: a.id,
+          userId: a.userId ?? null,
+          email,
+          name: a.user?.name ?? a.externalName ?? 'there',
+          rsvpUrl: this.rsvpUrlFor(a),
+        },
+        {
+          jobId: `meeting-invitation:${eventId}:${a.userId ?? email.toLowerCase()}:${stamp}`,
+          removeOnComplete: { age: 24 * 60 * 60 },
+          removeOnFail: { age: 24 * 60 * 60 },
+        },
+      );
+      queued++;
+    }
+
+    await this.audit.log({
+      action: 'ATTENDEE_INVITES_RESENT',
+      actionCategory: 'EVENT_MANAGEMENT',
+      entityType: 'Event',
+      entityId: eventId,
+      entityName: event.title,
+      status: 'SUCCESS',
+      ministryId,
+      actorId,
+      description: `Re-sent invitations to ${queued} attendee(s) awaiting a reply for event: ${event.title}`,
+    });
+
+    return { queued };
   }
 
   async addAttendees(
