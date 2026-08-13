@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
+import { CacheService } from '../cache/cache.service';
 import { EncryptionUtil } from '../common/utils/encryption.util';
 import { QRTokenService } from './qr-token.service';
 import { CheckInDto } from './dto/check-in.dto';
@@ -54,6 +55,7 @@ export class CheckinService {
     private prisma: PrismaService,
     private audit: AuditService,
     private qrToken: QRTokenService,
+    private cache: CacheService,
   ) {
     this.encryption = new EncryptionUtil(
       process.env.DATA_ENCRYPTION_KEY || '0123456789abcdef0123456789abcdef',
@@ -644,6 +646,12 @@ export class CheckinService {
       userAgent: meta.userAgent,
     });
 
+    // Attendance feeds the attendance-rate and check-in-method panels, which
+    // are cached for an hour. Without this a room full of people checking in
+    // left the reports page showing the numbers from before the meeting.
+    // Targeted rather than the pattern scan: this runs once per check-in.
+    await this.cache.invalidateAnalyticsFor(event.ministryId);
+
     return {
       id: attendance.id,
       eventId: event.id,
@@ -785,6 +793,8 @@ export class CheckinService {
       userAgent: meta.userAgent,
     });
 
+    await this.cache.invalidateAnalyticsFor(event.ministryId);
+
     return attendance;
   }
 
@@ -818,6 +828,8 @@ export class CheckinService {
       actorId,
       description: `Removed check-in for ${attendance.signedName} from event: ${attendance.event.title}`,
     });
+
+    await this.cache.invalidateAnalyticsFor(ministryId);
   }
 
   /**

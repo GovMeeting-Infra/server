@@ -7,9 +7,10 @@ import { DirectoryController } from './directory.controller';
 import { PrismaModule } from '../prisma/prisma.module';
 import { AuditModule } from '../audit/audit.module';
 import { InvitesModule } from '../invites/invites.module';
+import { CacheModule } from '../cache/cache.module';
 
 @Module({
-  imports: [PrismaModule, AuditModule, InvitesModule],
+  imports: [PrismaModule, AuditModule, InvitesModule, CacheModule],
   providers: [UsersService, MeService],
   controllers: [UsersController, MeController, DirectoryController],
   exports: [UsersService],

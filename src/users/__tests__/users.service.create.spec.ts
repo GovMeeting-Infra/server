@@ -24,6 +24,7 @@ describe('UsersService.create — which ministry the user lands in', () => {
   let prisma: any;
   let audit: any;
   let invites: any;
+  let cache: any;
   let service: UsersService;
 
   const MOH = {
@@ -54,7 +55,8 @@ describe('UsersService.create — which ministry the user lands in', () => {
     invites = {
       issue: jest.fn().mockResolvedValue({ link: 'https://x/invite' }),
     };
-    service = new UsersService(prisma, audit, invites);
+    cache = { invalidateAnalyticsFor: jest.fn() };
+    service = new UsersService(prisma, audit, invites, cache);
   });
 
   const dto = (over: Record<string, unknown> = {}) =>
@@ -211,6 +213,7 @@ describe('UsersService.create — which ministry the user lands in', () => {
 describe('UsersService — audit entries for an actor with no ministry', () => {
   let prisma: any;
   let audit: any;
+  let cache: any;
   let service: UsersService;
 
   beforeEach(() => {
@@ -231,9 +234,13 @@ describe('UsersService — audit entries for an actor with no ministry', () => {
       },
     };
     audit = { log: jest.fn().mockResolvedValue(undefined) };
-    service = new UsersService(prisma, audit, {
-      issue: jest.fn().mockResolvedValue({ link: 'x' }),
-    } as any);
+    cache = { invalidateAnalyticsFor: jest.fn() };
+    service = new UsersService(
+      prisma,
+      audit,
+      { issue: jest.fn().mockResolvedValue({ link: 'x' }) } as any,
+      cache,
+    );
   });
 
   it('records ministryId as undefined, never the string SYSTEM', async () => {
@@ -244,7 +251,7 @@ describe('UsersService — audit entries for an actor with no ministry', () => {
         jobTitle: 'J',
         systemRole: 'STAFF',
         ministryId: 'min-moh',
-      } as any,
+      },
       'actor-super',
       undefined, // a super admin has no ministry
       'SUPER_ADMIN',

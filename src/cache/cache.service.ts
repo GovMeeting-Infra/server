@@ -192,6 +192,26 @@ export class CacheService {
     await this.invalidatePattern('reports:analytics:*');
   }
 
+  /**
+   * The same thing without a KEYS scan, for callers that know the ministry.
+   *
+   * invalidateAnalytics is fine for the occasional edit, but KEYS is O(N) and
+   * blocks the Redis event loop, and Upstash bills per command — running one
+   * per check-in during a QR rush is exactly the load this platform is built
+   * around. The key space is only ever `reports:analytics:{all|ministryId}`,
+   * so two DELs cover it: the acting ministry's entry, and the super-admin's
+   * cross-ministry entry that every change also makes stale.
+   */
+  async invalidateAnalyticsFor(ministryId: string | null): Promise<void> {
+    try {
+      const keys = ['reports:analytics:all'];
+      if (ministryId) keys.push(`reports:analytics:${ministryId}`);
+      await this.client.del(keys);
+    } catch (error) {
+      this.logger.error('Cache invalidate error for analytics:', error);
+    }
+  }
+
   async clear(): Promise<void> {
     try {
       await this.client.flushDb();

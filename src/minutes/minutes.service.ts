@@ -261,7 +261,7 @@ export class MinutesService {
     try {
       await this.distribute(eventId, minutes.id);
     } catch (error) {
-      this.logger.error('Failed to distribute published minutes', error as any);
+      this.logger.error('Failed to distribute published minutes', error);
     }
 
     return published;

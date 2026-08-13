@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
+import { CacheService } from '../cache/cache.service';
 import { EncryptionUtil } from '../common/utils/encryption.util';
 import { RSVPStatus } from './dto/rsvp.dto';
 
@@ -17,6 +18,7 @@ export class RSVPService {
   constructor(
     private prisma: PrismaService,
     private audit: AuditService,
+    private cache: CacheService,
   ) {
     this.encryption = new EncryptionUtil(
       process.env.DATA_ENCRYPTION_KEY || '0123456789abcdef0123456789abcdef',
@@ -63,6 +65,10 @@ export class RSVPService {
         status,
       },
     });
+
+    // eventAttendee is the denominator of the attendance-rate panel, so a
+    // wave of RSVPs moves the reported figure.
+    await this.cache.invalidateAnalyticsFor(attendee.event.ministryId);
 
     return {
       id: updated.id,

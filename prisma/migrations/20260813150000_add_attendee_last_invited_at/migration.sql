@@ -1,0 +1,13 @@
+-- When an invitation email was last delivered to this attendee.
+--
+-- Nullable, and null means "never invited". Existing rows therefore all read as
+-- never-invited, which is deliberate: the automatic sweep looks for exactly
+-- that, so the first run after this migration will email anyone whose
+-- invitation was queued before the column existed. That is the safe direction
+-- to be wrong in — an organizer would rather someone got a second copy than
+-- have an invitation silently never arrive.
+--
+-- This column, not the BullMQ job id, is the real idempotency guard. The job id
+-- is evicted after 24 hours, which made re-sending depend on how long ago the
+-- event was created rather than on anything the organizer chose.
+ALTER TABLE "EventAttendee" ADD COLUMN "lastInvitedAt" TIMESTAMP(3);

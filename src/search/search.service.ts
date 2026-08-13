@@ -55,6 +55,13 @@ export class SearchService {
       (this.prisma as any).minutes.findMany({
         where: {
           event: scope,
+          // Archived records are leadership-only and are kept out of everyday
+          // listings even for them — see archive.policy.ts and the same
+          // default in MinutesService.list. Without this, search returned
+          // them to anyone, and the snippet below meant the body was
+          // disclosed in the results without the reader ever following the
+          // link that would have refused them.
+          status: { not: 'ARCHIVED' },
           OR: [{ body: like }, { summary: like }],
         },
         select: {

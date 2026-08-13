@@ -25,7 +25,7 @@ describe('NotificationsService', () => {
     // swallows failures, so without a real double the suite would pass while
     // silently exercising nothing.
     queue = { add: jest.fn().mockResolvedValue(undefined) };
-    service = new NotificationsService(prisma, queue as any);
+    service = new NotificationsService(prisma, queue);
   });
 
   const prefs = (userId: string, overrides: Record<string, boolean> = {}) => ({

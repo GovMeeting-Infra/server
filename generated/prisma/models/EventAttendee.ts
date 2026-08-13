@@ -33,6 +33,7 @@ export type EventAttendeeMinAggregateOutputType = {
   status: $Enums.AttendeeStatus | null
   rsvpTokenHash: string | null
   respondedAt: Date | null
+  lastInvitedAt: Date | null
   createdAt: Date | null
 }
 
@@ -45,6 +46,7 @@ export type EventAttendeeMaxAggregateOutputType = {
   status: $Enums.AttendeeStatus | null
   rsvpTokenHash: string | null
   respondedAt: Date | null
+  lastInvitedAt: Date | null
   createdAt: Date | null
 }
 
@@ -57,6 +59,7 @@ export type EventAttendeeCountAggregateOutputType = {
   status: number
   rsvpTokenHash: number
   respondedAt: number
+  lastInvitedAt: number
   createdAt: number
   _all: number
 }
@@ -71,6 +74,7 @@ export type EventAttendeeMinAggregateInputType = {
   status?: true
   rsvpTokenHash?: true
   respondedAt?: true
+  lastInvitedAt?: true
   createdAt?: true
 }
 
@@ -83,6 +87,7 @@ export type EventAttendeeMaxAggregateInputType = {
   status?: true
   rsvpTokenHash?: true
   respondedAt?: true
+  lastInvitedAt?: true
   createdAt?: true
 }
 
@@ -95,6 +100,7 @@ export type EventAttendeeCountAggregateInputType = {
   status?: true
   rsvpTokenHash?: true
   respondedAt?: true
+  lastInvitedAt?: true
   createdAt?: true
   _all?: true
 }
@@ -180,6 +186,7 @@ export type EventAttendeeGroupByOutputType = {
   status: $Enums.AttendeeStatus
   rsvpTokenHash: string | null
   respondedAt: Date | null
+  lastInvitedAt: Date | null
   createdAt: Date
   _count: EventAttendeeCountAggregateOutputType | null
   _min: EventAttendeeMinAggregateOutputType | null
@@ -213,6 +220,7 @@ export type EventAttendeeWhereInput = {
   status?: Prisma.EnumAttendeeStatusFilter<"EventAttendee"> | $Enums.AttendeeStatus
   rsvpTokenHash?: Prisma.StringNullableFilter<"EventAttendee"> | string | null
   respondedAt?: Prisma.DateTimeNullableFilter<"EventAttendee"> | Date | string | null
+  lastInvitedAt?: Prisma.DateTimeNullableFilter<"EventAttendee"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"EventAttendee"> | Date | string
   event?: Prisma.XOR<Prisma.EventScalarRelationFilter, Prisma.EventWhereInput>
   user?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
@@ -227,6 +235,7 @@ export type EventAttendeeOrderByWithRelationInput = {
   status?: Prisma.SortOrder
   rsvpTokenHash?: Prisma.SortOrderInput | Prisma.SortOrder
   respondedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  lastInvitedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   event?: Prisma.EventOrderByWithRelationInput
   user?: Prisma.UserOrderByWithRelationInput
@@ -245,6 +254,7 @@ export type EventAttendeeWhereUniqueInput = Prisma.AtLeast<{
   status?: Prisma.EnumAttendeeStatusFilter<"EventAttendee"> | $Enums.AttendeeStatus
   rsvpTokenHash?: Prisma.StringNullableFilter<"EventAttendee"> | string | null
   respondedAt?: Prisma.DateTimeNullableFilter<"EventAttendee"> | Date | string | null
+  lastInvitedAt?: Prisma.DateTimeNullableFilter<"EventAttendee"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"EventAttendee"> | Date | string
   event?: Prisma.XOR<Prisma.EventScalarRelationFilter, Prisma.EventWhereInput>
   user?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
@@ -259,6 +269,7 @@ export type EventAttendeeOrderByWithAggregationInput = {
   status?: Prisma.SortOrder
   rsvpTokenHash?: Prisma.SortOrderInput | Prisma.SortOrder
   respondedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  lastInvitedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   _count?: Prisma.EventAttendeeCountOrderByAggregateInput
   _max?: Prisma.EventAttendeeMaxOrderByAggregateInput
@@ -277,6 +288,7 @@ export type EventAttendeeScalarWhereWithAggregatesInput = {
   status?: Prisma.EnumAttendeeStatusWithAggregatesFilter<"EventAttendee"> | $Enums.AttendeeStatus
   rsvpTokenHash?: Prisma.StringNullableWithAggregatesFilter<"EventAttendee"> | string | null
   respondedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"EventAttendee"> | Date | string | null
+  lastInvitedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"EventAttendee"> | Date | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"EventAttendee"> | Date | string
 }
 
@@ -287,6 +299,7 @@ export type EventAttendeeCreateInput = {
   status?: $Enums.AttendeeStatus
   rsvpTokenHash?: string | null
   respondedAt?: Date | string | null
+  lastInvitedAt?: Date | string | null
   createdAt?: Date | string
   event: Prisma.EventCreateNestedOneWithoutAttendeesInput
   user?: Prisma.UserCreateNestedOneWithoutEventAttendeesInput
@@ -301,6 +314,7 @@ export type EventAttendeeUncheckedCreateInput = {
   status?: $Enums.AttendeeStatus
   rsvpTokenHash?: string | null
   respondedAt?: Date | string | null
+  lastInvitedAt?: Date | string | null
   createdAt?: Date | string
 }
 
@@ -311,6 +325,7 @@ export type EventAttendeeUpdateInput = {
   status?: Prisma.EnumAttendeeStatusFieldUpdateOperationsInput | $Enums.AttendeeStatus
   rsvpTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   respondedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastInvitedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   event?: Prisma.EventUpdateOneRequiredWithoutAttendeesNestedInput
   user?: Prisma.UserUpdateOneWithoutEventAttendeesNestedInput
@@ -325,6 +340,7 @@ export type EventAttendeeUncheckedUpdateInput = {
   status?: Prisma.EnumAttendeeStatusFieldUpdateOperationsInput | $Enums.AttendeeStatus
   rsvpTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   respondedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastInvitedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -337,6 +353,7 @@ export type EventAttendeeCreateManyInput = {
   status?: $Enums.AttendeeStatus
   rsvpTokenHash?: string | null
   respondedAt?: Date | string | null
+  lastInvitedAt?: Date | string | null
   createdAt?: Date | string
 }
 
@@ -347,6 +364,7 @@ export type EventAttendeeUpdateManyMutationInput = {
   status?: Prisma.EnumAttendeeStatusFieldUpdateOperationsInput | $Enums.AttendeeStatus
   rsvpTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   respondedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastInvitedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -359,6 +377,7 @@ export type EventAttendeeUncheckedUpdateManyInput = {
   status?: Prisma.EnumAttendeeStatusFieldUpdateOperationsInput | $Enums.AttendeeStatus
   rsvpTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   respondedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastInvitedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -386,6 +405,7 @@ export type EventAttendeeCountOrderByAggregateInput = {
   status?: Prisma.SortOrder
   rsvpTokenHash?: Prisma.SortOrder
   respondedAt?: Prisma.SortOrder
+  lastInvitedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -398,6 +418,7 @@ export type EventAttendeeMaxOrderByAggregateInput = {
   status?: Prisma.SortOrder
   rsvpTokenHash?: Prisma.SortOrder
   respondedAt?: Prisma.SortOrder
+  lastInvitedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -410,6 +431,7 @@ export type EventAttendeeMinOrderByAggregateInput = {
   status?: Prisma.SortOrder
   rsvpTokenHash?: Prisma.SortOrder
   respondedAt?: Prisma.SortOrder
+  lastInvitedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -508,6 +530,7 @@ export type EventAttendeeCreateWithoutUserInput = {
   status?: $Enums.AttendeeStatus
   rsvpTokenHash?: string | null
   respondedAt?: Date | string | null
+  lastInvitedAt?: Date | string | null
   createdAt?: Date | string
   event: Prisma.EventCreateNestedOneWithoutAttendeesInput
 }
@@ -520,6 +543,7 @@ export type EventAttendeeUncheckedCreateWithoutUserInput = {
   status?: $Enums.AttendeeStatus
   rsvpTokenHash?: string | null
   respondedAt?: Date | string | null
+  lastInvitedAt?: Date | string | null
   createdAt?: Date | string
 }
 
@@ -561,6 +585,7 @@ export type EventAttendeeScalarWhereInput = {
   status?: Prisma.EnumAttendeeStatusFilter<"EventAttendee"> | $Enums.AttendeeStatus
   rsvpTokenHash?: Prisma.StringNullableFilter<"EventAttendee"> | string | null
   respondedAt?: Prisma.DateTimeNullableFilter<"EventAttendee"> | Date | string | null
+  lastInvitedAt?: Prisma.DateTimeNullableFilter<"EventAttendee"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"EventAttendee"> | Date | string
 }
 
@@ -571,6 +596,7 @@ export type EventAttendeeCreateWithoutEventInput = {
   status?: $Enums.AttendeeStatus
   rsvpTokenHash?: string | null
   respondedAt?: Date | string | null
+  lastInvitedAt?: Date | string | null
   createdAt?: Date | string
   user?: Prisma.UserCreateNestedOneWithoutEventAttendeesInput
 }
@@ -583,6 +609,7 @@ export type EventAttendeeUncheckedCreateWithoutEventInput = {
   status?: $Enums.AttendeeStatus
   rsvpTokenHash?: string | null
   respondedAt?: Date | string | null
+  lastInvitedAt?: Date | string | null
   createdAt?: Date | string
 }
 
@@ -620,6 +647,7 @@ export type EventAttendeeCreateManyUserInput = {
   status?: $Enums.AttendeeStatus
   rsvpTokenHash?: string | null
   respondedAt?: Date | string | null
+  lastInvitedAt?: Date | string | null
   createdAt?: Date | string
 }
 
@@ -630,6 +658,7 @@ export type EventAttendeeUpdateWithoutUserInput = {
   status?: Prisma.EnumAttendeeStatusFieldUpdateOperationsInput | $Enums.AttendeeStatus
   rsvpTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   respondedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastInvitedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   event?: Prisma.EventUpdateOneRequiredWithoutAttendeesNestedInput
 }
@@ -642,6 +671,7 @@ export type EventAttendeeUncheckedUpdateWithoutUserInput = {
   status?: Prisma.EnumAttendeeStatusFieldUpdateOperationsInput | $Enums.AttendeeStatus
   rsvpTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   respondedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastInvitedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -653,6 +683,7 @@ export type EventAttendeeUncheckedUpdateManyWithoutUserInput = {
   status?: Prisma.EnumAttendeeStatusFieldUpdateOperationsInput | $Enums.AttendeeStatus
   rsvpTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   respondedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastInvitedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -664,6 +695,7 @@ export type EventAttendeeCreateManyEventInput = {
   status?: $Enums.AttendeeStatus
   rsvpTokenHash?: string | null
   respondedAt?: Date | string | null
+  lastInvitedAt?: Date | string | null
   createdAt?: Date | string
 }
 
@@ -674,6 +706,7 @@ export type EventAttendeeUpdateWithoutEventInput = {
   status?: Prisma.EnumAttendeeStatusFieldUpdateOperationsInput | $Enums.AttendeeStatus
   rsvpTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   respondedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastInvitedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneWithoutEventAttendeesNestedInput
 }
@@ -686,6 +719,7 @@ export type EventAttendeeUncheckedUpdateWithoutEventInput = {
   status?: Prisma.EnumAttendeeStatusFieldUpdateOperationsInput | $Enums.AttendeeStatus
   rsvpTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   respondedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastInvitedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -697,6 +731,7 @@ export type EventAttendeeUncheckedUpdateManyWithoutEventInput = {
   status?: Prisma.EnumAttendeeStatusFieldUpdateOperationsInput | $Enums.AttendeeStatus
   rsvpTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   respondedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastInvitedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -711,6 +746,7 @@ export type EventAttendeeSelect<ExtArgs extends runtime.Types.Extensions.Interna
   status?: boolean
   rsvpTokenHash?: boolean
   respondedAt?: boolean
+  lastInvitedAt?: boolean
   createdAt?: boolean
   event?: boolean | Prisma.EventDefaultArgs<ExtArgs>
   user?: boolean | Prisma.EventAttendee$userArgs<ExtArgs>
@@ -725,6 +761,7 @@ export type EventAttendeeSelectCreateManyAndReturn<ExtArgs extends runtime.Types
   status?: boolean
   rsvpTokenHash?: boolean
   respondedAt?: boolean
+  lastInvitedAt?: boolean
   createdAt?: boolean
   event?: boolean | Prisma.EventDefaultArgs<ExtArgs>
   user?: boolean | Prisma.EventAttendee$userArgs<ExtArgs>
@@ -739,6 +776,7 @@ export type EventAttendeeSelectUpdateManyAndReturn<ExtArgs extends runtime.Types
   status?: boolean
   rsvpTokenHash?: boolean
   respondedAt?: boolean
+  lastInvitedAt?: boolean
   createdAt?: boolean
   event?: boolean | Prisma.EventDefaultArgs<ExtArgs>
   user?: boolean | Prisma.EventAttendee$userArgs<ExtArgs>
@@ -753,10 +791,11 @@ export type EventAttendeeSelectScalar = {
   status?: boolean
   rsvpTokenHash?: boolean
   respondedAt?: boolean
+  lastInvitedAt?: boolean
   createdAt?: boolean
 }
 
-export type EventAttendeeOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "eventId" | "userId" | "externalName" | "externalEmail" | "status" | "rsvpTokenHash" | "respondedAt" | "createdAt", ExtArgs["result"]["eventAttendee"]>
+export type EventAttendeeOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "eventId" | "userId" | "externalName" | "externalEmail" | "status" | "rsvpTokenHash" | "respondedAt" | "lastInvitedAt" | "createdAt", ExtArgs["result"]["eventAttendee"]>
 export type EventAttendeeInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   event?: boolean | Prisma.EventDefaultArgs<ExtArgs>
   user?: boolean | Prisma.EventAttendee$userArgs<ExtArgs>
@@ -785,6 +824,13 @@ export type $EventAttendeePayload<ExtArgs extends runtime.Types.Extensions.Inter
     status: $Enums.AttendeeStatus
     rsvpTokenHash: string | null
     respondedAt: Date | null
+    /**
+     * When an invitation email was last delivered to this attendee. Null means
+     * none ever was, which is what the automatic sweep looks for — it is the
+     * real idempotency guard, since the BullMQ job id it used to rely on is
+     * evicted after 24 hours. Stamped only on a successful send.
+     */
+    lastInvitedAt: Date | null
     createdAt: Date
   }, ExtArgs["result"]["eventAttendee"]>
   composites: {}
@@ -1219,6 +1265,7 @@ export interface EventAttendeeFieldRefs {
   readonly status: Prisma.FieldRef<"EventAttendee", 'AttendeeStatus'>
   readonly rsvpTokenHash: Prisma.FieldRef<"EventAttendee", 'String'>
   readonly respondedAt: Prisma.FieldRef<"EventAttendee", 'DateTime'>
+  readonly lastInvitedAt: Prisma.FieldRef<"EventAttendee", 'DateTime'>
   readonly createdAt: Prisma.FieldRef<"EventAttendee", 'DateTime'>
 }
     

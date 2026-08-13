@@ -142,7 +142,7 @@ export class GuestMinutesController {
       entityId: actionItemId,
       entityName: item.title,
       status: 'SUCCESS',
-      ministryId: (minutes.event as any).ministryId,
+      ministryId: minutes.event.ministryId,
       // No actorId: a guest has no account. The address the token was issued
       // to is the closest thing to an identity here, so it goes in metadata
       // rather than being passed off as a user.

@@ -248,6 +248,45 @@ export class EventsController {
   }
 
   /**
+   * Re-send everyone still awaiting a reply. Declared before the
+   * :attendeeId route below so 'invite-all' is not captured as an id.
+   */
+  @Post(':id/attendees/invite-all')
+  @UseGuards(CanManageEventGuard)
+  @Roles('SUPER_ADMIN', 'MINISTER', 'MINISTRY_ADMIN', 'STAFF')
+  @HttpCode(200)
+  resendInvitationsToAwaiting(
+    @Param('id') id: string,
+    @CurrentUser() user: any,
+  ) {
+    return this.eventsService.resendInvitationsToAwaiting(
+      id,
+      user.id,
+      user.ministryId,
+      user.systemRole,
+    );
+  }
+
+  /** Re-send one attendee's invitation, on request. */
+  @Post(':id/attendees/:attendeeId/invite')
+  @UseGuards(CanManageEventGuard)
+  @Roles('SUPER_ADMIN', 'MINISTER', 'MINISTRY_ADMIN', 'STAFF')
+  @HttpCode(200)
+  resendInvitation(
+    @Param('id') id: string,
+    @Param('attendeeId') attendeeId: string,
+    @CurrentUser() user: any,
+  ) {
+    return this.eventsService.resendInvitation(
+      id,
+      attendeeId,
+      user.id,
+      user.ministryId,
+      user.systemRole,
+    );
+  }
+
+  /**
    * RSVP to your own invitation. Deliberately has no CanManageEventGuard — any
    * invitee acts on their own row here, not on the event.
    */

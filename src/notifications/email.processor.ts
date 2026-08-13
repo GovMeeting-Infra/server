@@ -8,13 +8,21 @@ import {
   actionItemAssignedEmail,
   actionItemDigestEmail,
   actionItemReminderEmail,
+  meetingInvitationEmail,
   meetingReminderEmail,
   minutesPublishedEmail,
 } from '../mail/templates';
 
 interface MeetingInvitationPayload {
   eventId: string;
-  userIds: string[];
+  /** The EventAttendee row to stamp once the email is actually delivered. */
+  attendeeId: string;
+  /** Null for an external invitee, who has no account and no preferences. */
+  userId: string | null;
+  email: string;
+  name: string;
+  /** Null when the attendee row carries no RSVP token to build a link from. */
+  rsvpUrl: string | null;
 }
 
 interface ActionItemReminderPayload {
@@ -79,12 +87,26 @@ export class EmailProcessor extends WorkerHost {
     }
   }
 
+  /**
+   * The invitation, to one attendee.
+   *
+   * This used to take a list of userIds, loop them and only call logger.log —
+   * nothing was ever sent, and nothing enqueued the job in the first place. It
+   * is now one job per recipient, prepared by EventsService, for the same
+   * reasons as published minutes: a single bad address cannot cost everyone
+   * else their invitation, and BullMQ retries only the one that failed.
+   *
+   * External invitees have no account, so they are reached by email alone —
+   * they carry no preference row and no in-app inbox, and skipping them was
+   * why a guest invited to a meeting was never told about it.
+   */
   private async sendMeetingInvitation(job: Job<MeetingInvitationPayload>) {
-    const { eventId, userIds } = job.data;
+    const { eventId, attendeeId, userId, email, name, rsvpUrl } = job.data;
 
     try {
       const event = await (this.prisma as any).event.findUnique({
         where: { id: eventId },
+        include: { ministry: true, organizer: true },
       });
 
       if (!event) {
@@ -92,29 +114,49 @@ export class EmailProcessor extends WorkerHost {
         return { sent: 0, error: 'Event not found' };
       }
 
-      const users = await (this.prisma as any).user.findMany({
-        where: { id: { in: userIds } },
-      });
-
-      let sentCount = 0;
-
-      for (const user of users) {
-        try {
-          this.logger.log(
-            `Sending invitation to ${user.email} for event: ${event.title}`,
-          );
-          sentCount++;
-        } catch (error) {
-          this.logger.error(
-            `Failed to send invitation to ${user.email}`,
-            error,
-          );
-        }
+      // A cancelled event should not still be inviting people. The job may
+      // have been queued before it was called off.
+      if (event.status === 'CANCELLED') {
+        return { sent: 0, error: 'Event cancelled' };
       }
 
-      return { sent: sentCount };
+      // Preferences only exist for people with accounts; a guest cannot have
+      // muted anything. The in-app copy is raised by EventsService and applies
+      // its own check, so muting email does not mute the inbox.
+      if (
+        userId &&
+        !(await this.notifications.wantsEmail(userId, 'MEETING_INVITATION'))
+      ) {
+        return { sent: 0, error: 'Muted by preference' };
+      }
+
+      const result = await this.mail.send(
+        email,
+        meetingInvitationEmail({
+          name,
+          eventTitle: event.title,
+          startAt: event.startAt,
+          endAt: event.endAt,
+          venueName: event.venueName,
+          ministryName: event.ministry?.name ?? null,
+          organizerName: event.organizer?.name ?? null,
+          rsvpUrl,
+        }),
+      );
+
+      // Stamped on delivery, not on enqueue. A job that fails permanently
+      // leaves this null, so the next sweep picks the person up again rather
+      // than recording an invitation that never arrived.
+      if (result.sent && attendeeId) {
+        await (this.prisma as any).eventAttendee.update({
+          where: { id: attendeeId },
+          data: { lastInvitedAt: new Date() },
+        });
+      }
+
+      return result.sent ? { sent: 1 } : { sent: 0, error: result.error };
     } catch (error) {
-      this.logger.error('Error sending meeting invitations', error);
+      this.logger.error('Error sending meeting invitation', error);
       throw error;
     }
   }

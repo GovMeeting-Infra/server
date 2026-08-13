@@ -297,6 +297,11 @@ model EventAttendee {
   status        AttendeeStatus @default(INVITED)
   rsvpTokenHash String?
   respondedAt   DateTime?
+  /// When an invitation email was last delivered to this attendee. Null means
+  /// none ever was, which is what the automatic sweep looks for — it is the
+  /// real idempotency guard, since the BullMQ job id it used to rely on is
+  /// evicted after 24 hours. Stamped only on a successful send.
+  lastInvitedAt DateTime?
   createdAt     DateTime @default(now())
 
   event         Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
