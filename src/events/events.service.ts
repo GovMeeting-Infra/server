@@ -349,8 +349,17 @@ export class EventsService {
       return;
     }
 
+    // The super admin administers any event, the same way it already
+    // administers users, ministries and platform settings. Without this it was
+    // the one role that could revoke someone's sessions but not invite anyone
+    // to their meeting, which left nobody able to act on an event whose
+    // organizer had left.
+    if (actorRole === 'SUPER_ADMIN') return;
+
     const isAdmin = EventsService.ADMIN_ROLES.includes(actorRole ?? '');
 
+    // A ministry-level admin still only inherits an event nobody owns. An
+    // organizer's own meeting stays theirs.
     if (event.organizerId === null && isAdmin) return;
 
     throw new ForbiddenException(

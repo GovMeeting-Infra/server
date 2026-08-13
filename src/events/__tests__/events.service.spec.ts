@@ -402,6 +402,33 @@ describe('EventsService', () => {
       ).rejects.toThrow(NotFoundException);
     });
 
+    it('lets the super admin act on an event it does not organize', async () => {
+      // 'other-user' is neither the organizer (user-1) nor a co-organizer.
+      await expect(
+        service.resendInvitation(
+          'event-1',
+          'att-1',
+          'other-user',
+          'ministry-1',
+          'SUPER_ADMIN',
+        ),
+      ).resolves.toMatchObject({ emailSent: true });
+    });
+
+    it('still refuses a ministry admin on someone else event', async () => {
+      // A ministry-level admin only inherits an event nobody owns; an
+      // organizer's own meeting stays theirs.
+      await expect(
+        service.resendInvitation(
+          'event-1',
+          'att-1',
+          'other-user',
+          'ministry-1',
+          'MINISTRY_ADMIN',
+        ),
+      ).rejects.toThrow(ForbiddenException);
+    });
+
     it('refuses someone with no address to send to', async () => {
       mockPrisma.eventAttendee.findFirst.mockResolvedValue({
         ...attendee,
