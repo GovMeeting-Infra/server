@@ -293,7 +293,11 @@ describe('EventsService', () => {
       externalName: null,
       externalEmail: null,
       rsvpTokenHash: 'existing-token',
-      user: { id: 'user-2', name: 'Fatmata Sesay', email: 'fatmata@moh.gov.sl' },
+      user: {
+        id: 'user-2',
+        name: 'Fatmata Sesay',
+        email: 'fatmata@moh.gov.sl',
+      },
     };
 
     beforeEach(() => {

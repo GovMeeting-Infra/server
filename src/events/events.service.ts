@@ -47,7 +47,9 @@ export class EventsService {
     );
   }
 
-  private rsvpUrlFor(attendee: { rsvpTokenHash: string | null }): string | null {
+  private rsvpUrlFor(attendee: {
+    rsvpTokenHash: string | null;
+  }): string | null {
     return attendee.rsvpTokenHash
       ? `${this.webUrl()}/rsvp/${attendee.rsvpTokenHash}`
       : null;
