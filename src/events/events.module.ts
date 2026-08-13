@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { BullModule } from '@nestjs/bullmq';
 import { EventsService } from './events.service';
 import { EventsRepository } from './events.repository';
 import { EventSeriesService } from './event-series.service';
@@ -11,7 +12,13 @@ import { CacheModule } from '../cache/cache.module';
 import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
-  imports: [PrismaModule, AuditModule, CacheModule, NotificationsModule],
+  imports: [
+    PrismaModule,
+    AuditModule,
+    CacheModule,
+    NotificationsModule,
+    BullModule.registerQueue({ name: 'email-queue' }),
+  ],
   providers: [
     EventsService,
     EventsRepository,

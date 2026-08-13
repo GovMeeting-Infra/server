@@ -6,6 +6,8 @@ import {
   ForbiddenException,
   Logger,
 } from '@nestjs/common';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
 import { CacheService } from '../cache/cache.service';
@@ -30,7 +32,64 @@ export class EventsService {
     private cache: CacheService,
     private eventsRepository: EventsRepository,
     private notifications: NotificationsService,
+    @InjectQueue('email-queue') private emailQueue: Queue,
   ) {}
+
+  /**
+   * Emails everyone currently invited to an event who has not been emailed for
+   * it already.
+   *
+   * One job per recipient, like published minutes: a single undeliverable
+   * address must not cost everyone else their invitation, and BullMQ then
+   * retries only the one that failed.
+   *
+   * The jobId is what makes this safe to call from both creation and later
+   * additions — BullMQ drops a duplicate id, so re-running over the full
+   * attendee list never sends anyone a second copy of the same invitation.
+   */
+  private async sendInvitations(eventId: string) {
+    const attendees = await (this.prisma as any).eventAttendee.findMany({
+      where: { eventId },
+      include: { user: { select: { id: true, name: true, email: true } } },
+    });
+
+    // The link points at the web frontend that serves /rsvp/[token], not at
+    // this API's own origin.
+    const webUrl =
+      process.env.WEB_URL ||
+      process.env.NEXT_PUBLIC_WEB_URL ||
+      'http://localhost:3000';
+
+    let queued = 0;
+
+    for (const a of attendees) {
+      const email = a.user?.email ?? a.externalEmail;
+      if (!email) continue;
+
+      const name = a.user?.name ?? a.externalName ?? 'there';
+
+      await this.emailQueue.add(
+        'send-meeting-invitation',
+        {
+          eventId,
+          userId: a.userId ?? null,
+          email,
+          name,
+          rsvpUrl: a.rsvpTokenHash ? `${webUrl}/rsvp/${a.rsvpTokenHash}` : null,
+        },
+        {
+          jobId: `meeting-invitation:${eventId}:${a.userId ?? email.toLowerCase()}`,
+          removeOnComplete: { age: 24 * 60 * 60 },
+          removeOnFail: { age: 24 * 60 * 60 },
+        },
+      );
+      queued++;
+    }
+
+    this.logger.log(
+      `Queued invitations to ${queued} attendee(s) for event ${eventId}`,
+    );
+  }
 
   async createEvent(
     dto: CreateEventDto,
@@ -193,6 +252,11 @@ export class EventsService {
         event.id,
         inviteeUserIds ?? [],
       );
+
+      // The in-app notification above only reaches people with an account. The
+      // email is how an external invitee hears about the meeting at all, and
+      // it is the only thing that carries their RSVP link.
+      await this.sendInvitations(event.id);
     }
 
     await this.audit.log({
@@ -904,12 +968,17 @@ export class EventsService {
     await this.cache.invalidatePattern(`events:*${ministryId}*`);
     await this.cache.invalidateAnalytics();
 
-    // Only people with accounts have an inbox; external guests are reached by
-    // their RSVP link instead.
+    // Only people with accounts have an inbox.
     await this.notifications.notifyMeetingInvitation(
       eventId,
       rows.filter((r: any) => r.userId).map((r: any) => r.userId),
     );
+
+    // External guests are reached by their RSVP link instead — which nothing
+    // actually sent until this call existed. Safe to run over the whole
+    // attendee list: the per-recipient jobId means anyone already invited is
+    // deduplicated rather than emailed twice.
+    await this.sendInvitations(eventId);
 
     return (this.prisma as any).eventAttendee.findMany({
       where: { eventId },

@@ -418,6 +418,92 @@ export function minutesPublishedEmail({
   };
 }
 
+/**
+ * The invitation sent when someone is added to an event.
+ *
+ * The RSVP link is the point of the message, so it is the action button rather
+ * than a footnote. It carries the per-attendee token, which is why this is one
+ * email per recipient and never a shared body.
+ *
+ * `rsvpUrl` is optional because an attendee row can exist without a token —
+ * a legacy row, or one created before the column was populated. Those still
+ * get told about the meeting; they just have nothing to click.
+ */
+export function meetingInvitationEmail({
+  name,
+  eventTitle,
+  startAt,
+  endAt,
+  venueName,
+  ministryName,
+  organizerName,
+  rsvpUrl,
+}: {
+  name: string;
+  eventTitle: string;
+  startAt: Date | string;
+  endAt?: Date | string | null;
+  venueName?: string | null;
+  ministryName?: string | null;
+  organizerName?: string | null;
+  rsvpUrl?: string | null;
+}): EmailBody {
+  const when = formatDateTime(startAt);
+  const until = endAt
+    ? new Date(endAt).toLocaleTimeString('en-GB', {
+        hour: '2-digit',
+        minute: '2-digit',
+      })
+    : null;
+  const whenLine = until ? `${when} – ${until}` : when;
+
+  const intro = organizerName
+    ? `${name}, ${organizerName} has invited you to ${eventTitle}.`
+    : `${name}, you have been invited to ${eventTitle}.`;
+
+  const rows = [
+    `<p style="margin:0 0 6px;color:#0f172a;font-size:15px;font-weight:600;">${escapeHtml(eventTitle)}</p>`,
+    `<p style="margin:0;color:#64748b;font-size:13px;">When: ${escapeHtml(whenLine)}</p>`,
+    venueName
+      ? `<p style="margin:6px 0 0;color:#64748b;font-size:13px;">Where: ${escapeHtml(venueName)}</p>`
+      : '',
+    ministryName
+      ? `<p style="margin:6px 0 0;color:#64748b;font-size:13px;">Hosted by: ${escapeHtml(ministryName)}</p>`
+      : '',
+  ].join('');
+
+  return {
+    subject: `Invitation: ${eventTitle}`,
+    html: layout({
+      heading: 'You have been invited to a meeting',
+      intro,
+      bodyHtml: `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:8px 0;background-color:#edf3fd;border:1px solid #c9d9f2;border-radius:12px;">
+        <tr><td style="padding:16px 18px;">${rows}</td></tr>
+      </table>`,
+      actionLabel: rsvpUrl ? 'Respond to this invitation' : undefined,
+      actionUrl: rsvpUrl ?? undefined,
+      footnote: rsvpUrl
+        ? 'Letting the organizer know whether you are coming helps them plan the room and the agenda.'
+        : 'Contact the organizing ministry if you need to confirm your attendance.',
+    }),
+    text: [
+      intro,
+      '',
+      eventTitle,
+      `When: ${whenLine}`,
+      venueName ? `Where: ${venueName}` : '',
+      ministryName ? `Hosted by: ${ministryName}` : '',
+      '',
+      rsvpUrl ? `Respond to this invitation: ${rsvpUrl}` : '',
+      rsvpUrl
+        ? 'Letting the organizer know whether you are coming helps them plan the room and the agenda.'
+        : 'Contact the organizing ministry if you need to confirm your attendance.',
+    ]
+      .filter(Boolean)
+      .join('\n'),
+  };
+}
+
 export function meetingReminderEmail({
   name,
   eventTitle,
