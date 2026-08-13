@@ -50,7 +50,7 @@ export class NotificationsService {
         removeOnFail: { age: 2 * 60 * 60 },
       });
     } catch (error) {
-      this.logger.error(`Failed to queue ${name}`, error as any);
+      this.logger.error(`Failed to queue ${name}`, error);
     }
   }
 

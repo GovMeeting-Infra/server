@@ -46,7 +46,7 @@ describe('AuthService.signIn — ministry status', () => {
   });
 
   const signIn = (email = 'aminata@moh.gov.sl') =>
-    service.signIn({ email, password: 'Password@123' } as any, '127.0.0.1');
+    service.signIn({ email, password: 'Password@123' }, '127.0.0.1');
 
   it('refuses a user whose ministry is deactivated', async () => {
     prisma.user.findUnique.mockResolvedValue(
