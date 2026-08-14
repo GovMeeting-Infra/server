@@ -65,6 +65,7 @@ export type EventMinAggregateOutputType = {
   checkInAnchorSetAt: Date | null
   checkInAnchorSetById: string | null
   allowGuestCheckIn: boolean | null
+  requireGeofence: boolean | null
   bannerImage: string | null
   contactEmail: string | null
   contactPhone: string | null
@@ -99,6 +100,7 @@ export type EventMaxAggregateOutputType = {
   checkInAnchorSetAt: Date | null
   checkInAnchorSetById: string | null
   allowGuestCheckIn: boolean | null
+  requireGeofence: boolean | null
   bannerImage: string | null
   contactEmail: string | null
   contactPhone: string | null
@@ -133,6 +135,7 @@ export type EventCountAggregateOutputType = {
   checkInAnchorSetAt: number
   checkInAnchorSetById: number
   allowGuestCheckIn: number
+  requireGeofence: number
   bannerImage: number
   contactEmail: number
   contactPhone: number
@@ -187,6 +190,7 @@ export type EventMinAggregateInputType = {
   checkInAnchorSetAt?: true
   checkInAnchorSetById?: true
   allowGuestCheckIn?: true
+  requireGeofence?: true
   bannerImage?: true
   contactEmail?: true
   contactPhone?: true
@@ -221,6 +225,7 @@ export type EventMaxAggregateInputType = {
   checkInAnchorSetAt?: true
   checkInAnchorSetById?: true
   allowGuestCheckIn?: true
+  requireGeofence?: true
   bannerImage?: true
   contactEmail?: true
   contactPhone?: true
@@ -255,6 +260,7 @@ export type EventCountAggregateInputType = {
   checkInAnchorSetAt?: true
   checkInAnchorSetById?: true
   allowGuestCheckIn?: true
+  requireGeofence?: true
   bannerImage?: true
   contactEmail?: true
   contactPhone?: true
@@ -376,6 +382,7 @@ export type EventGroupByOutputType = {
   checkInAnchorSetAt: Date | null
   checkInAnchorSetById: string | null
   allowGuestCheckIn: boolean
+  requireGeofence: boolean
   bannerImage: string | null
   contactEmail: string | null
   contactPhone: string | null
@@ -433,6 +440,7 @@ export type EventWhereInput = {
   checkInAnchorSetAt?: Prisma.DateTimeNullableFilter<"Event"> | Date | string | null
   checkInAnchorSetById?: Prisma.StringNullableFilter<"Event"> | string | null
   allowGuestCheckIn?: Prisma.BoolFilter<"Event"> | boolean
+  requireGeofence?: Prisma.BoolFilter<"Event"> | boolean
   bannerImage?: Prisma.StringNullableFilter<"Event"> | string | null
   contactEmail?: Prisma.StringNullableFilter<"Event"> | string | null
   contactPhone?: Prisma.StringNullableFilter<"Event"> | string | null
@@ -476,6 +484,7 @@ export type EventOrderByWithRelationInput = {
   checkInAnchorSetAt?: Prisma.SortOrderInput | Prisma.SortOrder
   checkInAnchorSetById?: Prisma.SortOrderInput | Prisma.SortOrder
   allowGuestCheckIn?: Prisma.SortOrder
+  requireGeofence?: Prisma.SortOrder
   bannerImage?: Prisma.SortOrderInput | Prisma.SortOrder
   contactEmail?: Prisma.SortOrderInput | Prisma.SortOrder
   contactPhone?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -522,6 +531,7 @@ export type EventWhereUniqueInput = Prisma.AtLeast<{
   checkInAnchorSetAt?: Prisma.DateTimeNullableFilter<"Event"> | Date | string | null
   checkInAnchorSetById?: Prisma.StringNullableFilter<"Event"> | string | null
   allowGuestCheckIn?: Prisma.BoolFilter<"Event"> | boolean
+  requireGeofence?: Prisma.BoolFilter<"Event"> | boolean
   bannerImage?: Prisma.StringNullableFilter<"Event"> | string | null
   contactEmail?: Prisma.StringNullableFilter<"Event"> | string | null
   contactPhone?: Prisma.StringNullableFilter<"Event"> | string | null
@@ -565,6 +575,7 @@ export type EventOrderByWithAggregationInput = {
   checkInAnchorSetAt?: Prisma.SortOrderInput | Prisma.SortOrder
   checkInAnchorSetById?: Prisma.SortOrderInput | Prisma.SortOrder
   allowGuestCheckIn?: Prisma.SortOrder
+  requireGeofence?: Prisma.SortOrder
   bannerImage?: Prisma.SortOrderInput | Prisma.SortOrder
   contactEmail?: Prisma.SortOrderInput | Prisma.SortOrder
   contactPhone?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -607,6 +618,7 @@ export type EventScalarWhereWithAggregatesInput = {
   checkInAnchorSetAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Event"> | Date | string | null
   checkInAnchorSetById?: Prisma.StringNullableWithAggregatesFilter<"Event"> | string | null
   allowGuestCheckIn?: Prisma.BoolWithAggregatesFilter<"Event"> | boolean
+  requireGeofence?: Prisma.BoolWithAggregatesFilter<"Event"> | boolean
   bannerImage?: Prisma.StringNullableWithAggregatesFilter<"Event"> | string | null
   contactEmail?: Prisma.StringNullableWithAggregatesFilter<"Event"> | string | null
   contactPhone?: Prisma.StringNullableWithAggregatesFilter<"Event"> | string | null
@@ -641,6 +653,7 @@ export type EventCreateInput = {
   checkInAnchorSetAt?: Date | string | null
   checkInAnchorSetById?: string | null
   allowGuestCheckIn?: boolean
+  requireGeofence?: boolean
   bannerImage?: string | null
   contactEmail?: string | null
   contactPhone?: string | null
@@ -681,6 +694,7 @@ export type EventUncheckedCreateInput = {
   checkInAnchorSetAt?: Date | string | null
   checkInAnchorSetById?: string | null
   allowGuestCheckIn?: boolean
+  requireGeofence?: boolean
   bannerImage?: string | null
   contactEmail?: string | null
   contactPhone?: string | null
@@ -721,6 +735,7 @@ export type EventUpdateInput = {
   checkInAnchorSetAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   checkInAnchorSetById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   allowGuestCheckIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireGeofence?: Prisma.BoolFieldUpdateOperationsInput | boolean
   bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -761,6 +776,7 @@ export type EventUncheckedUpdateInput = {
   checkInAnchorSetAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   checkInAnchorSetById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   allowGuestCheckIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireGeofence?: Prisma.BoolFieldUpdateOperationsInput | boolean
   bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -801,6 +817,7 @@ export type EventCreateManyInput = {
   checkInAnchorSetAt?: Date | string | null
   checkInAnchorSetById?: string | null
   allowGuestCheckIn?: boolean
+  requireGeofence?: boolean
   bannerImage?: string | null
   contactEmail?: string | null
   contactPhone?: string | null
@@ -835,6 +852,7 @@ export type EventUpdateManyMutationInput = {
   checkInAnchorSetAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   checkInAnchorSetById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   allowGuestCheckIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireGeofence?: Prisma.BoolFieldUpdateOperationsInput | boolean
   bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -866,6 +884,7 @@ export type EventUncheckedUpdateManyInput = {
   checkInAnchorSetAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   checkInAnchorSetById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   allowGuestCheckIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireGeofence?: Prisma.BoolFieldUpdateOperationsInput | boolean
   bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -910,6 +929,7 @@ export type EventCountOrderByAggregateInput = {
   checkInAnchorSetAt?: Prisma.SortOrder
   checkInAnchorSetById?: Prisma.SortOrder
   allowGuestCheckIn?: Prisma.SortOrder
+  requireGeofence?: Prisma.SortOrder
   bannerImage?: Prisma.SortOrder
   contactEmail?: Prisma.SortOrder
   contactPhone?: Prisma.SortOrder
@@ -953,6 +973,7 @@ export type EventMaxOrderByAggregateInput = {
   checkInAnchorSetAt?: Prisma.SortOrder
   checkInAnchorSetById?: Prisma.SortOrder
   allowGuestCheckIn?: Prisma.SortOrder
+  requireGeofence?: Prisma.SortOrder
   bannerImage?: Prisma.SortOrder
   contactEmail?: Prisma.SortOrder
   contactPhone?: Prisma.SortOrder
@@ -987,6 +1008,7 @@ export type EventMinOrderByAggregateInput = {
   checkInAnchorSetAt?: Prisma.SortOrder
   checkInAnchorSetById?: Prisma.SortOrder
   allowGuestCheckIn?: Prisma.SortOrder
+  requireGeofence?: Prisma.SortOrder
   bannerImage?: Prisma.SortOrder
   contactEmail?: Prisma.SortOrder
   contactPhone?: Prisma.SortOrder
@@ -1301,6 +1323,7 @@ export type EventCreateWithoutOrganizerInput = {
   checkInAnchorSetAt?: Date | string | null
   checkInAnchorSetById?: string | null
   allowGuestCheckIn?: boolean
+  requireGeofence?: boolean
   bannerImage?: string | null
   contactEmail?: string | null
   contactPhone?: string | null
@@ -1340,6 +1363,7 @@ export type EventUncheckedCreateWithoutOrganizerInput = {
   checkInAnchorSetAt?: Date | string | null
   checkInAnchorSetById?: string | null
   allowGuestCheckIn?: boolean
+  requireGeofence?: boolean
   bannerImage?: string | null
   contactEmail?: string | null
   contactPhone?: string | null
@@ -1408,6 +1432,7 @@ export type EventScalarWhereInput = {
   checkInAnchorSetAt?: Prisma.DateTimeNullableFilter<"Event"> | Date | string | null
   checkInAnchorSetById?: Prisma.StringNullableFilter<"Event"> | string | null
   allowGuestCheckIn?: Prisma.BoolFilter<"Event"> | boolean
+  requireGeofence?: Prisma.BoolFilter<"Event"> | boolean
   bannerImage?: Prisma.StringNullableFilter<"Event"> | string | null
   contactEmail?: Prisma.StringNullableFilter<"Event"> | string | null
   contactPhone?: Prisma.StringNullableFilter<"Event"> | string | null
@@ -1442,6 +1467,7 @@ export type EventCreateWithoutMinistryInput = {
   checkInAnchorSetAt?: Date | string | null
   checkInAnchorSetById?: string | null
   allowGuestCheckIn?: boolean
+  requireGeofence?: boolean
   bannerImage?: string | null
   contactEmail?: string | null
   contactPhone?: string | null
@@ -1481,6 +1507,7 @@ export type EventUncheckedCreateWithoutMinistryInput = {
   checkInAnchorSetAt?: Date | string | null
   checkInAnchorSetById?: string | null
   allowGuestCheckIn?: boolean
+  requireGeofence?: boolean
   bannerImage?: string | null
   contactEmail?: string | null
   contactPhone?: string | null
@@ -1530,6 +1557,7 @@ export type EventCreateWithoutInvitedMinistriesInput = {
   checkInAnchorSetAt?: Date | string | null
   checkInAnchorSetById?: string | null
   allowGuestCheckIn?: boolean
+  requireGeofence?: boolean
   bannerImage?: string | null
   contactEmail?: string | null
   contactPhone?: string | null
@@ -1569,6 +1597,7 @@ export type EventUncheckedCreateWithoutInvitedMinistriesInput = {
   checkInAnchorSetAt?: Date | string | null
   checkInAnchorSetById?: string | null
   allowGuestCheckIn?: boolean
+  requireGeofence?: boolean
   bannerImage?: string | null
   contactEmail?: string | null
   contactPhone?: string | null
@@ -1645,6 +1674,7 @@ export type EventCreateWithoutSeriesInput = {
   checkInAnchorSetAt?: Date | string | null
   checkInAnchorSetById?: string | null
   allowGuestCheckIn?: boolean
+  requireGeofence?: boolean
   bannerImage?: string | null
   contactEmail?: string | null
   contactPhone?: string | null
@@ -1684,6 +1714,7 @@ export type EventUncheckedCreateWithoutSeriesInput = {
   checkInAnchorSetAt?: Date | string | null
   checkInAnchorSetById?: string | null
   allowGuestCheckIn?: boolean
+  requireGeofence?: boolean
   bannerImage?: string | null
   contactEmail?: string | null
   contactPhone?: string | null
@@ -1749,6 +1780,7 @@ export type EventCreateWithoutCoOrganizersInput = {
   checkInAnchorSetAt?: Date | string | null
   checkInAnchorSetById?: string | null
   allowGuestCheckIn?: boolean
+  requireGeofence?: boolean
   bannerImage?: string | null
   contactEmail?: string | null
   contactPhone?: string | null
@@ -1788,6 +1820,7 @@ export type EventUncheckedCreateWithoutCoOrganizersInput = {
   checkInAnchorSetAt?: Date | string | null
   checkInAnchorSetById?: string | null
   allowGuestCheckIn?: boolean
+  requireGeofence?: boolean
   bannerImage?: string | null
   contactEmail?: string | null
   contactPhone?: string | null
@@ -1843,6 +1876,7 @@ export type EventUpdateWithoutCoOrganizersInput = {
   checkInAnchorSetAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   checkInAnchorSetById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   allowGuestCheckIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireGeofence?: Prisma.BoolFieldUpdateOperationsInput | boolean
   bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1882,6 +1916,7 @@ export type EventUncheckedUpdateWithoutCoOrganizersInput = {
   checkInAnchorSetAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   checkInAnchorSetById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   allowGuestCheckIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireGeofence?: Prisma.BoolFieldUpdateOperationsInput | boolean
   bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1921,6 +1956,7 @@ export type EventCreateWithoutAttendeesInput = {
   checkInAnchorSetAt?: Date | string | null
   checkInAnchorSetById?: string | null
   allowGuestCheckIn?: boolean
+  requireGeofence?: boolean
   bannerImage?: string | null
   contactEmail?: string | null
   contactPhone?: string | null
@@ -1960,6 +1996,7 @@ export type EventUncheckedCreateWithoutAttendeesInput = {
   checkInAnchorSetAt?: Date | string | null
   checkInAnchorSetById?: string | null
   allowGuestCheckIn?: boolean
+  requireGeofence?: boolean
   bannerImage?: string | null
   contactEmail?: string | null
   contactPhone?: string | null
@@ -2015,6 +2052,7 @@ export type EventUpdateWithoutAttendeesInput = {
   checkInAnchorSetAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   checkInAnchorSetById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   allowGuestCheckIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireGeofence?: Prisma.BoolFieldUpdateOperationsInput | boolean
   bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2054,6 +2092,7 @@ export type EventUncheckedUpdateWithoutAttendeesInput = {
   checkInAnchorSetAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   checkInAnchorSetById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   allowGuestCheckIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireGeofence?: Prisma.BoolFieldUpdateOperationsInput | boolean
   bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2093,6 +2132,7 @@ export type EventCreateWithoutAttendancesInput = {
   checkInAnchorSetAt?: Date | string | null
   checkInAnchorSetById?: string | null
   allowGuestCheckIn?: boolean
+  requireGeofence?: boolean
   bannerImage?: string | null
   contactEmail?: string | null
   contactPhone?: string | null
@@ -2132,6 +2172,7 @@ export type EventUncheckedCreateWithoutAttendancesInput = {
   checkInAnchorSetAt?: Date | string | null
   checkInAnchorSetById?: string | null
   allowGuestCheckIn?: boolean
+  requireGeofence?: boolean
   bannerImage?: string | null
   contactEmail?: string | null
   contactPhone?: string | null
@@ -2187,6 +2228,7 @@ export type EventUpdateWithoutAttendancesInput = {
   checkInAnchorSetAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   checkInAnchorSetById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   allowGuestCheckIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireGeofence?: Prisma.BoolFieldUpdateOperationsInput | boolean
   bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2226,6 +2268,7 @@ export type EventUncheckedUpdateWithoutAttendancesInput = {
   checkInAnchorSetAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   checkInAnchorSetById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   allowGuestCheckIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireGeofence?: Prisma.BoolFieldUpdateOperationsInput | boolean
   bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2265,6 +2308,7 @@ export type EventCreateWithoutQrTokensInput = {
   checkInAnchorSetAt?: Date | string | null
   checkInAnchorSetById?: string | null
   allowGuestCheckIn?: boolean
+  requireGeofence?: boolean
   bannerImage?: string | null
   contactEmail?: string | null
   contactPhone?: string | null
@@ -2304,6 +2348,7 @@ export type EventUncheckedCreateWithoutQrTokensInput = {
   checkInAnchorSetAt?: Date | string | null
   checkInAnchorSetById?: string | null
   allowGuestCheckIn?: boolean
+  requireGeofence?: boolean
   bannerImage?: string | null
   contactEmail?: string | null
   contactPhone?: string | null
@@ -2359,6 +2404,7 @@ export type EventUpdateWithoutQrTokensInput = {
   checkInAnchorSetAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   checkInAnchorSetById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   allowGuestCheckIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireGeofence?: Prisma.BoolFieldUpdateOperationsInput | boolean
   bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2398,6 +2444,7 @@ export type EventUncheckedUpdateWithoutQrTokensInput = {
   checkInAnchorSetAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   checkInAnchorSetById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   allowGuestCheckIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireGeofence?: Prisma.BoolFieldUpdateOperationsInput | boolean
   bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2437,6 +2484,7 @@ export type EventCreateWithoutMinutesInput = {
   checkInAnchorSetAt?: Date | string | null
   checkInAnchorSetById?: string | null
   allowGuestCheckIn?: boolean
+  requireGeofence?: boolean
   bannerImage?: string | null
   contactEmail?: string | null
   contactPhone?: string | null
@@ -2476,6 +2524,7 @@ export type EventUncheckedCreateWithoutMinutesInput = {
   checkInAnchorSetAt?: Date | string | null
   checkInAnchorSetById?: string | null
   allowGuestCheckIn?: boolean
+  requireGeofence?: boolean
   bannerImage?: string | null
   contactEmail?: string | null
   contactPhone?: string | null
@@ -2531,6 +2580,7 @@ export type EventUpdateWithoutMinutesInput = {
   checkInAnchorSetAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   checkInAnchorSetById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   allowGuestCheckIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireGeofence?: Prisma.BoolFieldUpdateOperationsInput | boolean
   bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2570,6 +2620,7 @@ export type EventUncheckedUpdateWithoutMinutesInput = {
   checkInAnchorSetAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   checkInAnchorSetById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   allowGuestCheckIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireGeofence?: Prisma.BoolFieldUpdateOperationsInput | boolean
   bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2609,6 +2660,7 @@ export type EventCreateManyOrganizerInput = {
   checkInAnchorSetAt?: Date | string | null
   checkInAnchorSetById?: string | null
   allowGuestCheckIn?: boolean
+  requireGeofence?: boolean
   bannerImage?: string | null
   contactEmail?: string | null
   contactPhone?: string | null
@@ -2642,6 +2694,7 @@ export type EventUpdateWithoutOrganizerInput = {
   checkInAnchorSetAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   checkInAnchorSetById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   allowGuestCheckIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireGeofence?: Prisma.BoolFieldUpdateOperationsInput | boolean
   bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2681,6 +2734,7 @@ export type EventUncheckedUpdateWithoutOrganizerInput = {
   checkInAnchorSetAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   checkInAnchorSetById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   allowGuestCheckIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireGeofence?: Prisma.BoolFieldUpdateOperationsInput | boolean
   bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2720,6 +2774,7 @@ export type EventUncheckedUpdateManyWithoutOrganizerInput = {
   checkInAnchorSetAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   checkInAnchorSetById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   allowGuestCheckIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireGeofence?: Prisma.BoolFieldUpdateOperationsInput | boolean
   bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2753,6 +2808,7 @@ export type EventCreateManyMinistryInput = {
   checkInAnchorSetAt?: Date | string | null
   checkInAnchorSetById?: string | null
   allowGuestCheckIn?: boolean
+  requireGeofence?: boolean
   bannerImage?: string | null
   contactEmail?: string | null
   contactPhone?: string | null
@@ -2786,6 +2842,7 @@ export type EventUpdateWithoutMinistryInput = {
   checkInAnchorSetAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   checkInAnchorSetById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   allowGuestCheckIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireGeofence?: Prisma.BoolFieldUpdateOperationsInput | boolean
   bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2825,6 +2882,7 @@ export type EventUncheckedUpdateWithoutMinistryInput = {
   checkInAnchorSetAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   checkInAnchorSetById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   allowGuestCheckIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireGeofence?: Prisma.BoolFieldUpdateOperationsInput | boolean
   bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2864,6 +2922,7 @@ export type EventUncheckedUpdateManyWithoutMinistryInput = {
   checkInAnchorSetAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   checkInAnchorSetById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   allowGuestCheckIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireGeofence?: Prisma.BoolFieldUpdateOperationsInput | boolean
   bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2897,6 +2956,7 @@ export type EventUpdateWithoutInvitedMinistriesInput = {
   checkInAnchorSetAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   checkInAnchorSetById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   allowGuestCheckIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireGeofence?: Prisma.BoolFieldUpdateOperationsInput | boolean
   bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2936,6 +2996,7 @@ export type EventUncheckedUpdateWithoutInvitedMinistriesInput = {
   checkInAnchorSetAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   checkInAnchorSetById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   allowGuestCheckIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireGeofence?: Prisma.BoolFieldUpdateOperationsInput | boolean
   bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2975,6 +3036,7 @@ export type EventUncheckedUpdateManyWithoutInvitedMinistriesInput = {
   checkInAnchorSetAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   checkInAnchorSetById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   allowGuestCheckIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireGeofence?: Prisma.BoolFieldUpdateOperationsInput | boolean
   bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3009,6 +3071,7 @@ export type EventCreateManySeriesInput = {
   checkInAnchorSetAt?: Date | string | null
   checkInAnchorSetById?: string | null
   allowGuestCheckIn?: boolean
+  requireGeofence?: boolean
   bannerImage?: string | null
   contactEmail?: string | null
   contactPhone?: string | null
@@ -3042,6 +3105,7 @@ export type EventUpdateWithoutSeriesInput = {
   checkInAnchorSetAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   checkInAnchorSetById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   allowGuestCheckIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireGeofence?: Prisma.BoolFieldUpdateOperationsInput | boolean
   bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3081,6 +3145,7 @@ export type EventUncheckedUpdateWithoutSeriesInput = {
   checkInAnchorSetAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   checkInAnchorSetById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   allowGuestCheckIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireGeofence?: Prisma.BoolFieldUpdateOperationsInput | boolean
   bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3120,6 +3185,7 @@ export type EventUncheckedUpdateManyWithoutSeriesInput = {
   checkInAnchorSetAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   checkInAnchorSetById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   allowGuestCheckIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireGeofence?: Prisma.BoolFieldUpdateOperationsInput | boolean
   bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3220,6 +3286,7 @@ export type EventSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   checkInAnchorSetAt?: boolean
   checkInAnchorSetById?: boolean
   allowGuestCheckIn?: boolean
+  requireGeofence?: boolean
   bannerImage?: boolean
   contactEmail?: boolean
   contactPhone?: boolean
@@ -3264,6 +3331,7 @@ export type EventSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   checkInAnchorSetAt?: boolean
   checkInAnchorSetById?: boolean
   allowGuestCheckIn?: boolean
+  requireGeofence?: boolean
   bannerImage?: boolean
   contactEmail?: boolean
   contactPhone?: boolean
@@ -3301,6 +3369,7 @@ export type EventSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   checkInAnchorSetAt?: boolean
   checkInAnchorSetById?: boolean
   allowGuestCheckIn?: boolean
+  requireGeofence?: boolean
   bannerImage?: boolean
   contactEmail?: boolean
   contactPhone?: boolean
@@ -3338,6 +3407,7 @@ export type EventSelectScalar = {
   checkInAnchorSetAt?: boolean
   checkInAnchorSetById?: boolean
   allowGuestCheckIn?: boolean
+  requireGeofence?: boolean
   bannerImage?: boolean
   contactEmail?: boolean
   contactPhone?: boolean
@@ -3351,7 +3421,7 @@ export type EventSelectScalar = {
   updatedAt?: boolean
 }
 
-export type EventOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "title" | "description" | "isPublic" | "type" | "scope" | "classification" | "colorCategory" | "startAt" | "endAt" | "venueName" | "venueLat" | "venueLng" | "geofenceRadius" | "checkInAnchorLat" | "checkInAnchorLng" | "checkInAnchorAccuracy" | "checkInAnchorSetAt" | "checkInAnchorSetById" | "allowGuestCheckIn" | "bannerImage" | "contactEmail" | "contactPhone" | "externalUrl" | "status" | "publishedAt" | "ministryId" | "organizerId" | "seriesId" | "createdAt" | "updatedAt", ExtArgs["result"]["event"]>
+export type EventOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "title" | "description" | "isPublic" | "type" | "scope" | "classification" | "colorCategory" | "startAt" | "endAt" | "venueName" | "venueLat" | "venueLng" | "geofenceRadius" | "checkInAnchorLat" | "checkInAnchorLng" | "checkInAnchorAccuracy" | "checkInAnchorSetAt" | "checkInAnchorSetById" | "allowGuestCheckIn" | "requireGeofence" | "bannerImage" | "contactEmail" | "contactPhone" | "externalUrl" | "status" | "publishedAt" | "ministryId" | "organizerId" | "seriesId" | "createdAt" | "updatedAt", ExtArgs["result"]["event"]>
 export type EventInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   ministry?: boolean | Prisma.MinistryDefaultArgs<ExtArgs>
   invitedMinistries?: boolean | Prisma.Event$invitedMinistriesArgs<ExtArgs>
@@ -3409,6 +3479,14 @@ export type $EventPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     checkInAnchorSetAt: Date | null
     checkInAnchorSetById: string | null
     allowGuestCheckIn: boolean
+    /**
+     * Refuse to mint a check-in code unless a geofence can actually be
+     * anchored. Off by default, which is how every event behaved before this
+     * existed: a poor fix at code-generation time silently minted an
+     * ungeofenced code, so whether a meeting was fenced depended on the
+     * organizer's handset rather than on anyone's decision.
+     */
+    requireGeofence: boolean
     bannerImage: string | null
     contactEmail: string | null
     contactPhone: string | null
@@ -3872,6 +3950,7 @@ export interface EventFieldRefs {
   readonly checkInAnchorSetAt: Prisma.FieldRef<"Event", 'DateTime'>
   readonly checkInAnchorSetById: Prisma.FieldRef<"Event", 'String'>
   readonly allowGuestCheckIn: Prisma.FieldRef<"Event", 'Boolean'>
+  readonly requireGeofence: Prisma.FieldRef<"Event", 'Boolean'>
   readonly bannerImage: Prisma.FieldRef<"Event", 'String'>
   readonly contactEmail: Prisma.FieldRef<"Event", 'String'>
   readonly contactPhone: Prisma.FieldRef<"Event", 'String'>

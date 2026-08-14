@@ -40,6 +40,9 @@ export type AttendanceMinAggregateOutputType = {
   userId: string | null
   guestName: string | null
   guestEmail: string | null
+  guestTitle: string | null
+  guestOrganisation: string | null
+  guestPhone: string | null
   isWalkIn: boolean | null
   signedName: string | null
   signature: string | null
@@ -60,6 +63,9 @@ export type AttendanceMaxAggregateOutputType = {
   userId: string | null
   guestName: string | null
   guestEmail: string | null
+  guestTitle: string | null
+  guestOrganisation: string | null
+  guestPhone: string | null
   isWalkIn: boolean | null
   signedName: string | null
   signature: string | null
@@ -80,6 +86,9 @@ export type AttendanceCountAggregateOutputType = {
   userId: number
   guestName: number
   guestEmail: number
+  guestTitle: number
+  guestOrganisation: number
+  guestPhone: number
   isWalkIn: number
   signedName: number
   signature: number
@@ -110,6 +119,9 @@ export type AttendanceMinAggregateInputType = {
   userId?: true
   guestName?: true
   guestEmail?: true
+  guestTitle?: true
+  guestOrganisation?: true
+  guestPhone?: true
   isWalkIn?: true
   signedName?: true
   signature?: true
@@ -130,6 +142,9 @@ export type AttendanceMaxAggregateInputType = {
   userId?: true
   guestName?: true
   guestEmail?: true
+  guestTitle?: true
+  guestOrganisation?: true
+  guestPhone?: true
   isWalkIn?: true
   signedName?: true
   signature?: true
@@ -150,6 +165,9 @@ export type AttendanceCountAggregateInputType = {
   userId?: true
   guestName?: true
   guestEmail?: true
+  guestTitle?: true
+  guestOrganisation?: true
+  guestPhone?: true
   isWalkIn?: true
   signedName?: true
   signature?: true
@@ -257,6 +275,9 @@ export type AttendanceGroupByOutputType = {
   userId: string | null
   guestName: string | null
   guestEmail: string | null
+  guestTitle: string | null
+  guestOrganisation: string | null
+  guestPhone: string | null
   isWalkIn: boolean
   signedName: string
   signature: string | null
@@ -300,6 +321,9 @@ export type AttendanceWhereInput = {
   userId?: Prisma.StringNullableFilter<"Attendance"> | string | null
   guestName?: Prisma.StringNullableFilter<"Attendance"> | string | null
   guestEmail?: Prisma.StringNullableFilter<"Attendance"> | string | null
+  guestTitle?: Prisma.StringNullableFilter<"Attendance"> | string | null
+  guestOrganisation?: Prisma.StringNullableFilter<"Attendance"> | string | null
+  guestPhone?: Prisma.StringNullableFilter<"Attendance"> | string | null
   isWalkIn?: Prisma.BoolFilter<"Attendance"> | boolean
   signedName?: Prisma.StringFilter<"Attendance"> | string
   signature?: Prisma.StringNullableFilter<"Attendance"> | string | null
@@ -322,6 +346,9 @@ export type AttendanceOrderByWithRelationInput = {
   userId?: Prisma.SortOrderInput | Prisma.SortOrder
   guestName?: Prisma.SortOrderInput | Prisma.SortOrder
   guestEmail?: Prisma.SortOrderInput | Prisma.SortOrder
+  guestTitle?: Prisma.SortOrderInput | Prisma.SortOrder
+  guestOrganisation?: Prisma.SortOrderInput | Prisma.SortOrder
+  guestPhone?: Prisma.SortOrderInput | Prisma.SortOrder
   isWalkIn?: Prisma.SortOrder
   signedName?: Prisma.SortOrder
   signature?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -349,6 +376,9 @@ export type AttendanceWhereUniqueInput = Prisma.AtLeast<{
   userId?: Prisma.StringNullableFilter<"Attendance"> | string | null
   guestName?: Prisma.StringNullableFilter<"Attendance"> | string | null
   guestEmail?: Prisma.StringNullableFilter<"Attendance"> | string | null
+  guestTitle?: Prisma.StringNullableFilter<"Attendance"> | string | null
+  guestOrganisation?: Prisma.StringNullableFilter<"Attendance"> | string | null
+  guestPhone?: Prisma.StringNullableFilter<"Attendance"> | string | null
   isWalkIn?: Prisma.BoolFilter<"Attendance"> | boolean
   signedName?: Prisma.StringFilter<"Attendance"> | string
   signature?: Prisma.StringNullableFilter<"Attendance"> | string | null
@@ -371,6 +401,9 @@ export type AttendanceOrderByWithAggregationInput = {
   userId?: Prisma.SortOrderInput | Prisma.SortOrder
   guestName?: Prisma.SortOrderInput | Prisma.SortOrder
   guestEmail?: Prisma.SortOrderInput | Prisma.SortOrder
+  guestTitle?: Prisma.SortOrderInput | Prisma.SortOrder
+  guestOrganisation?: Prisma.SortOrderInput | Prisma.SortOrder
+  guestPhone?: Prisma.SortOrderInput | Prisma.SortOrder
   isWalkIn?: Prisma.SortOrder
   signedName?: Prisma.SortOrder
   signature?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -399,6 +432,9 @@ export type AttendanceScalarWhereWithAggregatesInput = {
   userId?: Prisma.StringNullableWithAggregatesFilter<"Attendance"> | string | null
   guestName?: Prisma.StringNullableWithAggregatesFilter<"Attendance"> | string | null
   guestEmail?: Prisma.StringNullableWithAggregatesFilter<"Attendance"> | string | null
+  guestTitle?: Prisma.StringNullableWithAggregatesFilter<"Attendance"> | string | null
+  guestOrganisation?: Prisma.StringNullableWithAggregatesFilter<"Attendance"> | string | null
+  guestPhone?: Prisma.StringNullableWithAggregatesFilter<"Attendance"> | string | null
   isWalkIn?: Prisma.BoolWithAggregatesFilter<"Attendance"> | boolean
   signedName?: Prisma.StringWithAggregatesFilter<"Attendance"> | string
   signature?: Prisma.StringNullableWithAggregatesFilter<"Attendance"> | string | null
@@ -417,6 +453,9 @@ export type AttendanceCreateInput = {
   id?: string
   guestName?: string | null
   guestEmail?: string | null
+  guestTitle?: string | null
+  guestOrganisation?: string | null
+  guestPhone?: string | null
   isWalkIn?: boolean
   signedName: string
   signature?: string | null
@@ -439,6 +478,9 @@ export type AttendanceUncheckedCreateInput = {
   userId?: string | null
   guestName?: string | null
   guestEmail?: string | null
+  guestTitle?: string | null
+  guestOrganisation?: string | null
+  guestPhone?: string | null
   isWalkIn?: boolean
   signedName: string
   signature?: string | null
@@ -457,6 +499,9 @@ export type AttendanceUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   guestName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   guestEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guestTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guestOrganisation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guestPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isWalkIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
   signedName?: Prisma.StringFieldUpdateOperationsInput | string
   signature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -479,6 +524,9 @@ export type AttendanceUncheckedUpdateInput = {
   userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   guestName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   guestEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guestTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guestOrganisation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guestPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isWalkIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
   signedName?: Prisma.StringFieldUpdateOperationsInput | string
   signature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -499,6 +547,9 @@ export type AttendanceCreateManyInput = {
   userId?: string | null
   guestName?: string | null
   guestEmail?: string | null
+  guestTitle?: string | null
+  guestOrganisation?: string | null
+  guestPhone?: string | null
   isWalkIn?: boolean
   signedName: string
   signature?: string | null
@@ -517,6 +568,9 @@ export type AttendanceUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   guestName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   guestEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guestTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guestOrganisation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guestPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isWalkIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
   signedName?: Prisma.StringFieldUpdateOperationsInput | string
   signature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -537,6 +591,9 @@ export type AttendanceUncheckedUpdateManyInput = {
   userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   guestName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   guestEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guestTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guestOrganisation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guestPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isWalkIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
   signedName?: Prisma.StringFieldUpdateOperationsInput | string
   signature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -577,6 +634,9 @@ export type AttendanceCountOrderByAggregateInput = {
   userId?: Prisma.SortOrder
   guestName?: Prisma.SortOrder
   guestEmail?: Prisma.SortOrder
+  guestTitle?: Prisma.SortOrder
+  guestOrganisation?: Prisma.SortOrder
+  guestPhone?: Prisma.SortOrder
   isWalkIn?: Prisma.SortOrder
   signedName?: Prisma.SortOrder
   signature?: Prisma.SortOrder
@@ -601,6 +661,9 @@ export type AttendanceMaxOrderByAggregateInput = {
   userId?: Prisma.SortOrder
   guestName?: Prisma.SortOrder
   guestEmail?: Prisma.SortOrder
+  guestTitle?: Prisma.SortOrder
+  guestOrganisation?: Prisma.SortOrder
+  guestPhone?: Prisma.SortOrder
   isWalkIn?: Prisma.SortOrder
   signedName?: Prisma.SortOrder
   signature?: Prisma.SortOrder
@@ -621,6 +684,9 @@ export type AttendanceMinOrderByAggregateInput = {
   userId?: Prisma.SortOrder
   guestName?: Prisma.SortOrder
   guestEmail?: Prisma.SortOrder
+  guestTitle?: Prisma.SortOrder
+  guestOrganisation?: Prisma.SortOrder
+  guestPhone?: Prisma.SortOrder
   isWalkIn?: Prisma.SortOrder
   signedName?: Prisma.SortOrder
   signature?: Prisma.SortOrder
@@ -735,6 +801,9 @@ export type AttendanceCreateWithoutUserInput = {
   id?: string
   guestName?: string | null
   guestEmail?: string | null
+  guestTitle?: string | null
+  guestOrganisation?: string | null
+  guestPhone?: string | null
   isWalkIn?: boolean
   signedName: string
   signature?: string | null
@@ -755,6 +824,9 @@ export type AttendanceUncheckedCreateWithoutUserInput = {
   eventId: string
   guestName?: string | null
   guestEmail?: string | null
+  guestTitle?: string | null
+  guestOrganisation?: string | null
+  guestPhone?: string | null
   isWalkIn?: boolean
   signedName: string
   signature?: string | null
@@ -804,6 +876,9 @@ export type AttendanceScalarWhereInput = {
   userId?: Prisma.StringNullableFilter<"Attendance"> | string | null
   guestName?: Prisma.StringNullableFilter<"Attendance"> | string | null
   guestEmail?: Prisma.StringNullableFilter<"Attendance"> | string | null
+  guestTitle?: Prisma.StringNullableFilter<"Attendance"> | string | null
+  guestOrganisation?: Prisma.StringNullableFilter<"Attendance"> | string | null
+  guestPhone?: Prisma.StringNullableFilter<"Attendance"> | string | null
   isWalkIn?: Prisma.BoolFilter<"Attendance"> | boolean
   signedName?: Prisma.StringFilter<"Attendance"> | string
   signature?: Prisma.StringNullableFilter<"Attendance"> | string | null
@@ -822,6 +897,9 @@ export type AttendanceCreateWithoutEventInput = {
   id?: string
   guestName?: string | null
   guestEmail?: string | null
+  guestTitle?: string | null
+  guestOrganisation?: string | null
+  guestPhone?: string | null
   isWalkIn?: boolean
   signedName: string
   signature?: string | null
@@ -842,6 +920,9 @@ export type AttendanceUncheckedCreateWithoutEventInput = {
   userId?: string | null
   guestName?: string | null
   guestEmail?: string | null
+  guestTitle?: string | null
+  guestOrganisation?: string | null
+  guestPhone?: string | null
   isWalkIn?: boolean
   signedName: string
   signature?: string | null
@@ -887,6 +968,9 @@ export type AttendanceCreateManyUserInput = {
   eventId: string
   guestName?: string | null
   guestEmail?: string | null
+  guestTitle?: string | null
+  guestOrganisation?: string | null
+  guestPhone?: string | null
   isWalkIn?: boolean
   signedName: string
   signature?: string | null
@@ -905,6 +989,9 @@ export type AttendanceUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   guestName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   guestEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guestTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guestOrganisation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guestPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isWalkIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
   signedName?: Prisma.StringFieldUpdateOperationsInput | string
   signature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -925,6 +1012,9 @@ export type AttendanceUncheckedUpdateWithoutUserInput = {
   eventId?: Prisma.StringFieldUpdateOperationsInput | string
   guestName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   guestEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guestTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guestOrganisation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guestPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isWalkIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
   signedName?: Prisma.StringFieldUpdateOperationsInput | string
   signature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -944,6 +1034,9 @@ export type AttendanceUncheckedUpdateManyWithoutUserInput = {
   eventId?: Prisma.StringFieldUpdateOperationsInput | string
   guestName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   guestEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guestTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guestOrganisation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guestPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isWalkIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
   signedName?: Prisma.StringFieldUpdateOperationsInput | string
   signature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -963,6 +1056,9 @@ export type AttendanceCreateManyEventInput = {
   userId?: string | null
   guestName?: string | null
   guestEmail?: string | null
+  guestTitle?: string | null
+  guestOrganisation?: string | null
+  guestPhone?: string | null
   isWalkIn?: boolean
   signedName: string
   signature?: string | null
@@ -981,6 +1077,9 @@ export type AttendanceUpdateWithoutEventInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   guestName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   guestEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guestTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guestOrganisation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guestPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isWalkIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
   signedName?: Prisma.StringFieldUpdateOperationsInput | string
   signature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1001,6 +1100,9 @@ export type AttendanceUncheckedUpdateWithoutEventInput = {
   userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   guestName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   guestEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guestTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guestOrganisation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guestPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isWalkIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
   signedName?: Prisma.StringFieldUpdateOperationsInput | string
   signature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1020,6 +1122,9 @@ export type AttendanceUncheckedUpdateManyWithoutEventInput = {
   userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   guestName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   guestEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guestTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guestOrganisation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guestPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isWalkIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
   signedName?: Prisma.StringFieldUpdateOperationsInput | string
   signature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1042,6 +1147,9 @@ export type AttendanceSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   userId?: boolean
   guestName?: boolean
   guestEmail?: boolean
+  guestTitle?: boolean
+  guestOrganisation?: boolean
+  guestPhone?: boolean
   isWalkIn?: boolean
   signedName?: boolean
   signature?: boolean
@@ -1064,6 +1172,9 @@ export type AttendanceSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ex
   userId?: boolean
   guestName?: boolean
   guestEmail?: boolean
+  guestTitle?: boolean
+  guestOrganisation?: boolean
+  guestPhone?: boolean
   isWalkIn?: boolean
   signedName?: boolean
   signature?: boolean
@@ -1086,6 +1197,9 @@ export type AttendanceSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ex
   userId?: boolean
   guestName?: boolean
   guestEmail?: boolean
+  guestTitle?: boolean
+  guestOrganisation?: boolean
+  guestPhone?: boolean
   isWalkIn?: boolean
   signedName?: boolean
   signature?: boolean
@@ -1108,6 +1222,9 @@ export type AttendanceSelectScalar = {
   userId?: boolean
   guestName?: boolean
   guestEmail?: boolean
+  guestTitle?: boolean
+  guestOrganisation?: boolean
+  guestPhone?: boolean
   isWalkIn?: boolean
   signedName?: boolean
   signature?: boolean
@@ -1122,7 +1239,7 @@ export type AttendanceSelectScalar = {
   userAgent?: boolean
 }
 
-export type AttendanceOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "eventId" | "userId" | "guestName" | "guestEmail" | "isWalkIn" | "signedName" | "signature" | "checkInAt" | "checkInMethod" | "lat" | "lng" | "gpsAccuracy" | "withinGeofence" | "mockLocationFlag" | "ipAddress" | "userAgent", ExtArgs["result"]["attendance"]>
+export type AttendanceOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "eventId" | "userId" | "guestName" | "guestEmail" | "guestTitle" | "guestOrganisation" | "guestPhone" | "isWalkIn" | "signedName" | "signature" | "checkInAt" | "checkInMethod" | "lat" | "lng" | "gpsAccuracy" | "withinGeofence" | "mockLocationFlag" | "ipAddress" | "userAgent", ExtArgs["result"]["attendance"]>
 export type AttendanceInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   event?: boolean | Prisma.EventDefaultArgs<ExtArgs>
   user?: boolean | Prisma.Attendance$userArgs<ExtArgs>
@@ -1148,6 +1265,9 @@ export type $AttendancePayload<ExtArgs extends runtime.Types.Extensions.Internal
     userId: string | null
     guestName: string | null
     guestEmail: string | null
+    guestTitle: string | null
+    guestOrganisation: string | null
+    guestPhone: string | null
     isWalkIn: boolean
     signedName: string
     signature: string | null
@@ -1590,6 +1710,9 @@ export interface AttendanceFieldRefs {
   readonly userId: Prisma.FieldRef<"Attendance", 'String'>
   readonly guestName: Prisma.FieldRef<"Attendance", 'String'>
   readonly guestEmail: Prisma.FieldRef<"Attendance", 'String'>
+  readonly guestTitle: Prisma.FieldRef<"Attendance", 'String'>
+  readonly guestOrganisation: Prisma.FieldRef<"Attendance", 'String'>
+  readonly guestPhone: Prisma.FieldRef<"Attendance", 'String'>
   readonly isWalkIn: Prisma.FieldRef<"Attendance", 'Boolean'>
   readonly signedName: Prisma.FieldRef<"Attendance", 'String'>
   readonly signature: Prisma.FieldRef<"Attendance", 'String'>

@@ -334,6 +334,9 @@ export class ReportsService {
         'Date',
         'User',
         'Email',
+        'Title',
+        'Organisation',
+        'Phone',
         'Checked In At',
         'Geofence Verified',
         'Walk-in',
@@ -347,6 +350,11 @@ export class ReportsService {
         // Guests have no linked user, so fall back to what they signed with.
         attendance.user?.name ?? attendance.guestName ?? attendance.signedName,
         attendance.user?.email ?? attendance.guestEmail ?? '',
+        // Collected from guests only, so blank for staff and for walk-ins an
+        // organizer recorded at the desk.
+        attendance.guestTitle ?? '',
+        attendance.guestOrganisation ?? '',
+        attendance.guestPhone ?? '',
         attendance.checkInAt.toISOString(),
         // null means no check-in area was set, which is not the same as
         // failing the check.

@@ -187,6 +187,12 @@ model Event {
   // back-relation on User and an FK for something never joined on.
   checkInAnchorSetById    String?
   allowGuestCheckIn       Boolean  @default(true)
+  /// Refuse to mint a check-in code unless a geofence can actually be
+  /// anchored. Off by default, which is how every event behaved before this
+  /// existed: a poor fix at code-generation time silently minted an
+  /// ungeofenced code, so whether a meeting was fenced depended on the
+  /// organizer's handset rather than on anyone's decision.
+  requireGeofence         Boolean  @default(false)
   bannerImage             String?
   contactEmail            String?
   contactPhone            String?
@@ -325,6 +331,13 @@ model Attendance {
   userId            String?
   guestName         String?
   guestEmail        String?
+  // Required of a guest checking themselves in, but nullable here: every row
+  // written before these existed has none, and an organizer recording a
+  // walk-in at the desk is not asked for them. Staff rows carry none either —
+  // a signed-in user's title and ministry are on their account.
+  guestTitle        String?
+  guestOrganisation String?
+  guestPhone        String?
   // A guest with no matching EventAttendee invite for this event.
   isWalkIn          Boolean  @default(false)
   signedName        String
