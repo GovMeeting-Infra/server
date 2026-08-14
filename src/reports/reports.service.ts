@@ -15,7 +15,6 @@ interface ScopedUser {
 import {
   EventStatsDto,
   AttendanceStatsDto,
-  RoomStatsDto,
   UserStatsDto,
   ActionItemStatsDto,
   CheckInMethodsDto,
@@ -53,7 +52,6 @@ export class ReportsService {
     const [
       eventStats,
       attendanceStats,
-      roomStats,
       userStats,
       actionItemStats,
       checkInMethods,
@@ -61,7 +59,6 @@ export class ReportsService {
     ] = await Promise.all([
       this.getEventStats(scope),
       this.getAttendanceStats(scope),
-      this.getRoomStats(scope),
       this.getUserStats(scope),
       this.getActionItemStats(scope),
       this.getCheckInMethods(scope),
@@ -71,7 +68,6 @@ export class ReportsService {
     const data: AnalyticsDashboardDto = {
       eventStats,
       attendanceStats,
-      roomStats,
       userStats,
       actionItemStats,
       checkInMethods,
@@ -218,50 +214,6 @@ export class ReportsService {
     return {
       totalCheckIns,
       attendanceRate: parseFloat(attendanceRate.toFixed(2)),
-    };
-  }
-
-  private async getRoomStats(
-    scope: Record<string, unknown>,
-  ): Promise<RoomStatsDto> {
-    const now = new Date();
-    const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-
-    const [totalRooms, activeRooms, bookingsThisMonth, allRoomBookings] =
-      await Promise.all([
-        (this.prisma as any).room.count({ where: { ...scope } }),
-        (this.prisma as any).room.count({ where: { ...scope, active: true } }),
-        (this.prisma as any).roomBooking.count({
-          where: {
-            ...scope,
-            createdAt: { gte: monthAgo },
-            status: 'CONFIRMED',
-          },
-        }),
-        (this.prisma as any).roomBooking.findMany({
-          where: { ...scope, status: 'CONFIRMED' },
-          select: { startTime: true, endTime: true },
-        }),
-      ]);
-
-    let averageUtilization = 0;
-    if (allRoomBookings.length > 0) {
-      const totalHours = allRoomBookings.reduce((sum: number, booking: any) => {
-        const hours =
-          (booking.endTime.getTime() - booking.startTime.getTime()) /
-          (1000 * 60 * 60);
-        return sum + hours;
-      }, 0);
-      averageUtilization = parseFloat(
-        (totalHours / (activeRooms * 24 * 30)).toFixed(2),
-      );
-    }
-
-    return {
-      totalRooms,
-      activeRooms,
-      bookingsThisMonth,
-      averageUtilization: Math.min(averageUtilization, 1),
     };
   }
 

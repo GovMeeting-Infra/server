@@ -22,7 +22,6 @@ describe('SearchService.search', () => {
     prisma = {
       event: { findMany: jest.fn().mockResolvedValue([]) },
       minutes: { findMany: jest.fn().mockResolvedValue([]) },
-      room: { findMany: jest.fn().mockResolvedValue([]) },
       user: { findMany: jest.fn().mockResolvedValue([]) },
     };
     service = new SearchService(prisma);
@@ -58,7 +57,6 @@ describe('SearchService.search', () => {
 
       expect(whereFor('minutes').event).toEqual({ ministryId: 'min-moh' });
       expect(whereFor('event').ministryId).toBe('min-moh');
-      expect(whereFor('room').ministryId).toBe('min-moh');
     });
 
     it('confines the people search to the searcher own ministry', async () => {

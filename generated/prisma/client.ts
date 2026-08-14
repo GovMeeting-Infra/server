@@ -126,7 +126,15 @@ export type MinutesAccessToken = Prisma.MinutesAccessTokenModel
 export type ActionItem = Prisma.ActionItemModel
 /**
  * Model Room
+ * WITHDRAWN. Room booking was replaced by a free-text location on the event —
+ * see the 20260814120000_location_replaces_rooms migration, which copied each
+ * room's name into the event's venueName. No application code reads this model
+ * or RoomBooking any more.
  * 
+ * Kept declared so Prisma and the database stay in agreement: deleting the
+ * models here would make the next `migrate dev` generate a DROP, destroying
+ * every booking record. Drop them deliberately, in their own migration, once
+ * the history is genuinely no longer wanted.
  */
 export type Room = Prisma.RoomModel
 /**

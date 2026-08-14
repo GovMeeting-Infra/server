@@ -88,10 +88,6 @@ export class CreateEventDto {
 
   @IsOptional()
   @IsString()
-  roomId?: string;
-
-  @IsOptional()
-  @IsString()
   colorCategory?: string;
 
   /** Banner image URL. Stored as a string; no upload pipeline here. */

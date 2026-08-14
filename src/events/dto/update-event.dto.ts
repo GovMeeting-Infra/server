@@ -69,10 +69,6 @@ export class UpdateEventDto {
 
   @IsOptional()
   @IsString()
-  roomId?: string;
-
-  @IsOptional()
-  @IsString()
   colorCategory?: string;
 
   @IsOptional()
