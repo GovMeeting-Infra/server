@@ -40,7 +40,6 @@ model User {
   minutesPublished Minutes[] @relation("publishedBy")
   assignedActionItems ActionItem[] @relation("actionOwner")
   createdActionItems ActionItem[] @relation("actionAssignedBy")
-  roomBookings   RoomBooking[]
   auditLogs      AuditLog[]
   notifications  Notification[]
   settingsChanged PlatformSetting[]
@@ -124,8 +123,6 @@ model Ministry {
   users                 User[]
   events                Event[]
   invitedToEvents       Event[]  @relation("EventInvitedMinistries")
-  rooms                 Room[]
-  roomBookings          RoomBooking[]
   auditLogs             AuditLog[]
   notifications         Notification[]
 
@@ -199,13 +196,11 @@ model Event {
   ministryId              String
   organizerId             String?
   seriesId                String?
-  roomId                  String?
   createdAt               DateTime @default(now())
   updatedAt               DateTime @updatedAt
 
   ministry                Ministry @relation(fields: [ministryId], references: [id], onDelete: Cascade)
   invitedMinistries       Ministry[] @relation("EventInvitedMinistries")
-  room                    Room? @relation(fields: [roomId], references: [id])
   organizer               User? @relation("organizer", fields: [organizerId], references: [id])
   series                  EventSeries? @relation(fields: [seriesId], references: [id])
   coOrganizers            EventCoOrganizer[]
@@ -496,77 +491,6 @@ enum ActionItemStatus {
 // ============================================================================
 // ROOMS & BOOKINGS
 // ============================================================================
-
-/// WITHDRAWN. Room booking was replaced by a free-text location on the event —
-/// see the 20260814120000_location_replaces_rooms migration, which copied each
-/// room's name into the event's venueName. No application code reads this model
-/// or RoomBooking any more.
-///
-/// Kept declared so Prisma and the database stay in agreement: deleting the
-/// models here would make the next `migrate dev` generate a DROP, destroying
-/// every booking record. Drop them deliberately, in their own migration, once
-/// the history is genuinely no longer wanted.
-model Room {
-  id                String   @id @default(cuid())
-  ministryId        String
-  name              String
-  location          String
-  capacity          Int
-  amenities         String[]
-  latitude          Float?
-  longitude         Float?
-  active            Boolean  @default(true)
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-
-  ministry          Ministry @relation(fields: [ministryId], references: [id], onDelete: Cascade)
-  events            Event[]
-  bookings          RoomBooking[]
-
-  @@unique([ministryId, name])
-  @@index([ministryId])
-}
-
-model RoomBooking {
-  id                String   @id @default(cuid())
-  ministryId        String
-  roomId            String
-  userId            String
-  startTime         DateTime
-  endTime           DateTime
-  purpose           BookingPurpose
-  attendeeCount     Int
-  notes             String?
-  status            BookingStatus @default(CONFIRMED)
-  cancelledAt       DateTime?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-
-  ministry          Ministry @relation(fields: [ministryId], references: [id], onDelete: Cascade)
-  room              Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
-  bookedBy          User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([roomId, startTime, endTime])
-  @@index([ministryId])
-  @@index([roomId])
-  @@index([startTime])
-  @@index([userId])
-}
-
-enum BookingPurpose {
-  MEETING
-  TRAINING
-  CONFERENCE
-  WORKSHOP
-  INTERVIEW
-  OTHER
-}
-
-enum BookingStatus {
-  CONFIRMED
-  CANCELLED
-  TENTATIVE
-}
 
 // ============================================================================
 // NOTIFICATIONS

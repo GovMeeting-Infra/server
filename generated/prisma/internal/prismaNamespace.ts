@@ -412,8 +412,6 @@ export const ModelName = {
   Minutes: 'Minutes',
   MinutesAccessToken: 'MinutesAccessToken',
   ActionItem: 'ActionItem',
-  Room: 'Room',
-  RoomBooking: 'RoomBooking',
   Notification: 'Notification',
   AuditLog: 'AuditLog',
   PlatformSetting: 'PlatformSetting'
@@ -432,7 +430,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "session" | "account" | "verification" | "ministry" | "userPreferences" | "event" | "eventSeries" | "eventCoOrganizer" | "eventAttendee" | "attendance" | "qRToken" | "minutes" | "minutesAccessToken" | "actionItem" | "room" | "roomBooking" | "notification" | "auditLog" | "platformSetting"
+    modelProps: "user" | "session" | "account" | "verification" | "ministry" | "userPreferences" | "event" | "eventSeries" | "eventCoOrganizer" | "eventAttendee" | "attendance" | "qRToken" | "minutes" | "minutesAccessToken" | "actionItem" | "notification" | "auditLog" | "platformSetting"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1546,154 +1544,6 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
-    Room: {
-      payload: Prisma.$RoomPayload<ExtArgs>
-      fields: Prisma.RoomFieldRefs
-      operations: {
-        findUnique: {
-          args: Prisma.RoomFindUniqueArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$RoomPayload> | null
-        }
-        findUniqueOrThrow: {
-          args: Prisma.RoomFindUniqueOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$RoomPayload>
-        }
-        findFirst: {
-          args: Prisma.RoomFindFirstArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$RoomPayload> | null
-        }
-        findFirstOrThrow: {
-          args: Prisma.RoomFindFirstOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$RoomPayload>
-        }
-        findMany: {
-          args: Prisma.RoomFindManyArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$RoomPayload>[]
-        }
-        create: {
-          args: Prisma.RoomCreateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$RoomPayload>
-        }
-        createMany: {
-          args: Prisma.RoomCreateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        createManyAndReturn: {
-          args: Prisma.RoomCreateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$RoomPayload>[]
-        }
-        delete: {
-          args: Prisma.RoomDeleteArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$RoomPayload>
-        }
-        update: {
-          args: Prisma.RoomUpdateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$RoomPayload>
-        }
-        deleteMany: {
-          args: Prisma.RoomDeleteManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateMany: {
-          args: Prisma.RoomUpdateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateManyAndReturn: {
-          args: Prisma.RoomUpdateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$RoomPayload>[]
-        }
-        upsert: {
-          args: Prisma.RoomUpsertArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$RoomPayload>
-        }
-        aggregate: {
-          args: Prisma.RoomAggregateArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AggregateRoom>
-        }
-        groupBy: {
-          args: Prisma.RoomGroupByArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.RoomGroupByOutputType>[]
-        }
-        count: {
-          args: Prisma.RoomCountArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.RoomCountAggregateOutputType> | number
-        }
-      }
-    }
-    RoomBooking: {
-      payload: Prisma.$RoomBookingPayload<ExtArgs>
-      fields: Prisma.RoomBookingFieldRefs
-      operations: {
-        findUnique: {
-          args: Prisma.RoomBookingFindUniqueArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$RoomBookingPayload> | null
-        }
-        findUniqueOrThrow: {
-          args: Prisma.RoomBookingFindUniqueOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$RoomBookingPayload>
-        }
-        findFirst: {
-          args: Prisma.RoomBookingFindFirstArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$RoomBookingPayload> | null
-        }
-        findFirstOrThrow: {
-          args: Prisma.RoomBookingFindFirstOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$RoomBookingPayload>
-        }
-        findMany: {
-          args: Prisma.RoomBookingFindManyArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$RoomBookingPayload>[]
-        }
-        create: {
-          args: Prisma.RoomBookingCreateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$RoomBookingPayload>
-        }
-        createMany: {
-          args: Prisma.RoomBookingCreateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        createManyAndReturn: {
-          args: Prisma.RoomBookingCreateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$RoomBookingPayload>[]
-        }
-        delete: {
-          args: Prisma.RoomBookingDeleteArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$RoomBookingPayload>
-        }
-        update: {
-          args: Prisma.RoomBookingUpdateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$RoomBookingPayload>
-        }
-        deleteMany: {
-          args: Prisma.RoomBookingDeleteManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateMany: {
-          args: Prisma.RoomBookingUpdateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateManyAndReturn: {
-          args: Prisma.RoomBookingUpdateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$RoomBookingPayload>[]
-        }
-        upsert: {
-          args: Prisma.RoomBookingUpsertArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$RoomBookingPayload>
-        }
-        aggregate: {
-          args: Prisma.RoomBookingAggregateArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AggregateRoomBooking>
-        }
-        groupBy: {
-          args: Prisma.RoomBookingGroupByArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.RoomBookingGroupByOutputType>[]
-        }
-        count: {
-          args: Prisma.RoomBookingCountArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.RoomBookingCountAggregateOutputType> | number
-        }
-      }
-    }
     Notification: {
       payload: Prisma.$NotificationPayload<ExtArgs>
       fields: Prisma.NotificationFieldRefs
@@ -2086,7 +1936,6 @@ export const EventScalarFieldEnum = {
   ministryId: 'ministryId',
   organizerId: 'organizerId',
   seriesId: 'seriesId',
-  roomId: 'roomId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -2220,42 +2069,6 @@ export const ActionItemScalarFieldEnum = {
 } as const
 
 export type ActionItemScalarFieldEnum = (typeof ActionItemScalarFieldEnum)[keyof typeof ActionItemScalarFieldEnum]
-
-
-export const RoomScalarFieldEnum = {
-  id: 'id',
-  ministryId: 'ministryId',
-  name: 'name',
-  location: 'location',
-  capacity: 'capacity',
-  amenities: 'amenities',
-  latitude: 'latitude',
-  longitude: 'longitude',
-  active: 'active',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-} as const
-
-export type RoomScalarFieldEnum = (typeof RoomScalarFieldEnum)[keyof typeof RoomScalarFieldEnum]
-
-
-export const RoomBookingScalarFieldEnum = {
-  id: 'id',
-  ministryId: 'ministryId',
-  roomId: 'roomId',
-  userId: 'userId',
-  startTime: 'startTime',
-  endTime: 'endTime',
-  purpose: 'purpose',
-  attendeeCount: 'attendeeCount',
-  notes: 'notes',
-  status: 'status',
-  cancelledAt: 'cancelledAt',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-} as const
-
-export type RoomBookingScalarFieldEnum = (typeof RoomBookingScalarFieldEnum)[keyof typeof RoomBookingScalarFieldEnum]
 
 
 export const NotificationScalarFieldEnum = {
@@ -2588,34 +2401,6 @@ export type ListEnumPointTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$Pr
 
 
 /**
- * Reference to a field of type 'BookingPurpose'
- */
-export type EnumBookingPurposeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BookingPurpose'>
-    
-
-
-/**
- * Reference to a field of type 'BookingPurpose[]'
- */
-export type ListEnumBookingPurposeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BookingPurpose[]'>
-    
-
-
-/**
- * Reference to a field of type 'BookingStatus'
- */
-export type EnumBookingStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BookingStatus'>
-    
-
-
-/**
- * Reference to a field of type 'BookingStatus[]'
- */
-export type ListEnumBookingStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BookingStatus[]'>
-    
-
-
-/**
  * Reference to a field of type 'AuditStatus'
  */
 export type EnumAuditStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AuditStatus'>
@@ -2808,8 +2593,6 @@ export type GlobalOmitConfig = {
   minutes?: Prisma.MinutesOmit
   minutesAccessToken?: Prisma.MinutesAccessTokenOmit
   actionItem?: Prisma.ActionItemOmit
-  room?: Prisma.RoomOmit
-  roomBooking?: Prisma.RoomBookingOmit
   notification?: Prisma.NotificationOmit
   auditLog?: Prisma.AuditLogOmit
   platformSetting?: Prisma.PlatformSettingOmit

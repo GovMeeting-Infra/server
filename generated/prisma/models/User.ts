@@ -308,7 +308,6 @@ export type UserWhereInput = {
   minutesPublished?: Prisma.MinutesListRelationFilter
   assignedActionItems?: Prisma.ActionItemListRelationFilter
   createdActionItems?: Prisma.ActionItemListRelationFilter
-  roomBookings?: Prisma.RoomBookingListRelationFilter
   auditLogs?: Prisma.AuditLogListRelationFilter
   notifications?: Prisma.NotificationListRelationFilter
   settingsChanged?: Prisma.PlatformSettingListRelationFilter
@@ -342,7 +341,6 @@ export type UserOrderByWithRelationInput = {
   minutesPublished?: Prisma.MinutesOrderByRelationAggregateInput
   assignedActionItems?: Prisma.ActionItemOrderByRelationAggregateInput
   createdActionItems?: Prisma.ActionItemOrderByRelationAggregateInput
-  roomBookings?: Prisma.RoomBookingOrderByRelationAggregateInput
   auditLogs?: Prisma.AuditLogOrderByRelationAggregateInput
   notifications?: Prisma.NotificationOrderByRelationAggregateInput
   settingsChanged?: Prisma.PlatformSettingOrderByRelationAggregateInput
@@ -379,7 +377,6 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   minutesPublished?: Prisma.MinutesListRelationFilter
   assignedActionItems?: Prisma.ActionItemListRelationFilter
   createdActionItems?: Prisma.ActionItemListRelationFilter
-  roomBookings?: Prisma.RoomBookingListRelationFilter
   auditLogs?: Prisma.AuditLogListRelationFilter
   notifications?: Prisma.NotificationListRelationFilter
   settingsChanged?: Prisma.PlatformSettingListRelationFilter
@@ -456,7 +453,6 @@ export type UserCreateInput = {
   minutesPublished?: Prisma.MinutesCreateNestedManyWithoutPublishedByInput
   assignedActionItems?: Prisma.ActionItemCreateNestedManyWithoutOwnerInput
   createdActionItems?: Prisma.ActionItemCreateNestedManyWithoutAssignedByInput
-  roomBookings?: Prisma.RoomBookingCreateNestedManyWithoutBookedByInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   settingsChanged?: Prisma.PlatformSettingCreateNestedManyWithoutUpdatedByInput
@@ -489,7 +485,6 @@ export type UserUncheckedCreateInput = {
   minutesPublished?: Prisma.MinutesUncheckedCreateNestedManyWithoutPublishedByInput
   assignedActionItems?: Prisma.ActionItemUncheckedCreateNestedManyWithoutOwnerInput
   createdActionItems?: Prisma.ActionItemUncheckedCreateNestedManyWithoutAssignedByInput
-  roomBookings?: Prisma.RoomBookingUncheckedCreateNestedManyWithoutBookedByInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   settingsChanged?: Prisma.PlatformSettingUncheckedCreateNestedManyWithoutUpdatedByInput
@@ -522,7 +517,6 @@ export type UserUpdateInput = {
   minutesPublished?: Prisma.MinutesUpdateManyWithoutPublishedByNestedInput
   assignedActionItems?: Prisma.ActionItemUpdateManyWithoutOwnerNestedInput
   createdActionItems?: Prisma.ActionItemUpdateManyWithoutAssignedByNestedInput
-  roomBookings?: Prisma.RoomBookingUpdateManyWithoutBookedByNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   settingsChanged?: Prisma.PlatformSettingUpdateManyWithoutUpdatedByNestedInput
@@ -555,7 +549,6 @@ export type UserUncheckedUpdateInput = {
   minutesPublished?: Prisma.MinutesUncheckedUpdateManyWithoutPublishedByNestedInput
   assignedActionItems?: Prisma.ActionItemUncheckedUpdateManyWithoutOwnerNestedInput
   createdActionItems?: Prisma.ActionItemUncheckedUpdateManyWithoutAssignedByNestedInput
-  roomBookings?: Prisma.RoomBookingUncheckedUpdateManyWithoutBookedByNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   settingsChanged?: Prisma.PlatformSettingUncheckedUpdateManyWithoutUpdatedByNestedInput
@@ -938,20 +931,6 @@ export type UserUpdateOneWithoutCreatedActionItemsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutCreatedActionItemsInput, Prisma.UserUpdateWithoutCreatedActionItemsInput>, Prisma.UserUncheckedUpdateWithoutCreatedActionItemsInput>
 }
 
-export type UserCreateNestedOneWithoutRoomBookingsInput = {
-  create?: Prisma.XOR<Prisma.UserCreateWithoutRoomBookingsInput, Prisma.UserUncheckedCreateWithoutRoomBookingsInput>
-  connectOrCreate?: Prisma.UserCreateOrConnectWithoutRoomBookingsInput
-  connect?: Prisma.UserWhereUniqueInput
-}
-
-export type UserUpdateOneRequiredWithoutRoomBookingsNestedInput = {
-  create?: Prisma.XOR<Prisma.UserCreateWithoutRoomBookingsInput, Prisma.UserUncheckedCreateWithoutRoomBookingsInput>
-  connectOrCreate?: Prisma.UserCreateOrConnectWithoutRoomBookingsInput
-  upsert?: Prisma.UserUpsertWithoutRoomBookingsInput
-  connect?: Prisma.UserWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutRoomBookingsInput, Prisma.UserUpdateWithoutRoomBookingsInput>, Prisma.UserUncheckedUpdateWithoutRoomBookingsInput>
-}
-
 export type UserCreateNestedOneWithoutNotificationsInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutNotificationsInput, Prisma.UserUncheckedCreateWithoutNotificationsInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutNotificationsInput
@@ -1024,7 +1003,6 @@ export type UserCreateWithoutSessionsInput = {
   minutesPublished?: Prisma.MinutesCreateNestedManyWithoutPublishedByInput
   assignedActionItems?: Prisma.ActionItemCreateNestedManyWithoutOwnerInput
   createdActionItems?: Prisma.ActionItemCreateNestedManyWithoutAssignedByInput
-  roomBookings?: Prisma.RoomBookingCreateNestedManyWithoutBookedByInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   settingsChanged?: Prisma.PlatformSettingCreateNestedManyWithoutUpdatedByInput
@@ -1056,7 +1034,6 @@ export type UserUncheckedCreateWithoutSessionsInput = {
   minutesPublished?: Prisma.MinutesUncheckedCreateNestedManyWithoutPublishedByInput
   assignedActionItems?: Prisma.ActionItemUncheckedCreateNestedManyWithoutOwnerInput
   createdActionItems?: Prisma.ActionItemUncheckedCreateNestedManyWithoutAssignedByInput
-  roomBookings?: Prisma.RoomBookingUncheckedCreateNestedManyWithoutBookedByInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   settingsChanged?: Prisma.PlatformSettingUncheckedCreateNestedManyWithoutUpdatedByInput
@@ -1104,7 +1081,6 @@ export type UserUpdateWithoutSessionsInput = {
   minutesPublished?: Prisma.MinutesUpdateManyWithoutPublishedByNestedInput
   assignedActionItems?: Prisma.ActionItemUpdateManyWithoutOwnerNestedInput
   createdActionItems?: Prisma.ActionItemUpdateManyWithoutAssignedByNestedInput
-  roomBookings?: Prisma.RoomBookingUpdateManyWithoutBookedByNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   settingsChanged?: Prisma.PlatformSettingUpdateManyWithoutUpdatedByNestedInput
@@ -1136,7 +1112,6 @@ export type UserUncheckedUpdateWithoutSessionsInput = {
   minutesPublished?: Prisma.MinutesUncheckedUpdateManyWithoutPublishedByNestedInput
   assignedActionItems?: Prisma.ActionItemUncheckedUpdateManyWithoutOwnerNestedInput
   createdActionItems?: Prisma.ActionItemUncheckedUpdateManyWithoutAssignedByNestedInput
-  roomBookings?: Prisma.RoomBookingUncheckedUpdateManyWithoutBookedByNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   settingsChanged?: Prisma.PlatformSettingUncheckedUpdateManyWithoutUpdatedByNestedInput
@@ -1168,7 +1143,6 @@ export type UserCreateWithoutAccountsInput = {
   minutesPublished?: Prisma.MinutesCreateNestedManyWithoutPublishedByInput
   assignedActionItems?: Prisma.ActionItemCreateNestedManyWithoutOwnerInput
   createdActionItems?: Prisma.ActionItemCreateNestedManyWithoutAssignedByInput
-  roomBookings?: Prisma.RoomBookingCreateNestedManyWithoutBookedByInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   settingsChanged?: Prisma.PlatformSettingCreateNestedManyWithoutUpdatedByInput
@@ -1200,7 +1174,6 @@ export type UserUncheckedCreateWithoutAccountsInput = {
   minutesPublished?: Prisma.MinutesUncheckedCreateNestedManyWithoutPublishedByInput
   assignedActionItems?: Prisma.ActionItemUncheckedCreateNestedManyWithoutOwnerInput
   createdActionItems?: Prisma.ActionItemUncheckedCreateNestedManyWithoutAssignedByInput
-  roomBookings?: Prisma.RoomBookingUncheckedCreateNestedManyWithoutBookedByInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   settingsChanged?: Prisma.PlatformSettingUncheckedCreateNestedManyWithoutUpdatedByInput
@@ -1248,7 +1221,6 @@ export type UserUpdateWithoutAccountsInput = {
   minutesPublished?: Prisma.MinutesUpdateManyWithoutPublishedByNestedInput
   assignedActionItems?: Prisma.ActionItemUpdateManyWithoutOwnerNestedInput
   createdActionItems?: Prisma.ActionItemUpdateManyWithoutAssignedByNestedInput
-  roomBookings?: Prisma.RoomBookingUpdateManyWithoutBookedByNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   settingsChanged?: Prisma.PlatformSettingUpdateManyWithoutUpdatedByNestedInput
@@ -1280,7 +1252,6 @@ export type UserUncheckedUpdateWithoutAccountsInput = {
   minutesPublished?: Prisma.MinutesUncheckedUpdateManyWithoutPublishedByNestedInput
   assignedActionItems?: Prisma.ActionItemUncheckedUpdateManyWithoutOwnerNestedInput
   createdActionItems?: Prisma.ActionItemUncheckedUpdateManyWithoutAssignedByNestedInput
-  roomBookings?: Prisma.RoomBookingUncheckedUpdateManyWithoutBookedByNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   settingsChanged?: Prisma.PlatformSettingUncheckedUpdateManyWithoutUpdatedByNestedInput
@@ -1312,7 +1283,6 @@ export type UserCreateWithoutMinistryInput = {
   minutesPublished?: Prisma.MinutesCreateNestedManyWithoutPublishedByInput
   assignedActionItems?: Prisma.ActionItemCreateNestedManyWithoutOwnerInput
   createdActionItems?: Prisma.ActionItemCreateNestedManyWithoutAssignedByInput
-  roomBookings?: Prisma.RoomBookingCreateNestedManyWithoutBookedByInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   settingsChanged?: Prisma.PlatformSettingCreateNestedManyWithoutUpdatedByInput
@@ -1344,7 +1314,6 @@ export type UserUncheckedCreateWithoutMinistryInput = {
   minutesPublished?: Prisma.MinutesUncheckedCreateNestedManyWithoutPublishedByInput
   assignedActionItems?: Prisma.ActionItemUncheckedCreateNestedManyWithoutOwnerInput
   createdActionItems?: Prisma.ActionItemUncheckedCreateNestedManyWithoutAssignedByInput
-  roomBookings?: Prisma.RoomBookingUncheckedCreateNestedManyWithoutBookedByInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   settingsChanged?: Prisma.PlatformSettingUncheckedCreateNestedManyWithoutUpdatedByInput
@@ -1423,7 +1392,6 @@ export type UserCreateWithoutPreferencesInput = {
   minutesPublished?: Prisma.MinutesCreateNestedManyWithoutPublishedByInput
   assignedActionItems?: Prisma.ActionItemCreateNestedManyWithoutOwnerInput
   createdActionItems?: Prisma.ActionItemCreateNestedManyWithoutAssignedByInput
-  roomBookings?: Prisma.RoomBookingCreateNestedManyWithoutBookedByInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   settingsChanged?: Prisma.PlatformSettingCreateNestedManyWithoutUpdatedByInput
@@ -1455,7 +1423,6 @@ export type UserUncheckedCreateWithoutPreferencesInput = {
   minutesPublished?: Prisma.MinutesUncheckedCreateNestedManyWithoutPublishedByInput
   assignedActionItems?: Prisma.ActionItemUncheckedCreateNestedManyWithoutOwnerInput
   createdActionItems?: Prisma.ActionItemUncheckedCreateNestedManyWithoutAssignedByInput
-  roomBookings?: Prisma.RoomBookingUncheckedCreateNestedManyWithoutBookedByInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   settingsChanged?: Prisma.PlatformSettingUncheckedCreateNestedManyWithoutUpdatedByInput
@@ -1503,7 +1470,6 @@ export type UserUpdateWithoutPreferencesInput = {
   minutesPublished?: Prisma.MinutesUpdateManyWithoutPublishedByNestedInput
   assignedActionItems?: Prisma.ActionItemUpdateManyWithoutOwnerNestedInput
   createdActionItems?: Prisma.ActionItemUpdateManyWithoutAssignedByNestedInput
-  roomBookings?: Prisma.RoomBookingUpdateManyWithoutBookedByNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   settingsChanged?: Prisma.PlatformSettingUpdateManyWithoutUpdatedByNestedInput
@@ -1535,7 +1501,6 @@ export type UserUncheckedUpdateWithoutPreferencesInput = {
   minutesPublished?: Prisma.MinutesUncheckedUpdateManyWithoutPublishedByNestedInput
   assignedActionItems?: Prisma.ActionItemUncheckedUpdateManyWithoutOwnerNestedInput
   createdActionItems?: Prisma.ActionItemUncheckedUpdateManyWithoutAssignedByNestedInput
-  roomBookings?: Prisma.RoomBookingUncheckedUpdateManyWithoutBookedByNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   settingsChanged?: Prisma.PlatformSettingUncheckedUpdateManyWithoutUpdatedByNestedInput
@@ -1567,7 +1532,6 @@ export type UserCreateWithoutOrganizedEventsInput = {
   minutesPublished?: Prisma.MinutesCreateNestedManyWithoutPublishedByInput
   assignedActionItems?: Prisma.ActionItemCreateNestedManyWithoutOwnerInput
   createdActionItems?: Prisma.ActionItemCreateNestedManyWithoutAssignedByInput
-  roomBookings?: Prisma.RoomBookingCreateNestedManyWithoutBookedByInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   settingsChanged?: Prisma.PlatformSettingCreateNestedManyWithoutUpdatedByInput
@@ -1599,7 +1563,6 @@ export type UserUncheckedCreateWithoutOrganizedEventsInput = {
   minutesPublished?: Prisma.MinutesUncheckedCreateNestedManyWithoutPublishedByInput
   assignedActionItems?: Prisma.ActionItemUncheckedCreateNestedManyWithoutOwnerInput
   createdActionItems?: Prisma.ActionItemUncheckedCreateNestedManyWithoutAssignedByInput
-  roomBookings?: Prisma.RoomBookingUncheckedCreateNestedManyWithoutBookedByInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   settingsChanged?: Prisma.PlatformSettingUncheckedCreateNestedManyWithoutUpdatedByInput
@@ -1647,7 +1610,6 @@ export type UserUpdateWithoutOrganizedEventsInput = {
   minutesPublished?: Prisma.MinutesUpdateManyWithoutPublishedByNestedInput
   assignedActionItems?: Prisma.ActionItemUpdateManyWithoutOwnerNestedInput
   createdActionItems?: Prisma.ActionItemUpdateManyWithoutAssignedByNestedInput
-  roomBookings?: Prisma.RoomBookingUpdateManyWithoutBookedByNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   settingsChanged?: Prisma.PlatformSettingUpdateManyWithoutUpdatedByNestedInput
@@ -1679,7 +1641,6 @@ export type UserUncheckedUpdateWithoutOrganizedEventsInput = {
   minutesPublished?: Prisma.MinutesUncheckedUpdateManyWithoutPublishedByNestedInput
   assignedActionItems?: Prisma.ActionItemUncheckedUpdateManyWithoutOwnerNestedInput
   createdActionItems?: Prisma.ActionItemUncheckedUpdateManyWithoutAssignedByNestedInput
-  roomBookings?: Prisma.RoomBookingUncheckedUpdateManyWithoutBookedByNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   settingsChanged?: Prisma.PlatformSettingUncheckedUpdateManyWithoutUpdatedByNestedInput
@@ -1711,7 +1672,6 @@ export type UserCreateWithoutCoOrganizedEventsInput = {
   minutesPublished?: Prisma.MinutesCreateNestedManyWithoutPublishedByInput
   assignedActionItems?: Prisma.ActionItemCreateNestedManyWithoutOwnerInput
   createdActionItems?: Prisma.ActionItemCreateNestedManyWithoutAssignedByInput
-  roomBookings?: Prisma.RoomBookingCreateNestedManyWithoutBookedByInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   settingsChanged?: Prisma.PlatformSettingCreateNestedManyWithoutUpdatedByInput
@@ -1743,7 +1703,6 @@ export type UserUncheckedCreateWithoutCoOrganizedEventsInput = {
   minutesPublished?: Prisma.MinutesUncheckedCreateNestedManyWithoutPublishedByInput
   assignedActionItems?: Prisma.ActionItemUncheckedCreateNestedManyWithoutOwnerInput
   createdActionItems?: Prisma.ActionItemUncheckedCreateNestedManyWithoutAssignedByInput
-  roomBookings?: Prisma.RoomBookingUncheckedCreateNestedManyWithoutBookedByInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   settingsChanged?: Prisma.PlatformSettingUncheckedCreateNestedManyWithoutUpdatedByInput
@@ -1791,7 +1750,6 @@ export type UserUpdateWithoutCoOrganizedEventsInput = {
   minutesPublished?: Prisma.MinutesUpdateManyWithoutPublishedByNestedInput
   assignedActionItems?: Prisma.ActionItemUpdateManyWithoutOwnerNestedInput
   createdActionItems?: Prisma.ActionItemUpdateManyWithoutAssignedByNestedInput
-  roomBookings?: Prisma.RoomBookingUpdateManyWithoutBookedByNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   settingsChanged?: Prisma.PlatformSettingUpdateManyWithoutUpdatedByNestedInput
@@ -1823,7 +1781,6 @@ export type UserUncheckedUpdateWithoutCoOrganizedEventsInput = {
   minutesPublished?: Prisma.MinutesUncheckedUpdateManyWithoutPublishedByNestedInput
   assignedActionItems?: Prisma.ActionItemUncheckedUpdateManyWithoutOwnerNestedInput
   createdActionItems?: Prisma.ActionItemUncheckedUpdateManyWithoutAssignedByNestedInput
-  roomBookings?: Prisma.RoomBookingUncheckedUpdateManyWithoutBookedByNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   settingsChanged?: Prisma.PlatformSettingUncheckedUpdateManyWithoutUpdatedByNestedInput
@@ -1855,7 +1812,6 @@ export type UserCreateWithoutEventAttendeesInput = {
   minutesPublished?: Prisma.MinutesCreateNestedManyWithoutPublishedByInput
   assignedActionItems?: Prisma.ActionItemCreateNestedManyWithoutOwnerInput
   createdActionItems?: Prisma.ActionItemCreateNestedManyWithoutAssignedByInput
-  roomBookings?: Prisma.RoomBookingCreateNestedManyWithoutBookedByInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   settingsChanged?: Prisma.PlatformSettingCreateNestedManyWithoutUpdatedByInput
@@ -1887,7 +1843,6 @@ export type UserUncheckedCreateWithoutEventAttendeesInput = {
   minutesPublished?: Prisma.MinutesUncheckedCreateNestedManyWithoutPublishedByInput
   assignedActionItems?: Prisma.ActionItemUncheckedCreateNestedManyWithoutOwnerInput
   createdActionItems?: Prisma.ActionItemUncheckedCreateNestedManyWithoutAssignedByInput
-  roomBookings?: Prisma.RoomBookingUncheckedCreateNestedManyWithoutBookedByInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   settingsChanged?: Prisma.PlatformSettingUncheckedCreateNestedManyWithoutUpdatedByInput
@@ -1935,7 +1890,6 @@ export type UserUpdateWithoutEventAttendeesInput = {
   minutesPublished?: Prisma.MinutesUpdateManyWithoutPublishedByNestedInput
   assignedActionItems?: Prisma.ActionItemUpdateManyWithoutOwnerNestedInput
   createdActionItems?: Prisma.ActionItemUpdateManyWithoutAssignedByNestedInput
-  roomBookings?: Prisma.RoomBookingUpdateManyWithoutBookedByNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   settingsChanged?: Prisma.PlatformSettingUpdateManyWithoutUpdatedByNestedInput
@@ -1967,7 +1921,6 @@ export type UserUncheckedUpdateWithoutEventAttendeesInput = {
   minutesPublished?: Prisma.MinutesUncheckedUpdateManyWithoutPublishedByNestedInput
   assignedActionItems?: Prisma.ActionItemUncheckedUpdateManyWithoutOwnerNestedInput
   createdActionItems?: Prisma.ActionItemUncheckedUpdateManyWithoutAssignedByNestedInput
-  roomBookings?: Prisma.RoomBookingUncheckedUpdateManyWithoutBookedByNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   settingsChanged?: Prisma.PlatformSettingUncheckedUpdateManyWithoutUpdatedByNestedInput
@@ -1999,7 +1952,6 @@ export type UserCreateWithoutAttendancesInput = {
   minutesPublished?: Prisma.MinutesCreateNestedManyWithoutPublishedByInput
   assignedActionItems?: Prisma.ActionItemCreateNestedManyWithoutOwnerInput
   createdActionItems?: Prisma.ActionItemCreateNestedManyWithoutAssignedByInput
-  roomBookings?: Prisma.RoomBookingCreateNestedManyWithoutBookedByInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   settingsChanged?: Prisma.PlatformSettingCreateNestedManyWithoutUpdatedByInput
@@ -2031,7 +1983,6 @@ export type UserUncheckedCreateWithoutAttendancesInput = {
   minutesPublished?: Prisma.MinutesUncheckedCreateNestedManyWithoutPublishedByInput
   assignedActionItems?: Prisma.ActionItemUncheckedCreateNestedManyWithoutOwnerInput
   createdActionItems?: Prisma.ActionItemUncheckedCreateNestedManyWithoutAssignedByInput
-  roomBookings?: Prisma.RoomBookingUncheckedCreateNestedManyWithoutBookedByInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   settingsChanged?: Prisma.PlatformSettingUncheckedCreateNestedManyWithoutUpdatedByInput
@@ -2079,7 +2030,6 @@ export type UserUpdateWithoutAttendancesInput = {
   minutesPublished?: Prisma.MinutesUpdateManyWithoutPublishedByNestedInput
   assignedActionItems?: Prisma.ActionItemUpdateManyWithoutOwnerNestedInput
   createdActionItems?: Prisma.ActionItemUpdateManyWithoutAssignedByNestedInput
-  roomBookings?: Prisma.RoomBookingUpdateManyWithoutBookedByNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   settingsChanged?: Prisma.PlatformSettingUpdateManyWithoutUpdatedByNestedInput
@@ -2111,7 +2061,6 @@ export type UserUncheckedUpdateWithoutAttendancesInput = {
   minutesPublished?: Prisma.MinutesUncheckedUpdateManyWithoutPublishedByNestedInput
   assignedActionItems?: Prisma.ActionItemUncheckedUpdateManyWithoutOwnerNestedInput
   createdActionItems?: Prisma.ActionItemUncheckedUpdateManyWithoutAssignedByNestedInput
-  roomBookings?: Prisma.RoomBookingUncheckedUpdateManyWithoutBookedByNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   settingsChanged?: Prisma.PlatformSettingUncheckedUpdateManyWithoutUpdatedByNestedInput
@@ -2143,7 +2092,6 @@ export type UserCreateWithoutMinutesDraftedInput = {
   minutesPublished?: Prisma.MinutesCreateNestedManyWithoutPublishedByInput
   assignedActionItems?: Prisma.ActionItemCreateNestedManyWithoutOwnerInput
   createdActionItems?: Prisma.ActionItemCreateNestedManyWithoutAssignedByInput
-  roomBookings?: Prisma.RoomBookingCreateNestedManyWithoutBookedByInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   settingsChanged?: Prisma.PlatformSettingCreateNestedManyWithoutUpdatedByInput
@@ -2175,7 +2123,6 @@ export type UserUncheckedCreateWithoutMinutesDraftedInput = {
   minutesPublished?: Prisma.MinutesUncheckedCreateNestedManyWithoutPublishedByInput
   assignedActionItems?: Prisma.ActionItemUncheckedCreateNestedManyWithoutOwnerInput
   createdActionItems?: Prisma.ActionItemUncheckedCreateNestedManyWithoutAssignedByInput
-  roomBookings?: Prisma.RoomBookingUncheckedCreateNestedManyWithoutBookedByInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   settingsChanged?: Prisma.PlatformSettingUncheckedCreateNestedManyWithoutUpdatedByInput
@@ -2212,7 +2159,6 @@ export type UserCreateWithoutMinutesPublishedInput = {
   minutesDrafted?: Prisma.MinutesCreateNestedManyWithoutDraftedByInput
   assignedActionItems?: Prisma.ActionItemCreateNestedManyWithoutOwnerInput
   createdActionItems?: Prisma.ActionItemCreateNestedManyWithoutAssignedByInput
-  roomBookings?: Prisma.RoomBookingCreateNestedManyWithoutBookedByInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   settingsChanged?: Prisma.PlatformSettingCreateNestedManyWithoutUpdatedByInput
@@ -2244,7 +2190,6 @@ export type UserUncheckedCreateWithoutMinutesPublishedInput = {
   minutesDrafted?: Prisma.MinutesUncheckedCreateNestedManyWithoutDraftedByInput
   assignedActionItems?: Prisma.ActionItemUncheckedCreateNestedManyWithoutOwnerInput
   createdActionItems?: Prisma.ActionItemUncheckedCreateNestedManyWithoutAssignedByInput
-  roomBookings?: Prisma.RoomBookingUncheckedCreateNestedManyWithoutBookedByInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   settingsChanged?: Prisma.PlatformSettingUncheckedCreateNestedManyWithoutUpdatedByInput
@@ -2292,7 +2237,6 @@ export type UserUpdateWithoutMinutesDraftedInput = {
   minutesPublished?: Prisma.MinutesUpdateManyWithoutPublishedByNestedInput
   assignedActionItems?: Prisma.ActionItemUpdateManyWithoutOwnerNestedInput
   createdActionItems?: Prisma.ActionItemUpdateManyWithoutAssignedByNestedInput
-  roomBookings?: Prisma.RoomBookingUpdateManyWithoutBookedByNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   settingsChanged?: Prisma.PlatformSettingUpdateManyWithoutUpdatedByNestedInput
@@ -2324,7 +2268,6 @@ export type UserUncheckedUpdateWithoutMinutesDraftedInput = {
   minutesPublished?: Prisma.MinutesUncheckedUpdateManyWithoutPublishedByNestedInput
   assignedActionItems?: Prisma.ActionItemUncheckedUpdateManyWithoutOwnerNestedInput
   createdActionItems?: Prisma.ActionItemUncheckedUpdateManyWithoutAssignedByNestedInput
-  roomBookings?: Prisma.RoomBookingUncheckedUpdateManyWithoutBookedByNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   settingsChanged?: Prisma.PlatformSettingUncheckedUpdateManyWithoutUpdatedByNestedInput
@@ -2367,7 +2310,6 @@ export type UserUpdateWithoutMinutesPublishedInput = {
   minutesDrafted?: Prisma.MinutesUpdateManyWithoutDraftedByNestedInput
   assignedActionItems?: Prisma.ActionItemUpdateManyWithoutOwnerNestedInput
   createdActionItems?: Prisma.ActionItemUpdateManyWithoutAssignedByNestedInput
-  roomBookings?: Prisma.RoomBookingUpdateManyWithoutBookedByNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   settingsChanged?: Prisma.PlatformSettingUpdateManyWithoutUpdatedByNestedInput
@@ -2399,7 +2341,6 @@ export type UserUncheckedUpdateWithoutMinutesPublishedInput = {
   minutesDrafted?: Prisma.MinutesUncheckedUpdateManyWithoutDraftedByNestedInput
   assignedActionItems?: Prisma.ActionItemUncheckedUpdateManyWithoutOwnerNestedInput
   createdActionItems?: Prisma.ActionItemUncheckedUpdateManyWithoutAssignedByNestedInput
-  roomBookings?: Prisma.RoomBookingUncheckedUpdateManyWithoutBookedByNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   settingsChanged?: Prisma.PlatformSettingUncheckedUpdateManyWithoutUpdatedByNestedInput
@@ -2431,7 +2372,6 @@ export type UserCreateWithoutAssignedActionItemsInput = {
   minutesDrafted?: Prisma.MinutesCreateNestedManyWithoutDraftedByInput
   minutesPublished?: Prisma.MinutesCreateNestedManyWithoutPublishedByInput
   createdActionItems?: Prisma.ActionItemCreateNestedManyWithoutAssignedByInput
-  roomBookings?: Prisma.RoomBookingCreateNestedManyWithoutBookedByInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   settingsChanged?: Prisma.PlatformSettingCreateNestedManyWithoutUpdatedByInput
@@ -2463,7 +2403,6 @@ export type UserUncheckedCreateWithoutAssignedActionItemsInput = {
   minutesDrafted?: Prisma.MinutesUncheckedCreateNestedManyWithoutDraftedByInput
   minutesPublished?: Prisma.MinutesUncheckedCreateNestedManyWithoutPublishedByInput
   createdActionItems?: Prisma.ActionItemUncheckedCreateNestedManyWithoutAssignedByInput
-  roomBookings?: Prisma.RoomBookingUncheckedCreateNestedManyWithoutBookedByInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   settingsChanged?: Prisma.PlatformSettingUncheckedCreateNestedManyWithoutUpdatedByInput
@@ -2500,7 +2439,6 @@ export type UserCreateWithoutCreatedActionItemsInput = {
   minutesDrafted?: Prisma.MinutesCreateNestedManyWithoutDraftedByInput
   minutesPublished?: Prisma.MinutesCreateNestedManyWithoutPublishedByInput
   assignedActionItems?: Prisma.ActionItemCreateNestedManyWithoutOwnerInput
-  roomBookings?: Prisma.RoomBookingCreateNestedManyWithoutBookedByInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   settingsChanged?: Prisma.PlatformSettingCreateNestedManyWithoutUpdatedByInput
@@ -2532,7 +2470,6 @@ export type UserUncheckedCreateWithoutCreatedActionItemsInput = {
   minutesDrafted?: Prisma.MinutesUncheckedCreateNestedManyWithoutDraftedByInput
   minutesPublished?: Prisma.MinutesUncheckedCreateNestedManyWithoutPublishedByInput
   assignedActionItems?: Prisma.ActionItemUncheckedCreateNestedManyWithoutOwnerInput
-  roomBookings?: Prisma.RoomBookingUncheckedCreateNestedManyWithoutBookedByInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   settingsChanged?: Prisma.PlatformSettingUncheckedCreateNestedManyWithoutUpdatedByInput
@@ -2580,7 +2517,6 @@ export type UserUpdateWithoutAssignedActionItemsInput = {
   minutesDrafted?: Prisma.MinutesUpdateManyWithoutDraftedByNestedInput
   minutesPublished?: Prisma.MinutesUpdateManyWithoutPublishedByNestedInput
   createdActionItems?: Prisma.ActionItemUpdateManyWithoutAssignedByNestedInput
-  roomBookings?: Prisma.RoomBookingUpdateManyWithoutBookedByNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   settingsChanged?: Prisma.PlatformSettingUpdateManyWithoutUpdatedByNestedInput
@@ -2612,7 +2548,6 @@ export type UserUncheckedUpdateWithoutAssignedActionItemsInput = {
   minutesDrafted?: Prisma.MinutesUncheckedUpdateManyWithoutDraftedByNestedInput
   minutesPublished?: Prisma.MinutesUncheckedUpdateManyWithoutPublishedByNestedInput
   createdActionItems?: Prisma.ActionItemUncheckedUpdateManyWithoutAssignedByNestedInput
-  roomBookings?: Prisma.RoomBookingUncheckedUpdateManyWithoutBookedByNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   settingsChanged?: Prisma.PlatformSettingUncheckedUpdateManyWithoutUpdatedByNestedInput
@@ -2655,7 +2590,6 @@ export type UserUpdateWithoutCreatedActionItemsInput = {
   minutesDrafted?: Prisma.MinutesUpdateManyWithoutDraftedByNestedInput
   minutesPublished?: Prisma.MinutesUpdateManyWithoutPublishedByNestedInput
   assignedActionItems?: Prisma.ActionItemUpdateManyWithoutOwnerNestedInput
-  roomBookings?: Prisma.RoomBookingUpdateManyWithoutBookedByNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   settingsChanged?: Prisma.PlatformSettingUpdateManyWithoutUpdatedByNestedInput
@@ -2687,151 +2621,6 @@ export type UserUncheckedUpdateWithoutCreatedActionItemsInput = {
   minutesDrafted?: Prisma.MinutesUncheckedUpdateManyWithoutDraftedByNestedInput
   minutesPublished?: Prisma.MinutesUncheckedUpdateManyWithoutPublishedByNestedInput
   assignedActionItems?: Prisma.ActionItemUncheckedUpdateManyWithoutOwnerNestedInput
-  roomBookings?: Prisma.RoomBookingUncheckedUpdateManyWithoutBookedByNestedInput
-  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
-  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
-  settingsChanged?: Prisma.PlatformSettingUncheckedUpdateManyWithoutUpdatedByNestedInput
-}
-
-export type UserCreateWithoutRoomBookingsInput = {
-  id?: string
-  email: string
-  emailVerified?: boolean
-  name: string
-  image?: string | null
-  jobTitle?: string | null
-  systemRole?: $Enums.SystemRole
-  active?: boolean
-  loginAttempts?: number
-  lockedUntil?: Date | string | null
-  lastLoginAt?: Date | string | null
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  deletedAt?: Date | string | null
-  ministry?: Prisma.MinistryCreateNestedOneWithoutUsersInput
-  sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
-  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
-  preferences?: Prisma.UserPreferencesCreateNestedOneWithoutUserInput
-  organizedEvents?: Prisma.EventCreateNestedManyWithoutOrganizerInput
-  coOrganizedEvents?: Prisma.EventCoOrganizerCreateNestedManyWithoutUserInput
-  attendances?: Prisma.AttendanceCreateNestedManyWithoutUserInput
-  eventAttendees?: Prisma.EventAttendeeCreateNestedManyWithoutUserInput
-  minutesDrafted?: Prisma.MinutesCreateNestedManyWithoutDraftedByInput
-  minutesPublished?: Prisma.MinutesCreateNestedManyWithoutPublishedByInput
-  assignedActionItems?: Prisma.ActionItemCreateNestedManyWithoutOwnerInput
-  createdActionItems?: Prisma.ActionItemCreateNestedManyWithoutAssignedByInput
-  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
-  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
-  settingsChanged?: Prisma.PlatformSettingCreateNestedManyWithoutUpdatedByInput
-}
-
-export type UserUncheckedCreateWithoutRoomBookingsInput = {
-  id?: string
-  email: string
-  emailVerified?: boolean
-  name: string
-  image?: string | null
-  jobTitle?: string | null
-  systemRole?: $Enums.SystemRole
-  ministryId?: string | null
-  active?: boolean
-  loginAttempts?: number
-  lockedUntil?: Date | string | null
-  lastLoginAt?: Date | string | null
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  deletedAt?: Date | string | null
-  sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
-  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
-  preferences?: Prisma.UserPreferencesUncheckedCreateNestedOneWithoutUserInput
-  organizedEvents?: Prisma.EventUncheckedCreateNestedManyWithoutOrganizerInput
-  coOrganizedEvents?: Prisma.EventCoOrganizerUncheckedCreateNestedManyWithoutUserInput
-  attendances?: Prisma.AttendanceUncheckedCreateNestedManyWithoutUserInput
-  eventAttendees?: Prisma.EventAttendeeUncheckedCreateNestedManyWithoutUserInput
-  minutesDrafted?: Prisma.MinutesUncheckedCreateNestedManyWithoutDraftedByInput
-  minutesPublished?: Prisma.MinutesUncheckedCreateNestedManyWithoutPublishedByInput
-  assignedActionItems?: Prisma.ActionItemUncheckedCreateNestedManyWithoutOwnerInput
-  createdActionItems?: Prisma.ActionItemUncheckedCreateNestedManyWithoutAssignedByInput
-  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
-  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
-  settingsChanged?: Prisma.PlatformSettingUncheckedCreateNestedManyWithoutUpdatedByInput
-}
-
-export type UserCreateOrConnectWithoutRoomBookingsInput = {
-  where: Prisma.UserWhereUniqueInput
-  create: Prisma.XOR<Prisma.UserCreateWithoutRoomBookingsInput, Prisma.UserUncheckedCreateWithoutRoomBookingsInput>
-}
-
-export type UserUpsertWithoutRoomBookingsInput = {
-  update: Prisma.XOR<Prisma.UserUpdateWithoutRoomBookingsInput, Prisma.UserUncheckedUpdateWithoutRoomBookingsInput>
-  create: Prisma.XOR<Prisma.UserCreateWithoutRoomBookingsInput, Prisma.UserUncheckedCreateWithoutRoomBookingsInput>
-  where?: Prisma.UserWhereInput
-}
-
-export type UserUpdateToOneWithWhereWithoutRoomBookingsInput = {
-  where?: Prisma.UserWhereInput
-  data: Prisma.XOR<Prisma.UserUpdateWithoutRoomBookingsInput, Prisma.UserUncheckedUpdateWithoutRoomBookingsInput>
-}
-
-export type UserUpdateWithoutRoomBookingsInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  email?: Prisma.StringFieldUpdateOperationsInput | string
-  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  name?: Prisma.StringFieldUpdateOperationsInput | string
-  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  jobTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
-  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
-  lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  ministry?: Prisma.MinistryUpdateOneWithoutUsersNestedInput
-  sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
-  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
-  preferences?: Prisma.UserPreferencesUpdateOneWithoutUserNestedInput
-  organizedEvents?: Prisma.EventUpdateManyWithoutOrganizerNestedInput
-  coOrganizedEvents?: Prisma.EventCoOrganizerUpdateManyWithoutUserNestedInput
-  attendances?: Prisma.AttendanceUpdateManyWithoutUserNestedInput
-  eventAttendees?: Prisma.EventAttendeeUpdateManyWithoutUserNestedInput
-  minutesDrafted?: Prisma.MinutesUpdateManyWithoutDraftedByNestedInput
-  minutesPublished?: Prisma.MinutesUpdateManyWithoutPublishedByNestedInput
-  assignedActionItems?: Prisma.ActionItemUpdateManyWithoutOwnerNestedInput
-  createdActionItems?: Prisma.ActionItemUpdateManyWithoutAssignedByNestedInput
-  auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
-  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
-  settingsChanged?: Prisma.PlatformSettingUpdateManyWithoutUpdatedByNestedInput
-}
-
-export type UserUncheckedUpdateWithoutRoomBookingsInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  email?: Prisma.StringFieldUpdateOperationsInput | string
-  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  name?: Prisma.StringFieldUpdateOperationsInput | string
-  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  jobTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
-  ministryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
-  lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
-  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
-  preferences?: Prisma.UserPreferencesUncheckedUpdateOneWithoutUserNestedInput
-  organizedEvents?: Prisma.EventUncheckedUpdateManyWithoutOrganizerNestedInput
-  coOrganizedEvents?: Prisma.EventCoOrganizerUncheckedUpdateManyWithoutUserNestedInput
-  attendances?: Prisma.AttendanceUncheckedUpdateManyWithoutUserNestedInput
-  eventAttendees?: Prisma.EventAttendeeUncheckedUpdateManyWithoutUserNestedInput
-  minutesDrafted?: Prisma.MinutesUncheckedUpdateManyWithoutDraftedByNestedInput
-  minutesPublished?: Prisma.MinutesUncheckedUpdateManyWithoutPublishedByNestedInput
-  assignedActionItems?: Prisma.ActionItemUncheckedUpdateManyWithoutOwnerNestedInput
-  createdActionItems?: Prisma.ActionItemUncheckedUpdateManyWithoutAssignedByNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   settingsChanged?: Prisma.PlatformSettingUncheckedUpdateManyWithoutUpdatedByNestedInput
@@ -2864,7 +2653,6 @@ export type UserCreateWithoutNotificationsInput = {
   minutesPublished?: Prisma.MinutesCreateNestedManyWithoutPublishedByInput
   assignedActionItems?: Prisma.ActionItemCreateNestedManyWithoutOwnerInput
   createdActionItems?: Prisma.ActionItemCreateNestedManyWithoutAssignedByInput
-  roomBookings?: Prisma.RoomBookingCreateNestedManyWithoutBookedByInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
   settingsChanged?: Prisma.PlatformSettingCreateNestedManyWithoutUpdatedByInput
 }
@@ -2896,7 +2684,6 @@ export type UserUncheckedCreateWithoutNotificationsInput = {
   minutesPublished?: Prisma.MinutesUncheckedCreateNestedManyWithoutPublishedByInput
   assignedActionItems?: Prisma.ActionItemUncheckedCreateNestedManyWithoutOwnerInput
   createdActionItems?: Prisma.ActionItemUncheckedCreateNestedManyWithoutAssignedByInput
-  roomBookings?: Prisma.RoomBookingUncheckedCreateNestedManyWithoutBookedByInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
   settingsChanged?: Prisma.PlatformSettingUncheckedCreateNestedManyWithoutUpdatedByInput
 }
@@ -2944,7 +2731,6 @@ export type UserUpdateWithoutNotificationsInput = {
   minutesPublished?: Prisma.MinutesUpdateManyWithoutPublishedByNestedInput
   assignedActionItems?: Prisma.ActionItemUpdateManyWithoutOwnerNestedInput
   createdActionItems?: Prisma.ActionItemUpdateManyWithoutAssignedByNestedInput
-  roomBookings?: Prisma.RoomBookingUpdateManyWithoutBookedByNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
   settingsChanged?: Prisma.PlatformSettingUpdateManyWithoutUpdatedByNestedInput
 }
@@ -2976,7 +2762,6 @@ export type UserUncheckedUpdateWithoutNotificationsInput = {
   minutesPublished?: Prisma.MinutesUncheckedUpdateManyWithoutPublishedByNestedInput
   assignedActionItems?: Prisma.ActionItemUncheckedUpdateManyWithoutOwnerNestedInput
   createdActionItems?: Prisma.ActionItemUncheckedUpdateManyWithoutAssignedByNestedInput
-  roomBookings?: Prisma.RoomBookingUncheckedUpdateManyWithoutBookedByNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
   settingsChanged?: Prisma.PlatformSettingUncheckedUpdateManyWithoutUpdatedByNestedInput
 }
@@ -3008,7 +2793,6 @@ export type UserCreateWithoutAuditLogsInput = {
   minutesPublished?: Prisma.MinutesCreateNestedManyWithoutPublishedByInput
   assignedActionItems?: Prisma.ActionItemCreateNestedManyWithoutOwnerInput
   createdActionItems?: Prisma.ActionItemCreateNestedManyWithoutAssignedByInput
-  roomBookings?: Prisma.RoomBookingCreateNestedManyWithoutBookedByInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   settingsChanged?: Prisma.PlatformSettingCreateNestedManyWithoutUpdatedByInput
 }
@@ -3040,7 +2824,6 @@ export type UserUncheckedCreateWithoutAuditLogsInput = {
   minutesPublished?: Prisma.MinutesUncheckedCreateNestedManyWithoutPublishedByInput
   assignedActionItems?: Prisma.ActionItemUncheckedCreateNestedManyWithoutOwnerInput
   createdActionItems?: Prisma.ActionItemUncheckedCreateNestedManyWithoutAssignedByInput
-  roomBookings?: Prisma.RoomBookingUncheckedCreateNestedManyWithoutBookedByInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   settingsChanged?: Prisma.PlatformSettingUncheckedCreateNestedManyWithoutUpdatedByInput
 }
@@ -3088,7 +2871,6 @@ export type UserUpdateWithoutAuditLogsInput = {
   minutesPublished?: Prisma.MinutesUpdateManyWithoutPublishedByNestedInput
   assignedActionItems?: Prisma.ActionItemUpdateManyWithoutOwnerNestedInput
   createdActionItems?: Prisma.ActionItemUpdateManyWithoutAssignedByNestedInput
-  roomBookings?: Prisma.RoomBookingUpdateManyWithoutBookedByNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   settingsChanged?: Prisma.PlatformSettingUpdateManyWithoutUpdatedByNestedInput
 }
@@ -3120,7 +2902,6 @@ export type UserUncheckedUpdateWithoutAuditLogsInput = {
   minutesPublished?: Prisma.MinutesUncheckedUpdateManyWithoutPublishedByNestedInput
   assignedActionItems?: Prisma.ActionItemUncheckedUpdateManyWithoutOwnerNestedInput
   createdActionItems?: Prisma.ActionItemUncheckedUpdateManyWithoutAssignedByNestedInput
-  roomBookings?: Prisma.RoomBookingUncheckedUpdateManyWithoutBookedByNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   settingsChanged?: Prisma.PlatformSettingUncheckedUpdateManyWithoutUpdatedByNestedInput
 }
@@ -3152,7 +2933,6 @@ export type UserCreateWithoutSettingsChangedInput = {
   minutesPublished?: Prisma.MinutesCreateNestedManyWithoutPublishedByInput
   assignedActionItems?: Prisma.ActionItemCreateNestedManyWithoutOwnerInput
   createdActionItems?: Prisma.ActionItemCreateNestedManyWithoutAssignedByInput
-  roomBookings?: Prisma.RoomBookingCreateNestedManyWithoutBookedByInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
 }
@@ -3184,7 +2964,6 @@ export type UserUncheckedCreateWithoutSettingsChangedInput = {
   minutesPublished?: Prisma.MinutesUncheckedCreateNestedManyWithoutPublishedByInput
   assignedActionItems?: Prisma.ActionItemUncheckedCreateNestedManyWithoutOwnerInput
   createdActionItems?: Prisma.ActionItemUncheckedCreateNestedManyWithoutAssignedByInput
-  roomBookings?: Prisma.RoomBookingUncheckedCreateNestedManyWithoutBookedByInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
 }
@@ -3232,7 +3011,6 @@ export type UserUpdateWithoutSettingsChangedInput = {
   minutesPublished?: Prisma.MinutesUpdateManyWithoutPublishedByNestedInput
   assignedActionItems?: Prisma.ActionItemUpdateManyWithoutOwnerNestedInput
   createdActionItems?: Prisma.ActionItemUpdateManyWithoutAssignedByNestedInput
-  roomBookings?: Prisma.RoomBookingUpdateManyWithoutBookedByNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
 }
@@ -3264,7 +3042,6 @@ export type UserUncheckedUpdateWithoutSettingsChangedInput = {
   minutesPublished?: Prisma.MinutesUncheckedUpdateManyWithoutPublishedByNestedInput
   assignedActionItems?: Prisma.ActionItemUncheckedUpdateManyWithoutOwnerNestedInput
   createdActionItems?: Prisma.ActionItemUncheckedUpdateManyWithoutAssignedByNestedInput
-  roomBookings?: Prisma.RoomBookingUncheckedUpdateManyWithoutBookedByNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
 }
@@ -3312,7 +3089,6 @@ export type UserUpdateWithoutMinistryInput = {
   minutesPublished?: Prisma.MinutesUpdateManyWithoutPublishedByNestedInput
   assignedActionItems?: Prisma.ActionItemUpdateManyWithoutOwnerNestedInput
   createdActionItems?: Prisma.ActionItemUpdateManyWithoutAssignedByNestedInput
-  roomBookings?: Prisma.RoomBookingUpdateManyWithoutBookedByNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   settingsChanged?: Prisma.PlatformSettingUpdateManyWithoutUpdatedByNestedInput
@@ -3344,7 +3120,6 @@ export type UserUncheckedUpdateWithoutMinistryInput = {
   minutesPublished?: Prisma.MinutesUncheckedUpdateManyWithoutPublishedByNestedInput
   assignedActionItems?: Prisma.ActionItemUncheckedUpdateManyWithoutOwnerNestedInput
   createdActionItems?: Prisma.ActionItemUncheckedUpdateManyWithoutAssignedByNestedInput
-  roomBookings?: Prisma.RoomBookingUncheckedUpdateManyWithoutBookedByNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   settingsChanged?: Prisma.PlatformSettingUncheckedUpdateManyWithoutUpdatedByNestedInput
@@ -3383,7 +3158,6 @@ export type UserCountOutputType = {
   minutesPublished: number
   assignedActionItems: number
   createdActionItems: number
-  roomBookings: number
   auditLogs: number
   notifications: number
   settingsChanged: number
@@ -3400,7 +3174,6 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   minutesPublished?: boolean | UserCountOutputTypeCountMinutesPublishedArgs
   assignedActionItems?: boolean | UserCountOutputTypeCountAssignedActionItemsArgs
   createdActionItems?: boolean | UserCountOutputTypeCountCreatedActionItemsArgs
-  roomBookings?: boolean | UserCountOutputTypeCountRoomBookingsArgs
   auditLogs?: boolean | UserCountOutputTypeCountAuditLogsArgs
   notifications?: boolean | UserCountOutputTypeCountNotificationsArgs
   settingsChanged?: boolean | UserCountOutputTypeCountSettingsChangedArgs
@@ -3489,13 +3262,6 @@ export type UserCountOutputTypeCountCreatedActionItemsArgs<ExtArgs extends runti
 /**
  * UserCountOutputType without action
  */
-export type UserCountOutputTypeCountRoomBookingsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.RoomBookingWhereInput
-}
-
-/**
- * UserCountOutputType without action
- */
 export type UserCountOutputTypeCountAuditLogsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.AuditLogWhereInput
 }
@@ -3543,7 +3309,6 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   minutesPublished?: boolean | Prisma.User$minutesPublishedArgs<ExtArgs>
   assignedActionItems?: boolean | Prisma.User$assignedActionItemsArgs<ExtArgs>
   createdActionItems?: boolean | Prisma.User$createdActionItemsArgs<ExtArgs>
-  roomBookings?: boolean | Prisma.User$roomBookingsArgs<ExtArgs>
   auditLogs?: boolean | Prisma.User$auditLogsArgs<ExtArgs>
   notifications?: boolean | Prisma.User$notificationsArgs<ExtArgs>
   settingsChanged?: boolean | Prisma.User$settingsChangedArgs<ExtArgs>
@@ -3620,7 +3385,6 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   minutesPublished?: boolean | Prisma.User$minutesPublishedArgs<ExtArgs>
   assignedActionItems?: boolean | Prisma.User$assignedActionItemsArgs<ExtArgs>
   createdActionItems?: boolean | Prisma.User$createdActionItemsArgs<ExtArgs>
-  roomBookings?: boolean | Prisma.User$roomBookingsArgs<ExtArgs>
   auditLogs?: boolean | Prisma.User$auditLogsArgs<ExtArgs>
   notifications?: boolean | Prisma.User$notificationsArgs<ExtArgs>
   settingsChanged?: boolean | Prisma.User$settingsChangedArgs<ExtArgs>
@@ -3648,7 +3412,6 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     minutesPublished: Prisma.$MinutesPayload<ExtArgs>[]
     assignedActionItems: Prisma.$ActionItemPayload<ExtArgs>[]
     createdActionItems: Prisma.$ActionItemPayload<ExtArgs>[]
-    roomBookings: Prisma.$RoomBookingPayload<ExtArgs>[]
     auditLogs: Prisma.$AuditLogPayload<ExtArgs>[]
     notifications: Prisma.$NotificationPayload<ExtArgs>[]
     settingsChanged: Prisma.$PlatformSettingPayload<ExtArgs>[]
@@ -4075,7 +3838,6 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   minutesPublished<T extends Prisma.User$minutesPublishedArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$minutesPublishedArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MinutesPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   assignedActionItems<T extends Prisma.User$assignedActionItemsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$assignedActionItemsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ActionItemPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   createdActionItems<T extends Prisma.User$createdActionItemsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$createdActionItemsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ActionItemPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-  roomBookings<T extends Prisma.User$roomBookingsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$roomBookingsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RoomBookingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   auditLogs<T extends Prisma.User$auditLogsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$auditLogsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AuditLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   notifications<T extends Prisma.User$notificationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$notificationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$NotificationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   settingsChanged<T extends Prisma.User$settingsChangedArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$settingsChangedArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PlatformSettingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -4799,30 +4561,6 @@ export type User$createdActionItemsArgs<ExtArgs extends runtime.Types.Extensions
   take?: number
   skip?: number
   distinct?: Prisma.ActionItemScalarFieldEnum | Prisma.ActionItemScalarFieldEnum[]
-}
-
-/**
- * User.roomBookings
- */
-export type User$roomBookingsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the RoomBooking
-   */
-  select?: Prisma.RoomBookingSelect<ExtArgs> | null
-  /**
-   * Omit specific fields from the RoomBooking
-   */
-  omit?: Prisma.RoomBookingOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.RoomBookingInclude<ExtArgs> | null
-  where?: Prisma.RoomBookingWhereInput
-  orderBy?: Prisma.RoomBookingOrderByWithRelationInput | Prisma.RoomBookingOrderByWithRelationInput[]
-  cursor?: Prisma.RoomBookingWhereUniqueInput
-  take?: number
-  skip?: number
-  distinct?: Prisma.RoomBookingScalarFieldEnum | Prisma.RoomBookingScalarFieldEnum[]
 }
 
 /**

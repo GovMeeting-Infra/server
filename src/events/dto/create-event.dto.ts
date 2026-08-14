@@ -1,5 +1,6 @@
 import {
   IsString,
+  IsNotEmpty,
   IsOptional,
   IsDateString,
   IsBoolean,
@@ -62,9 +63,17 @@ export class CreateEventDto {
   @IsDateString()
   endAt: string;
 
-  @IsOptional()
+  /**
+   * Where the meeting is held. Required since room booking was withdrawn —
+   * this is now the only way to say where an event is, and an event that does
+   * not say is of little use to the people invited to it.
+   *
+   * Required on create only. Update leaves it optional, so an existing event
+   * without one can still be edited rather than being unsaveable.
+   */
   @IsString()
-  venueName?: string;
+  @IsNotEmpty({ message: 'A location is required' })
+  venueName: string;
 
   @IsOptional()
   @IsNumber()
