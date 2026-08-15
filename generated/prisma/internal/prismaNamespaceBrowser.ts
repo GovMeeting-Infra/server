@@ -67,6 +67,7 @@ export const ModelName = {
   MinutePoint: 'MinutePoint',
   MinutesAccessToken: 'MinutesAccessToken',
   ActionItem: 'ActionItem',
+  ActionItemAssistant: 'ActionItemAssistant',
   Notification: 'Notification',
   AuditLog: 'AuditLog',
   PlatformSetting: 'PlatformSetting'
@@ -367,6 +368,17 @@ export const ActionItemScalarFieldEnum = {
 } as const
 
 export type ActionItemScalarFieldEnum = (typeof ActionItemScalarFieldEnum)[keyof typeof ActionItemScalarFieldEnum]
+
+
+export const ActionItemAssistantScalarFieldEnum = {
+  id: 'id',
+  actionItemId: 'actionItemId',
+  userId: 'userId',
+  addedById: 'addedById',
+  createdAt: 'createdAt'
+} as const
+
+export type ActionItemAssistantScalarFieldEnum = (typeof ActionItemAssistantScalarFieldEnum)[keyof typeof ActionItemAssistantScalarFieldEnum]
 
 
 export const NotificationScalarFieldEnum = {

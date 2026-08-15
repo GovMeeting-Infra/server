@@ -137,6 +137,19 @@ export type MinutesAccessToken = Prisma.MinutesAccessTokenModel
  */
 export type ActionItem = Prisma.ActionItemModel
 /**
+ * Model ActionItemAssistant
+ * *
+ *  * Someone helping with an action item, without being answerable for it.
+ *  * One owner stays accountable — that is the point of keeping this a separate
+ *  * table rather than making ownership a list. An assistant may report progress
+ *  * and move the status, and nothing else; the narrower set is enforced in
+ *  * ActionItemsService.
+ *  * Account holders only. An owner may be an outside participant reachable by
+ *  * email alone, but helping means signing in to change something, so naming a
+ *  * helper with no account would name someone who could never actually help.
+ */
+export type ActionItemAssistant = Prisma.ActionItemAssistantModel
+/**
  * Model Notification
  * 
  */

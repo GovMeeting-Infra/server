@@ -28,21 +28,22 @@ model User {
   updatedAt     DateTime   @updatedAt
   deletedAt     DateTime?
 
-  ministry            Ministry?          @relation(fields: [ministryId], references: [id], onDelete: SetNull)
-  sessions            Session[]
-  accounts            Account[]
-  preferences         UserPreferences?
-  organizedEvents     Event[]            @relation("organizer")
-  coOrganizedEvents   EventCoOrganizer[]
-  attendances         Attendance[]
-  eventAttendees      EventAttendee[]    @relation("eventAttendees")
-  minutesDrafted      Minutes[]          @relation("draftedBy")
-  minutesPublished    Minutes[]          @relation("publishedBy")
-  assignedActionItems ActionItem[]       @relation("actionOwner")
-  createdActionItems  ActionItem[]       @relation("actionAssignedBy")
-  auditLogs           AuditLog[]
-  notifications       Notification[]
-  settingsChanged     PlatformSetting[]
+  ministry             Ministry?             @relation(fields: [ministryId], references: [id], onDelete: SetNull)
+  sessions             Session[]
+  accounts             Account[]
+  preferences          UserPreferences?
+  organizedEvents      Event[]               @relation("organizer")
+  coOrganizedEvents    EventCoOrganizer[]
+  attendances          Attendance[]
+  eventAttendees       EventAttendee[]       @relation("eventAttendees")
+  minutesDrafted       Minutes[]             @relation("draftedBy")
+  minutesPublished     Minutes[]             @relation("publishedBy")
+  assignedActionItems  ActionItem[]          @relation("actionOwner")
+  assistingActionItems ActionItemAssistant[] @relation("actionAssistant")
+  createdActionItems   ActionItem[]          @relation("actionAssignedBy")
+  auditLogs            AuditLog[]
+  notifications        Notification[]
+  settingsChanged      PlatformSetting[]
 
   @@index([ministryId])
   @@index([systemRole])
@@ -513,14 +514,40 @@ model ActionItem {
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
 
-  minutes    Minutes @relation(fields: [minutesId], references: [id], onDelete: Cascade)
-  owner      User?   @relation("actionOwner", fields: [ownerId], references: [id])
-  assignedBy User?   @relation("actionAssignedBy", fields: [assignedById], references: [id])
+  minutes    Minutes               @relation(fields: [minutesId], references: [id], onDelete: Cascade)
+  owner      User?                 @relation("actionOwner", fields: [ownerId], references: [id])
+  assignedBy User?                 @relation("actionAssignedBy", fields: [assignedById], references: [id])
+  assistants ActionItemAssistant[]
 
   @@index([minutesId])
   @@index([ownerId])
   @@index([status])
   @@index([dueDate])
+}
+
+/**
+ * Someone helping with an action item, without being answerable for it.
+ * One owner stays accountable — that is the point of keeping this a separate
+ * table rather than making ownership a list. An assistant may report progress
+ * and move the status, and nothing else; the narrower set is enforced in
+ * ActionItemsService.
+ * Account holders only. An owner may be an outside participant reachable by
+ * email alone, but helping means signing in to change something, so naming a
+ * helper with no account would name someone who could never actually help.
+ */
+model ActionItemAssistant {
+  id           String   @id @default(cuid())
+  actionItemId String
+  userId       String
+  /// Who asked them to help. A breadcrumb, not a permission.
+  addedById    String?
+  createdAt    DateTime @default(now())
+
+  actionItem ActionItem @relation(fields: [actionItemId], references: [id], onDelete: Cascade)
+  user       User       @relation("actionAssistant", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([actionItemId, userId])
+  @@index([userId])
 }
 
 enum PointType {

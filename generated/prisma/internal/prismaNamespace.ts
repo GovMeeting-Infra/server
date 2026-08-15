@@ -413,6 +413,7 @@ export const ModelName = {
   MinutePoint: 'MinutePoint',
   MinutesAccessToken: 'MinutesAccessToken',
   ActionItem: 'ActionItem',
+  ActionItemAssistant: 'ActionItemAssistant',
   Notification: 'Notification',
   AuditLog: 'AuditLog',
   PlatformSetting: 'PlatformSetting'
@@ -431,7 +432,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "session" | "account" | "verification" | "ministry" | "userPreferences" | "event" | "eventSeries" | "eventCoOrganizer" | "eventAttendee" | "attendance" | "qRToken" | "minutes" | "minutePoint" | "minutesAccessToken" | "actionItem" | "notification" | "auditLog" | "platformSetting"
+    modelProps: "user" | "session" | "account" | "verification" | "ministry" | "userPreferences" | "event" | "eventSeries" | "eventCoOrganizer" | "eventAttendee" | "attendance" | "qRToken" | "minutes" | "minutePoint" | "minutesAccessToken" | "actionItem" | "actionItemAssistant" | "notification" | "auditLog" | "platformSetting"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1619,6 +1620,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    ActionItemAssistant: {
+      payload: Prisma.$ActionItemAssistantPayload<ExtArgs>
+      fields: Prisma.ActionItemAssistantFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ActionItemAssistantFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ActionItemAssistantPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ActionItemAssistantFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ActionItemAssistantPayload>
+        }
+        findFirst: {
+          args: Prisma.ActionItemAssistantFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ActionItemAssistantPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ActionItemAssistantFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ActionItemAssistantPayload>
+        }
+        findMany: {
+          args: Prisma.ActionItemAssistantFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ActionItemAssistantPayload>[]
+        }
+        create: {
+          args: Prisma.ActionItemAssistantCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ActionItemAssistantPayload>
+        }
+        createMany: {
+          args: Prisma.ActionItemAssistantCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ActionItemAssistantCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ActionItemAssistantPayload>[]
+        }
+        delete: {
+          args: Prisma.ActionItemAssistantDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ActionItemAssistantPayload>
+        }
+        update: {
+          args: Prisma.ActionItemAssistantUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ActionItemAssistantPayload>
+        }
+        deleteMany: {
+          args: Prisma.ActionItemAssistantDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ActionItemAssistantUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ActionItemAssistantUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ActionItemAssistantPayload>[]
+        }
+        upsert: {
+          args: Prisma.ActionItemAssistantUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ActionItemAssistantPayload>
+        }
+        aggregate: {
+          args: Prisma.ActionItemAssistantAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateActionItemAssistant>
+        }
+        groupBy: {
+          args: Prisma.ActionItemAssistantGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ActionItemAssistantGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ActionItemAssistantCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ActionItemAssistantCountAggregateOutputType> | number
+        }
+      }
+    }
     Notification: {
       payload: Prisma.$NotificationPayload<ExtArgs>
       fields: Prisma.NotificationFieldRefs
@@ -2161,6 +2236,17 @@ export const ActionItemScalarFieldEnum = {
 export type ActionItemScalarFieldEnum = (typeof ActionItemScalarFieldEnum)[keyof typeof ActionItemScalarFieldEnum]
 
 
+export const ActionItemAssistantScalarFieldEnum = {
+  id: 'id',
+  actionItemId: 'actionItemId',
+  userId: 'userId',
+  addedById: 'addedById',
+  createdAt: 'createdAt'
+} as const
+
+export type ActionItemAssistantScalarFieldEnum = (typeof ActionItemAssistantScalarFieldEnum)[keyof typeof ActionItemAssistantScalarFieldEnum]
+
+
 export const NotificationScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
@@ -2698,6 +2784,7 @@ export type GlobalOmitConfig = {
   minutePoint?: Prisma.MinutePointOmit
   minutesAccessToken?: Prisma.MinutesAccessTokenOmit
   actionItem?: Prisma.ActionItemOmit
+  actionItemAssistant?: Prisma.ActionItemAssistantOmit
   notification?: Prisma.NotificationOmit
   auditLog?: Prisma.AuditLogOmit
   platformSetting?: Prisma.PlatformSettingOmit
