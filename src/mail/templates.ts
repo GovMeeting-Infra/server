@@ -106,7 +106,24 @@ function layout({
 </html>`;
 }
 
-/** Only the date part; these emails never need a time zone argument. */
+/**
+ * The zone these dates are read in.
+ *
+ * Pinned rather than left to the process. Without it, `toLocaleDateString`
+ * renders in whatever zone the server happens to run in, which was right only
+ * by coincidence: Sierra Leone is UTC+0 and so is the box. Move the server, or
+ * mail somebody abroad, and a 09:00 meeting silently becomes 04:00 in the
+ * invitation — worse, a due date stored as midnight UTC renders as the
+ * *previous day* anywhere west of Greenwich.
+ *
+ * Named as the audience's zone rather than 'UTC' because that is the actual
+ * intent: these emails are read in Freetown. Africa/Freetown observes no DST,
+ * so it is a stable offset, and the override exists for a deployment that
+ * serves somewhere else.
+ */
+const DISPLAY_TIMEZONE = process.env.DISPLAY_TIMEZONE || 'Africa/Freetown';
+
+/** Only the date part, in the reader's zone. */
 function formatDate(value: Date | string): string {
   const d = typeof value === 'string' ? new Date(value) : value;
   return d.toLocaleDateString('en-GB', {
@@ -114,15 +131,22 @@ function formatDate(value: Date | string): string {
     day: 'numeric',
     month: 'long',
     year: 'numeric',
+    timeZone: DISPLAY_TIMEZONE,
+  });
+}
+
+/** Clock time alone, for the second half of a range. */
+function formatTime(value: Date | string): string {
+  const d = typeof value === 'string' ? new Date(value) : value;
+  return d.toLocaleTimeString('en-GB', {
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: DISPLAY_TIMEZONE,
   });
 }
 
 function formatDateTime(value: Date | string): string {
-  const d = typeof value === 'string' ? new Date(value) : value;
-  return `${formatDate(d)} at ${d.toLocaleTimeString('en-GB', {
-    hour: '2-digit',
-    minute: '2-digit',
-  })}`;
+  return `${formatDate(value)} at ${formatTime(value)}`;
 }
 
 export function inviteEmail({
@@ -767,12 +791,9 @@ export function meetingInvitationEmail({
   rsvpUrl?: string | null;
 }): EmailBody {
   const when = formatDateTime(startAt);
-  const until = endAt
-    ? new Date(endAt).toLocaleTimeString('en-GB', {
-        hour: '2-digit',
-        minute: '2-digit',
-      })
-    : null;
+  // The end time is rendered here rather than through formatDateTime, which
+  // would repeat the date. Same zone, for the same reason.
+  const until = endAt ? formatTime(endAt) : null;
   const whenLine = until ? `${when} – ${until}` : when;
 
   const intro = organizerName

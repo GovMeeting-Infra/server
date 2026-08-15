@@ -430,7 +430,7 @@ export class TasksService {
     return new Set(rows.map((r: any) => r.email));
   }
 
-  @Cron(CronExpression.EVERY_DAY_AT_1AM)
+  @Cron(CronExpression.EVERY_DAY_AT_1AM, { timeZone: CRON_TZ })
   async archiveOldMinutes() {
     this.logger.log('Starting minutes archiving cron job...');
 
@@ -458,7 +458,7 @@ export class TasksService {
     }
   }
 
-  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT, { timeZone: CRON_TZ })
   async cleanupOldNotifications() {
     this.logger.log('Starting notification cleanup cron job...');
 
