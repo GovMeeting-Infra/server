@@ -566,10 +566,12 @@ export type MinistryCreateNestedOneWithoutNotificationsInput = {
   connect?: Prisma.MinistryWhereUniqueInput
 }
 
-export type MinistryUpdateOneRequiredWithoutNotificationsNestedInput = {
+export type MinistryUpdateOneWithoutNotificationsNestedInput = {
   create?: Prisma.XOR<Prisma.MinistryCreateWithoutNotificationsInput, Prisma.MinistryUncheckedCreateWithoutNotificationsInput>
   connectOrCreate?: Prisma.MinistryCreateOrConnectWithoutNotificationsInput
   upsert?: Prisma.MinistryUpsertWithoutNotificationsInput
+  disconnect?: Prisma.MinistryWhereInput | boolean
+  delete?: Prisma.MinistryWhereInput | boolean
   connect?: Prisma.MinistryWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.MinistryUpdateToOneWithWhereWithoutNotificationsInput, Prisma.MinistryUpdateWithoutNotificationsInput>, Prisma.MinistryUncheckedUpdateWithoutNotificationsInput>
 }

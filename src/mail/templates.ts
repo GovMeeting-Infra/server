@@ -40,13 +40,21 @@ function layout({
   actionLabel,
   actionUrl,
   footnote,
+  footnoteHtml,
 }: {
   heading: string;
   intro: string;
   bodyHtml?: string;
   actionLabel?: string;
   actionUrl?: string;
+  /** Escaped. Use this unless the footnote genuinely needs a link. */
   footnote?: string;
+  /**
+   * Not escaped, so it can carry an anchor. Only ever built in this file from
+   * values that have been through escapeHtml — never passed straight from a
+   * caller.
+   */
+  footnoteHtml?: string;
 }): string {
   return `<!doctype html>
 <html lang="en">
@@ -77,9 +85,11 @@ function layout({
                   : ''
               }
               ${
-                footnote
-                  ? `<p style="margin:24px 0 0;color:#64748b;font-size:13px;line-height:1.6;">${escapeHtml(footnote)}</p>`
-                  : ''
+                footnoteHtml
+                  ? `<p style="margin:24px 0 0;color:#64748b;font-size:13px;line-height:1.6;">${footnoteHtml}</p>`
+                  : footnote
+                    ? `<p style="margin:24px 0 0;color:#64748b;font-size:13px;line-height:1.6;">${escapeHtml(footnote)}</p>`
+                    : ''
               }
             </td>
           </tr>
@@ -238,33 +248,72 @@ export function actionItemAssignedEmail({
  * One Monday summary listing everything a person still owes, rather than a
  * message per item — someone carrying eight items should not get eight emails.
  */
+export interface DigestItem {
+  title: string;
+  dueDate: Date | string;
+  eventTitle?: string | null;
+  /** Past its deadline. Flagged in place rather than mailed separately. */
+  overdue?: boolean;
+  /** Someone else owns it; the reader is helping. */
+  assisting?: boolean;
+}
+
+/**
+ * The Monday email: what you owe, and what got done around you.
+ *
+ * Both halves in one message on purpose. Mailing every attendee each time a
+ * task closed would be forty emails per meeting and would teach people to
+ * filter this domain; a weekly summary carries the same information at a
+ * fraction of the cost of reading it.
+ */
 export function actionItemDigestEmail({
   name,
   items,
+  closed = [],
+  unsubscribeUrl,
 }: {
   name: string;
-  items: {
-    title: string;
-    dueDate: Date | string;
-    eventTitle?: string | null;
-  }[];
+  items: DigestItem[];
+  /** Completed last week on meetings this person was invited to. */
+  closed?: { title: string; ownerName?: string | null; eventTitle?: string | null }[];
+  unsubscribeUrl?: string;
 }): EmailBody {
   const count = items.length;
   const intro =
-    count === 1
-      ? `${name}, you have 1 action item still open.`
-      : `${name}, you have ${count} action items still open.`;
+    count === 0
+      ? `${name}, nothing is open against your name this week.`
+      : count === 1
+        ? `${name}, you have 1 action item still open.`
+        : `${name}, you have ${count} action items still open.`;
 
   const rows = items
     .map(
       (i) => `<tr><td style="padding:10px 18px;border-top:1px solid #e6eef8;">
-        <p style="margin:0 0 4px;color:#0f172a;font-size:14px;font-weight:600;">${escapeHtml(i.title)}</p>
-        <p style="margin:0;color:#64748b;font-size:13px;">Due ${escapeHtml(formatDate(i.dueDate))}${
+        <p style="margin:0 0 4px;color:#0f172a;font-size:14px;font-weight:600;">${escapeHtml(i.title)}${
+          i.assisting
+            ? ' <span style="color:#64748b;font-weight:400;font-size:13px;">(assisting)</span>'
+            : ''
+        }</p>
+        <p style="margin:0;color:${i.overdue ? '#c2410c' : '#64748b'};font-size:13px;">${
+          i.overdue ? 'Overdue &middot; was due' : 'Due'
+        } ${escapeHtml(formatDate(i.dueDate))}${
           i.eventTitle ? ` &middot; ${escapeHtml(i.eventTitle)}` : ''
         }</p>
       </td></tr>`,
     )
     .join('');
+
+  const closedHtml = closed.length
+    ? `<p style="margin:20px 0 8px;color:#0f172a;font-size:14px;font-weight:600;">Closed last week (${closed.length})</p>
+       <ul style="margin:0;padding-left:20px;color:#334155;font-size:14px;line-height:22px;">${closed
+         .map(
+           (c) =>
+             `<li>${escapeHtml(c.title)}${c.ownerName ? ` &mdash; ${escapeHtml(c.ownerName)}` : ''}${
+               c.eventTitle ? ` <span style="color:#64748b;">(${escapeHtml(c.eventTitle)})</span>` : ''
+             }</li>`,
+         )
+         .join('')}</ul>`
+    : '';
 
   return {
     subject:
@@ -272,20 +321,266 @@ export function actionItemDigestEmail({
         ? 'You have 1 open action item'
         : `You have ${count} open action items`,
     html: layout({
-      heading: 'Your open action items',
+      heading: 'Your week',
       intro,
-      bodyHtml: `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:8px 0;background-color:#ffffff;border:1px solid #e6eef8;border-radius:12px;">
-        ${rows}
-      </table>`,
-      footnote: 'This summary goes out every Monday while items remain open.',
+      bodyHtml: `${
+        count
+          ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:8px 0;background-color:#ffffff;border:1px solid #e6eef8;border-radius:12px;">${rows}</table>`
+          : ''
+      }${closedHtml}`,
+      ...(unsubscribeUrl
+        ? {
+            footnoteHtml: `This summary goes out every Monday. <a href="${escapeHtml(
+              unsubscribeUrl,
+            )}" style="color:#64748b;">Unsubscribe from it</a> &mdash; reminders about your own deadlines and meetings will still reach you.`,
+          }
+        : {
+            footnote:
+              'This summary goes out every Monday while items remain open.',
+          }),
     }),
     text: [
       intro,
       '',
       ...items.map(
         (i) =>
-          `- ${i.title} (due ${formatDate(i.dueDate)}${i.eventTitle ? `, ${i.eventTitle}` : ''})`,
+          `- ${i.title}${i.assisting ? ' (assisting)' : ''} (${
+            i.overdue ? 'OVERDUE, was due' : 'due'
+          } ${formatDate(i.dueDate)}${i.eventTitle ? `, ${i.eventTitle}` : ''})`,
       ),
+      ...(closed.length
+        ? [
+            '',
+            `Closed last week (${closed.length}):`,
+            ...closed.map(
+              (c) => `- ${c.title}${c.ownerName ? ` — ${c.ownerName}` : ''}`,
+            ),
+          ]
+        : []),
+      ...(unsubscribeUrl ? ['', `Unsubscribe from this summary: ${unsubscribeUrl}`] : []),
+    ].join('\n'),
+  };
+}
+
+/**
+ * A task is done.
+ *
+ * Goes to the people with a stake in it — the owner, whoever raised it, anyone
+ * helping, and the organizer of the meeting it came from. Everyone else who
+ * attended sees it in the Monday summary instead: forty emails because one
+ * task closed is how a platform teaches people to filter its mail.
+ */
+export function actionItemCompletedEmail({
+  name,
+  title,
+  completedByName,
+  eventTitle,
+}: {
+  name: string;
+  title: string;
+  completedByName?: string | null;
+  eventTitle?: string | null;
+}): EmailBody {
+  const who = completedByName ? `${completedByName} has` : 'Someone has';
+  const intro = `${name}, ${who} completed an action item you are involved in.`;
+
+  return {
+    subject: `Completed: ${title}`,
+    html: layout({
+      heading: 'Action item completed',
+      intro,
+      bodyHtml: `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:8px 0;background-color:#edf8f1;border:1px solid #cfe5d7;border-radius:12px;">
+        <tr><td style="padding:16px 18px;">
+          <p style="margin:0 0 6px;color:#0f172a;font-size:15px;font-weight:600;">${escapeHtml(title)}</p>
+          ${
+            eventTitle
+              ? `<p style="margin:0;color:#64748b;font-size:13px;">From: ${escapeHtml(eventTitle)}</p>`
+              : ''
+          }
+        </td></tr>
+      </table>`,
+      footnote: 'Nothing further is needed from you.',
+    }),
+    text: [
+      intro,
+      '',
+      `- ${title}${eventTitle ? ` (${eventTitle})` : ''}`,
+    ].join('\n'),
+  };
+}
+
+/**
+ * A deadline has passed. Sent once, not every morning — the item stays flagged
+ * in the Monday summary for as long as it is open, which is nagging enough.
+ */
+export function actionItemOverdueEmail({
+  name,
+  title,
+  dueDate,
+  eventTitle,
+  ownerName,
+  isOwner,
+}: {
+  name: string;
+  title: string;
+  dueDate: Date | string;
+  eventTitle?: string | null;
+  ownerName?: string | null;
+  /** The raiser gets told whose it is; the owner already knows. */
+  isOwner: boolean;
+}): EmailBody {
+  const intro = isOwner
+    ? `${name}, an action item assigned to you has passed its deadline.`
+    : `${name}, an action item you raised has passed its deadline.`;
+
+  return {
+    subject: `Overdue: ${title}`,
+    html: layout({
+      heading: 'Action item overdue',
+      intro,
+      bodyHtml: `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:8px 0;background-color:#fdebec;border:1px solid #f6cfd2;border-radius:12px;">
+        <tr><td style="padding:16px 18px;">
+          <p style="margin:0 0 6px;color:#0f172a;font-size:15px;font-weight:600;">${escapeHtml(title)}</p>
+          <p style="margin:0;color:#c2410c;font-size:13px;">Was due ${escapeHtml(formatDate(dueDate))}</p>
+          ${
+            !isOwner && ownerName
+              ? `<p style="margin:6px 0 0;color:#64748b;font-size:13px;">Assigned to ${escapeHtml(ownerName)}</p>`
+              : ''
+          }
+          ${
+            eventTitle
+              ? `<p style="margin:6px 0 0;color:#64748b;font-size:13px;">From: ${escapeHtml(eventTitle)}</p>`
+              : ''
+          }
+        </td></tr>
+      </table>`,
+      footnote:
+        'If the deadline has moved, updating it on the platform will stop this and restart the reminders.',
+    }),
+    text: [
+      intro,
+      '',
+      `- ${title} (was due ${formatDate(dueDate)}${eventTitle ? `, ${eventTitle}` : ''})`,
+    ].join('\n'),
+  };
+}
+
+/** Told to the person it was taken from; the new owner gets the assignment mail. */
+export function actionItemUnassignedEmail({
+  name,
+  title,
+  newOwnerName,
+  eventTitle,
+}: {
+  name: string;
+  title: string;
+  newOwnerName?: string | null;
+  eventTitle?: string | null;
+}): EmailBody {
+  const intro = newOwnerName
+    ? `${name}, an action item assigned to you has been passed to ${newOwnerName}.`
+    : `${name}, an action item assigned to you has been unassigned.`;
+
+  return {
+    subject: `No longer yours: ${title}`,
+    html: layout({
+      heading: 'Action item reassigned',
+      intro,
+      bodyHtml: `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:8px 0;background-color:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;">
+        <tr><td style="padding:16px 18px;">
+          <p style="margin:0 0 6px;color:#0f172a;font-size:15px;font-weight:600;">${escapeHtml(title)}</p>
+          ${
+            eventTitle
+              ? `<p style="margin:0;color:#64748b;font-size:13px;">From: ${escapeHtml(eventTitle)}</p>`
+              : ''
+          }
+        </td></tr>
+      </table>`,
+      footnote: 'Nothing further is needed from you.',
+    }),
+    text: [intro, '', `- ${title}${eventTitle ? ` (${eventTitle})` : ''}`].join(
+      '\n',
+    ),
+  };
+}
+
+/**
+ * A meeting was called off or moved.
+ *
+ * The one email on this platform whose absence had a physical cost: a
+ * cancelled meeting notified nobody at all, so people travelled to it.
+ */
+export function meetingChangedEmail({
+  name,
+  eventTitle,
+  cancelled,
+  startAt,
+  previousStartAt,
+  venueName,
+  previousVenueName,
+}: {
+  name: string;
+  eventTitle: string;
+  cancelled: boolean;
+  startAt: Date | string;
+  previousStartAt?: Date | string | null;
+  venueName?: string | null;
+  previousVenueName?: string | null;
+}): EmailBody {
+  const intro = cancelled
+    ? `${name}, a meeting you were invited to has been cancelled.`
+    : `${name}, the details of a meeting you were invited to have changed.`;
+
+  // Old beside new, because "the venue has changed" without saying from what
+  // makes someone check whether they had it wrong all along.
+  const changes = cancelled
+    ? ''
+    : [
+        previousStartAt
+          ? `<p style="margin:0 0 6px;color:#334155;font-size:14px;">When: <s style="color:#94a3b8;">${escapeHtml(
+              formatDateTime(previousStartAt),
+            )}</s> &rarr; <strong>${escapeHtml(formatDateTime(startAt))}</strong></p>`
+          : `<p style="margin:0 0 6px;color:#334155;font-size:14px;">When: <strong>${escapeHtml(formatDateTime(startAt))}</strong></p>`,
+        previousVenueName && previousVenueName !== venueName
+          ? `<p style="margin:0;color:#334155;font-size:14px;">Where: <s style="color:#94a3b8;">${escapeHtml(
+              previousVenueName,
+            )}</s> &rarr; <strong>${escapeHtml(venueName ?? 'To be confirmed')}</strong></p>`
+          : venueName
+            ? `<p style="margin:0;color:#334155;font-size:14px;">Where: ${escapeHtml(venueName)}</p>`
+            : '',
+      ].join('');
+
+  return {
+    subject: cancelled
+      ? `Cancelled: ${eventTitle}`
+      : `Changed: ${eventTitle}`,
+    html: layout({
+      heading: cancelled ? 'Meeting cancelled' : 'Meeting details changed',
+      intro,
+      bodyHtml: `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:8px 0;background-color:${
+        cancelled ? '#fdebec' : '#fff8e5'
+      };border:1px solid ${cancelled ? '#f6cfd2' : '#fde8a6'};border-radius:12px;">
+        <tr><td style="padding:16px 18px;">
+          <p style="margin:0 0 8px;color:#0f172a;font-size:15px;font-weight:600;">${escapeHtml(eventTitle)}</p>
+          ${changes}
+        </td></tr>
+      </table>`,
+      footnote: cancelled
+        ? 'Nothing further is needed from you. The meeting has been removed from the calendar.'
+        : 'Your response to the invitation still stands; only the details have changed.',
+    }),
+    text: [
+      intro,
+      '',
+      eventTitle,
+      ...(cancelled
+        ? []
+        : [
+            previousStartAt
+              ? `When: ${formatDateTime(previousStartAt)} -> ${formatDateTime(startAt)}`
+              : `When: ${formatDateTime(startAt)}`,
+            venueName ? `Where: ${venueName}` : '',
+          ].filter(Boolean)),
     ].join('\n'),
   };
 }

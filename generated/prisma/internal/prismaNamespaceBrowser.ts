@@ -69,6 +69,7 @@ export const ModelName = {
   ActionItem: 'ActionItem',
   ActionItemAssistant: 'ActionItemAssistant',
   Notification: 'Notification',
+  EmailSuppression: 'EmailSuppression',
   AuditLog: 'AuditLog',
   PlatformSetting: 'PlatformSetting'
 } as const
@@ -362,6 +363,7 @@ export const ActionItemScalarFieldEnum = {
   progressNotes: 'progressNotes',
   progressLink: 'progressLink',
   reminderSentAt: 'reminderSentAt',
+  overdueNotifiedAt: 'overdueNotifiedAt',
   priority: 'priority',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -398,6 +400,16 @@ export const NotificationScalarFieldEnum = {
 } as const
 
 export type NotificationScalarFieldEnum = (typeof NotificationScalarFieldEnum)[keyof typeof NotificationScalarFieldEnum]
+
+
+export const EmailSuppressionScalarFieldEnum = {
+  id: 'id',
+  email: 'email',
+  kind: 'kind',
+  createdAt: 'createdAt'
+} as const
+
+export type EmailSuppressionScalarFieldEnum = (typeof EmailSuppressionScalarFieldEnum)[keyof typeof EmailSuppressionScalarFieldEnum]
 
 
 export const AuditLogScalarFieldEnum = {

@@ -203,6 +203,11 @@ export class ActionItemsService {
           include: { event: true },
         },
         assistants: { select: { userId: true } },
+        // The outgoing owner, so a reassignment can tell them it is no longer
+        // theirs — the row is overwritten a few lines below.
+        owner: {
+          select: { id: true, name: true, email: true, ministryId: true },
+        },
       },
     });
 
@@ -334,6 +339,27 @@ export class ActionItemsService {
       updated.ownerId !== actionItem.ownerId
     ) {
       await this.notifications.notifyActionItemAssigned(actionItemId);
+
+      // The other half of a reassignment. The new owner has always been told;
+      // the person it was taken from was told nothing at all, so an item
+      // simply disappeared off their board.
+      const previousEmail = actionItem.owner?.email ?? actionItem.ownerEmail;
+      if (previousEmail) {
+        await this.notifications.notifyActionItemUnassigned(
+          actionItemId,
+          {
+            id: actionItem.ownerId ?? null,
+            name: actionItem.owner?.name ?? actionItem.ownerName ?? 'Colleague',
+            email: previousEmail,
+            ministryId: actionItem.owner?.ministryId ?? null,
+          },
+          updated.ownerName ?? null,
+        );
+      }
+    } else if (dto.status === ActionItemStatusEnum.COMPLETED) {
+      // Everyone with a stake in the work: the owner, whoever raised it, the
+      // people helping, and the organizer of the meeting it came from.
+      await this.notifications.notifyActionItemCompleted(actionItemId, userId);
     } else if (
       dto.status &&
       actionItem.ownerId &&

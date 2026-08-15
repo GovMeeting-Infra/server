@@ -40,6 +40,7 @@ export type ActionItemMinAggregateOutputType = {
   progressNotes: string | null
   progressLink: string | null
   reminderSentAt: Date | null
+  overdueNotifiedAt: Date | null
   priority: string | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -61,6 +62,7 @@ export type ActionItemMaxAggregateOutputType = {
   progressNotes: string | null
   progressLink: string | null
   reminderSentAt: Date | null
+  overdueNotifiedAt: Date | null
   priority: string | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -82,6 +84,7 @@ export type ActionItemCountAggregateOutputType = {
   progressNotes: number
   progressLink: number
   reminderSentAt: number
+  overdueNotifiedAt: number
   priority: number
   createdAt: number
   updatedAt: number
@@ -105,6 +108,7 @@ export type ActionItemMinAggregateInputType = {
   progressNotes?: true
   progressLink?: true
   reminderSentAt?: true
+  overdueNotifiedAt?: true
   priority?: true
   createdAt?: true
   updatedAt?: true
@@ -126,6 +130,7 @@ export type ActionItemMaxAggregateInputType = {
   progressNotes?: true
   progressLink?: true
   reminderSentAt?: true
+  overdueNotifiedAt?: true
   priority?: true
   createdAt?: true
   updatedAt?: true
@@ -147,6 +152,7 @@ export type ActionItemCountAggregateInputType = {
   progressNotes?: true
   progressLink?: true
   reminderSentAt?: true
+  overdueNotifiedAt?: true
   priority?: true
   createdAt?: true
   updatedAt?: true
@@ -241,6 +247,7 @@ export type ActionItemGroupByOutputType = {
   progressNotes: string | null
   progressLink: string | null
   reminderSentAt: Date | null
+  overdueNotifiedAt: Date | null
   priority: string
   createdAt: Date
   updatedAt: Date
@@ -283,6 +290,7 @@ export type ActionItemWhereInput = {
   progressNotes?: Prisma.StringNullableFilter<"ActionItem"> | string | null
   progressLink?: Prisma.StringNullableFilter<"ActionItem"> | string | null
   reminderSentAt?: Prisma.DateTimeNullableFilter<"ActionItem"> | Date | string | null
+  overdueNotifiedAt?: Prisma.DateTimeNullableFilter<"ActionItem"> | Date | string | null
   priority?: Prisma.StringFilter<"ActionItem"> | string
   createdAt?: Prisma.DateTimeFilter<"ActionItem"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"ActionItem"> | Date | string
@@ -308,6 +316,7 @@ export type ActionItemOrderByWithRelationInput = {
   progressNotes?: Prisma.SortOrderInput | Prisma.SortOrder
   progressLink?: Prisma.SortOrderInput | Prisma.SortOrder
   reminderSentAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  overdueNotifiedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   priority?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -336,6 +345,7 @@ export type ActionItemWhereUniqueInput = Prisma.AtLeast<{
   progressNotes?: Prisma.StringNullableFilter<"ActionItem"> | string | null
   progressLink?: Prisma.StringNullableFilter<"ActionItem"> | string | null
   reminderSentAt?: Prisma.DateTimeNullableFilter<"ActionItem"> | Date | string | null
+  overdueNotifiedAt?: Prisma.DateTimeNullableFilter<"ActionItem"> | Date | string | null
   priority?: Prisma.StringFilter<"ActionItem"> | string
   createdAt?: Prisma.DateTimeFilter<"ActionItem"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"ActionItem"> | Date | string
@@ -361,6 +371,7 @@ export type ActionItemOrderByWithAggregationInput = {
   progressNotes?: Prisma.SortOrderInput | Prisma.SortOrder
   progressLink?: Prisma.SortOrderInput | Prisma.SortOrder
   reminderSentAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  overdueNotifiedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   priority?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -388,6 +399,7 @@ export type ActionItemScalarWhereWithAggregatesInput = {
   progressNotes?: Prisma.StringNullableWithAggregatesFilter<"ActionItem"> | string | null
   progressLink?: Prisma.StringNullableWithAggregatesFilter<"ActionItem"> | string | null
   reminderSentAt?: Prisma.DateTimeNullableWithAggregatesFilter<"ActionItem"> | Date | string | null
+  overdueNotifiedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"ActionItem"> | Date | string | null
   priority?: Prisma.StringWithAggregatesFilter<"ActionItem"> | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"ActionItem"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"ActionItem"> | Date | string
@@ -406,6 +418,7 @@ export type ActionItemCreateInput = {
   progressNotes?: string | null
   progressLink?: string | null
   reminderSentAt?: Date | string | null
+  overdueNotifiedAt?: Date | string | null
   priority?: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -431,6 +444,7 @@ export type ActionItemUncheckedCreateInput = {
   progressNotes?: string | null
   progressLink?: string | null
   reminderSentAt?: Date | string | null
+  overdueNotifiedAt?: Date | string | null
   priority?: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -450,6 +464,7 @@ export type ActionItemUpdateInput = {
   progressNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   progressLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reminderSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  overdueNotifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   priority?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -475,6 +490,7 @@ export type ActionItemUncheckedUpdateInput = {
   progressNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   progressLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reminderSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  overdueNotifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   priority?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -497,6 +513,7 @@ export type ActionItemCreateManyInput = {
   progressNotes?: string | null
   progressLink?: string | null
   reminderSentAt?: Date | string | null
+  overdueNotifiedAt?: Date | string | null
   priority?: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -515,6 +532,7 @@ export type ActionItemUpdateManyMutationInput = {
   progressNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   progressLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reminderSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  overdueNotifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   priority?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -536,6 +554,7 @@ export type ActionItemUncheckedUpdateManyInput = {
   progressNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   progressLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reminderSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  overdueNotifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   priority?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -567,6 +586,7 @@ export type ActionItemCountOrderByAggregateInput = {
   progressNotes?: Prisma.SortOrder
   progressLink?: Prisma.SortOrder
   reminderSentAt?: Prisma.SortOrder
+  overdueNotifiedAt?: Prisma.SortOrder
   priority?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -588,6 +608,7 @@ export type ActionItemMaxOrderByAggregateInput = {
   progressNotes?: Prisma.SortOrder
   progressLink?: Prisma.SortOrder
   reminderSentAt?: Prisma.SortOrder
+  overdueNotifiedAt?: Prisma.SortOrder
   priority?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -609,6 +630,7 @@ export type ActionItemMinOrderByAggregateInput = {
   progressNotes?: Prisma.SortOrder
   progressLink?: Prisma.SortOrder
   reminderSentAt?: Prisma.SortOrder
+  overdueNotifiedAt?: Prisma.SortOrder
   priority?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -780,6 +802,7 @@ export type ActionItemCreateWithoutOwnerInput = {
   progressNotes?: string | null
   progressLink?: string | null
   reminderSentAt?: Date | string | null
+  overdueNotifiedAt?: Date | string | null
   priority?: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -803,6 +826,7 @@ export type ActionItemUncheckedCreateWithoutOwnerInput = {
   progressNotes?: string | null
   progressLink?: string | null
   reminderSentAt?: Date | string | null
+  overdueNotifiedAt?: Date | string | null
   priority?: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -832,6 +856,7 @@ export type ActionItemCreateWithoutAssignedByInput = {
   progressNotes?: string | null
   progressLink?: string | null
   reminderSentAt?: Date | string | null
+  overdueNotifiedAt?: Date | string | null
   priority?: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -855,6 +880,7 @@ export type ActionItemUncheckedCreateWithoutAssignedByInput = {
   progressNotes?: string | null
   progressLink?: string | null
   reminderSentAt?: Date | string | null
+  overdueNotifiedAt?: Date | string | null
   priority?: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -906,6 +932,7 @@ export type ActionItemScalarWhereInput = {
   progressNotes?: Prisma.StringNullableFilter<"ActionItem"> | string | null
   progressLink?: Prisma.StringNullableFilter<"ActionItem"> | string | null
   reminderSentAt?: Prisma.DateTimeNullableFilter<"ActionItem"> | Date | string | null
+  overdueNotifiedAt?: Prisma.DateTimeNullableFilter<"ActionItem"> | Date | string | null
   priority?: Prisma.StringFilter<"ActionItem"> | string
   createdAt?: Prisma.DateTimeFilter<"ActionItem"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"ActionItem"> | Date | string
@@ -940,6 +967,7 @@ export type ActionItemCreateWithoutMinutesInput = {
   progressNotes?: string | null
   progressLink?: string | null
   reminderSentAt?: Date | string | null
+  overdueNotifiedAt?: Date | string | null
   priority?: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -963,6 +991,7 @@ export type ActionItemUncheckedCreateWithoutMinutesInput = {
   progressNotes?: string | null
   progressLink?: string | null
   reminderSentAt?: Date | string | null
+  overdueNotifiedAt?: Date | string | null
   priority?: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1008,6 +1037,7 @@ export type ActionItemCreateWithoutAssistantsInput = {
   progressNotes?: string | null
   progressLink?: string | null
   reminderSentAt?: Date | string | null
+  overdueNotifiedAt?: Date | string | null
   priority?: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1032,6 +1062,7 @@ export type ActionItemUncheckedCreateWithoutAssistantsInput = {
   progressNotes?: string | null
   progressLink?: string | null
   reminderSentAt?: Date | string | null
+  overdueNotifiedAt?: Date | string | null
   priority?: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1066,6 +1097,7 @@ export type ActionItemUpdateWithoutAssistantsInput = {
   progressNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   progressLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reminderSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  overdueNotifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   priority?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1090,6 +1122,7 @@ export type ActionItemUncheckedUpdateWithoutAssistantsInput = {
   progressNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   progressLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reminderSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  overdueNotifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   priority?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1110,6 +1143,7 @@ export type ActionItemCreateManyOwnerInput = {
   progressNotes?: string | null
   progressLink?: string | null
   reminderSentAt?: Date | string | null
+  overdueNotifiedAt?: Date | string | null
   priority?: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1130,6 +1164,7 @@ export type ActionItemCreateManyAssignedByInput = {
   progressNotes?: string | null
   progressLink?: string | null
   reminderSentAt?: Date | string | null
+  overdueNotifiedAt?: Date | string | null
   priority?: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1148,6 +1183,7 @@ export type ActionItemUpdateWithoutOwnerInput = {
   progressNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   progressLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reminderSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  overdueNotifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   priority?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1171,6 +1207,7 @@ export type ActionItemUncheckedUpdateWithoutOwnerInput = {
   progressNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   progressLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reminderSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  overdueNotifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   priority?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1192,6 +1229,7 @@ export type ActionItemUncheckedUpdateManyWithoutOwnerInput = {
   progressNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   progressLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reminderSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  overdueNotifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   priority?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1210,6 +1248,7 @@ export type ActionItemUpdateWithoutAssignedByInput = {
   progressNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   progressLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reminderSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  overdueNotifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   priority?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1233,6 +1272,7 @@ export type ActionItemUncheckedUpdateWithoutAssignedByInput = {
   progressNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   progressLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reminderSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  overdueNotifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   priority?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1254,6 +1294,7 @@ export type ActionItemUncheckedUpdateManyWithoutAssignedByInput = {
   progressNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   progressLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reminderSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  overdueNotifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   priority?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1274,6 +1315,7 @@ export type ActionItemCreateManyMinutesInput = {
   progressNotes?: string | null
   progressLink?: string | null
   reminderSentAt?: Date | string | null
+  overdueNotifiedAt?: Date | string | null
   priority?: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1292,6 +1334,7 @@ export type ActionItemUpdateWithoutMinutesInput = {
   progressNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   progressLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reminderSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  overdueNotifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   priority?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1315,6 +1358,7 @@ export type ActionItemUncheckedUpdateWithoutMinutesInput = {
   progressNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   progressLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reminderSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  overdueNotifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   priority?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1336,6 +1380,7 @@ export type ActionItemUncheckedUpdateManyWithoutMinutesInput = {
   progressNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   progressLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reminderSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  overdueNotifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   priority?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1388,6 +1433,7 @@ export type ActionItemSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   progressNotes?: boolean
   progressLink?: boolean
   reminderSentAt?: boolean
+  overdueNotifiedAt?: boolean
   priority?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1414,6 +1460,7 @@ export type ActionItemSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ex
   progressNotes?: boolean
   progressLink?: boolean
   reminderSentAt?: boolean
+  overdueNotifiedAt?: boolean
   priority?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1438,6 +1485,7 @@ export type ActionItemSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ex
   progressNotes?: boolean
   progressLink?: boolean
   reminderSentAt?: boolean
+  overdueNotifiedAt?: boolean
   priority?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1462,12 +1510,13 @@ export type ActionItemSelectScalar = {
   progressNotes?: boolean
   progressLink?: boolean
   reminderSentAt?: boolean
+  overdueNotifiedAt?: boolean
   priority?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type ActionItemOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "minutesId" | "title" | "description" | "ownerId" | "ownerName" | "ownerEmail" | "assignedById" | "dueDate" | "completedAt" | "status" | "point" | "progressNotes" | "progressLink" | "reminderSentAt" | "priority" | "createdAt" | "updatedAt", ExtArgs["result"]["actionItem"]>
+export type ActionItemOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "minutesId" | "title" | "description" | "ownerId" | "ownerName" | "ownerEmail" | "assignedById" | "dueDate" | "completedAt" | "status" | "point" | "progressNotes" | "progressLink" | "reminderSentAt" | "overdueNotifiedAt" | "priority" | "createdAt" | "updatedAt", ExtArgs["result"]["actionItem"]>
 export type ActionItemInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   minutes?: boolean | Prisma.MinutesDefaultArgs<ExtArgs>
   owner?: boolean | Prisma.ActionItem$ownerArgs<ExtArgs>
@@ -1510,6 +1559,12 @@ export type $ActionItemPayload<ExtArgs extends runtime.Types.Extensions.Internal
     progressNotes: string | null
     progressLink: string | null
     reminderSentAt: Date | null
+    /**
+     * Set when the owner was told it had slipped. Once, not every morning —
+     * a daily notice about the same thing stops being read. Cleared with
+     * reminderSentAt when the deadline moves.
+     */
+    overdueNotifiedAt: Date | null
     priority: string
     createdAt: Date
     updatedAt: Date
@@ -1955,6 +2010,7 @@ export interface ActionItemFieldRefs {
   readonly progressNotes: Prisma.FieldRef<"ActionItem", 'String'>
   readonly progressLink: Prisma.FieldRef<"ActionItem", 'String'>
   readonly reminderSentAt: Prisma.FieldRef<"ActionItem", 'DateTime'>
+  readonly overdueNotifiedAt: Prisma.FieldRef<"ActionItem", 'DateTime'>
   readonly priority: Prisma.FieldRef<"ActionItem", 'String'>
   readonly createdAt: Prisma.FieldRef<"ActionItem", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"ActionItem", 'DateTime'>

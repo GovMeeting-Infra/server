@@ -104,14 +104,19 @@ describe('NotificationsService', () => {
       expect(prisma.userPreferences.findMany).toHaveBeenCalledTimes(1);
     });
 
-    it('skips a recipient with no ministry, since the column is required', async () => {
+    // A super admin belongs to no ministry. The column was required and this
+    // filter dropped them, so they received no in-app notification of
+    // anything at all — for as long as the table has existed.
+    it('notifies a recipient with no ministry, now the column is nullable', async () => {
       prefRows = [prefs('u1')];
       const result = await service.notifyMany(
         [{ userId: 'u1', ministryId: null }],
         { type: 'MINUTES_PUBLISHED', title: 't', body: 'b' },
       );
-      expect(result).toEqual([false]);
-      expect(prisma.notification.createMany).not.toHaveBeenCalled();
+      expect(result).toEqual([true]);
+      expect(prisma.notification.createMany).toHaveBeenCalledWith({
+        data: [expect.objectContaining({ userId: 'u1', ministryId: null })],
+      });
     });
 
     it('does nothing for an empty recipient list', async () => {

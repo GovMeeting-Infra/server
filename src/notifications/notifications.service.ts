@@ -54,6 +54,33 @@ export class NotificationsService {
     }
   }
 
+  /**
+   * Queue several emails in one round trip.
+   *
+   * One `add` per recipient in a loop was N Redis commands on a bill that
+   * charges per command, and N sequential awaits on a hosted connection.
+   */
+  private async enqueueEmails(
+    jobs: { name: string; data: any; jobId: string }[],
+  ) {
+    if (jobs.length === 0) return;
+    try {
+      await this.emailQueue.addBulk(
+        jobs.map((j) => ({
+          name: j.name,
+          data: j.data,
+          opts: {
+            jobId: j.jobId,
+            removeOnComplete: { age: 2 * 60 * 60 },
+            removeOnFail: { age: 2 * 60 * 60 },
+          },
+        })),
+      );
+    } catch (error) {
+      this.logger.error(`Failed to queue ${jobs.length} emails`, error);
+    }
+  }
+
   // ==========================================================================
   // Preferences
   // ==========================================================================
@@ -138,17 +165,18 @@ export class NotificationsService {
       const lookup = await this.preferencesFor(recipients.map((r) => r.userId));
       const key = PREFERENCE_FOR[payload.type];
 
+      // ministryId is nullable now. It used to be a required column, and this
+      // filter dropped anyone without one — so a super admin, who belongs to
+      // no ministry, silently received no in-app notification of anything.
       const wanted = recipients.filter(
-        // ministryId is required by the schema; a user with none (a super-admin)
-        // has no ministry inbox to file this under.
-        (r) => r.ministryId && lookup(r.userId)[key] !== false,
+        (r) => lookup(r.userId)[key] !== false,
       );
 
       if (wanted.length > 0) {
         await (this.prisma as any).notification.createMany({
           data: wanted.map((r) => ({
             userId: r.userId,
-            ministryId: r.ministryId as string,
+            ministryId: r.ministryId ?? null,
             type: payload.type,
             title: payload.title,
             body: payload.body,
@@ -360,6 +388,216 @@ export class NotificationsService {
       entityType: 'ActionItem',
       entityId: actionItemId,
     });
+  }
+
+  /**
+   * A task closed, told to the people with a stake in it.
+   *
+   * The owner, whoever raised it, anyone helping, and the organizer of the
+   * meeting it came from — deduplicated, and never the person who just made
+   * the change. Everyone else who attended sees it in the Monday summary:
+   * mailing forty people because one task closed is how a platform teaches
+   * its users to filter its mail.
+   */
+  async notifyActionItemCompleted(actionItemId: string, actorId: string) {
+    const item = await (this.prisma as any).actionItem.findUnique({
+      where: { id: actionItemId },
+      select: {
+        title: true,
+        ownerName: true,
+        ownerEmail: true,
+        owner: { select: { id: true, name: true, email: true, ministryId: true } },
+        assignedBy: {
+          select: { id: true, name: true, email: true, ministryId: true },
+        },
+        assistants: {
+          select: {
+            user: { select: { id: true, name: true, email: true, ministryId: true } },
+          },
+        },
+        minutes: {
+          select: {
+            event: {
+              select: {
+                title: true,
+                organizer: {
+                  select: { id: true, name: true, email: true, ministryId: true },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!item) return;
+
+    const people = [
+      item.owner,
+      item.assignedBy,
+      ...item.assistants.map((a: any) => a.user),
+      item.minutes?.event?.organizer,
+    ].filter(Boolean) as {
+      id: string;
+      name: string;
+      email: string;
+      ministryId: string | null;
+    }[];
+
+    // An owner with no account still needs telling; they have no id to
+    // deduplicate on, so they are added by address.
+    const byKey = new Map<string, { id: string | null; name: string; email: string; ministryId: string | null }>();
+    for (const p of people) {
+      if (p.id === actorId) continue;
+      if (!p.email) continue;
+      byKey.set(p.id, p);
+    }
+    if (!item.owner && item.ownerEmail) {
+      byKey.set(item.ownerEmail.toLowerCase(), {
+        id: null,
+        name: item.ownerName ?? 'Colleague',
+        email: item.ownerEmail,
+        ministryId: null,
+      });
+    }
+
+    const recipients = [...byKey.values()];
+    if (recipients.length === 0) return;
+
+    await this.notifyMany(
+      recipients
+        .filter((r) => r.id)
+        .map((r) => ({ userId: r.id as string, ministryId: r.ministryId })),
+      {
+        type: 'ACTION_ITEM_STATUS_CHANGED',
+        title: 'Action item completed',
+        body: `"${item.title}" has been completed.`,
+        link: '/administrative/action-items',
+        entityType: 'ActionItem',
+        entityId: actionItemId,
+      },
+    );
+
+    await this.enqueueEmails(
+      recipients.map((r) => ({
+        name: 'send-action-item-completed',
+        data: { itemId: actionItemId, email: r.email, name: r.name },
+        jobId: `action-item-completed:${actionItemId}:${r.id ?? r.email.toLowerCase()}`,
+      })),
+    );
+  }
+
+  /** Told to the person a task was taken from; the new owner gets the assignment mail. */
+  async notifyActionItemUnassigned(
+    actionItemId: string,
+    previous: { id: string | null; name: string; email: string; ministryId?: string | null },
+    newOwnerName: string | null,
+  ) {
+    if (!previous.email) return;
+
+    if (previous.id && previous.ministryId) {
+      await this.notify({
+        userId: previous.id,
+        ministryId: previous.ministryId,
+        type: 'ACTION_ITEM_ASSIGNED',
+        title: 'Action item reassigned',
+        body: newOwnerName
+          ? `An action item assigned to you has been passed to ${newOwnerName}.`
+          : 'An action item assigned to you has been unassigned.',
+        link: '/administrative/action-items',
+        entityType: 'ActionItem',
+        entityId: actionItemId,
+      });
+    }
+
+    await this.enqueueEmail(
+      'send-action-item-unassigned',
+      {
+        itemId: actionItemId,
+        email: previous.email,
+        name: previous.name,
+        newOwnerName,
+      },
+      `action-item-unassigned:${actionItemId}:${previous.email.toLowerCase()}:${Date.now()}`,
+    );
+  }
+
+  /**
+   * A meeting was cancelled or its details moved.
+   *
+   * The only email here whose absence had a physical cost: nothing told anyone
+   * a meeting was called off, so people travelled to it.
+   */
+  async notifyMeetingChanged(
+    eventId: string,
+    options: {
+      cancelled: boolean;
+      previousStartAt?: Date | null;
+      previousVenueName?: string | null;
+    },
+  ) {
+    const event = await (this.prisma as any).event.findUnique({
+      where: { id: eventId },
+      select: {
+        title: true,
+        ministryId: true,
+        attendees: {
+          // Somebody who declined does not need chasing about a meeting they
+          // already said no to.
+          where: { status: { not: 'DECLINED' } },
+          select: {
+            externalName: true,
+            externalEmail: true,
+            user: { select: { id: true, name: true, email: true } },
+          },
+        },
+      },
+    });
+
+    if (!event) return;
+
+    const recipients = event.attendees
+      .map((a: any) => ({
+        id: a.user?.id ?? null,
+        name: a.user?.name ?? a.externalName ?? 'Colleague',
+        email: a.user?.email ?? a.externalEmail ?? null,
+      }))
+      .filter((r: any) => r.email);
+
+    if (recipients.length === 0) return;
+
+    await this.notifyMany(
+      recipients
+        .filter((r: any) => r.id)
+        .map((r: any) => ({ userId: r.id, ministryId: event.ministryId })),
+      {
+        type: 'MEETING_INVITATION',
+        title: options.cancelled ? 'Meeting cancelled' : 'Meeting changed',
+        body: options.cancelled
+          ? `"${event.title}" has been cancelled.`
+          : `The details of "${event.title}" have changed.`,
+        link: `/administrative/events/${eventId}`,
+        entityType: 'Event',
+        entityId: eventId,
+      },
+    );
+
+    await this.enqueueEmails(
+      recipients.map((r: any) => ({
+        name: 'send-meeting-changed',
+        data: {
+          eventId,
+          email: r.email,
+          name: r.name,
+          cancelled: options.cancelled,
+          previousStartAt: options.previousStartAt?.toISOString() ?? null,
+          previousVenueName: options.previousVenueName ?? null,
+        },
+        // Stamped, because a meeting can move more than once and each move is
+        // its own thing to be told about.
+        jobId: `meeting-changed:${eventId}:${r.id ?? r.email.toLowerCase()}:${Date.now()}`,
+      })),
+    );
   }
 
   async notifyMeetingInvitation(eventId: string, userIds: string[]) {

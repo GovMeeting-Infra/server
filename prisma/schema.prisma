@@ -509,7 +509,11 @@ model ActionItem {
   progressNotes  String?          @db.Text
   progressLink   String?
   // Cleared when the due date moves, so a rescheduled item is reminded again.
-  reminderSentAt DateTime?
+  reminderSentAt    DateTime?
+  /// Set when the owner was told it had slipped. Once, not every morning —
+  /// a daily notice about the same thing stops being read. Cleared with
+  /// reminderSentAt when the deadline moves.
+  overdueNotifiedAt DateTime?
   priority       String           @default("medium")
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
@@ -573,9 +577,12 @@ enum ActionItemStatus {
 // ============================================================================
 
 model Notification {
-  id         String    @id @default(cuid())
-  userId     String
-  ministryId String
+  id     String @id @default(cuid())
+  userId String
+  /// Nullable because a super admin belongs to no ministry. It was required,
+  /// and notifyMany silently dropped every recipient without one — so super
+  /// admins received no in-app notification of anything, ever.
+  ministryId String?
   type       String
   title      String
   body       String    @db.Text
@@ -587,12 +594,34 @@ model Notification {
   createdAt  DateTime  @default(now())
   expiresAt  DateTime  @default(dbgenerated("now() + interval '30 days'"))
 
-  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  ministry Ministry @relation(fields: [ministryId], references: [id], onDelete: Cascade)
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ministry Ministry? @relation(fields: [ministryId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([read])
   @@index([createdAt])
+}
+
+/**
+ * Addresses that have opted out of a kind of mail.
+ *
+ * Keyed on the address rather than an account because the weekly digest goes
+ * to people who own action items without having accounts — they are reachable
+ * by email alone, and an opt-out they cannot exercise is not an opt-out.
+ *
+ * Only the digest is suppressible. Everything else this platform sends is
+ * operational: you cannot unsubscribe from being told a meeting you are
+ * expected at has moved.
+ */
+model EmailSuppression {
+  id        String   @id @default(cuid())
+  email     String
+  /// 'WEEKLY_DIGEST' today; a kind rather than a boolean so a second opt-out
+  /// does not need another table.
+  kind      String
+  createdAt DateTime @default(now())
+
+  @@unique([email, kind])
 }
 
 // ============================================================================

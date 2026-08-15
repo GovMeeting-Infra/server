@@ -155,6 +155,20 @@ export type ActionItemAssistant = Prisma.ActionItemAssistantModel
  */
 export type Notification = Prisma.NotificationModel
 /**
+ * Model EmailSuppression
+ * *
+ *  * Addresses that have opted out of a kind of mail.
+ *  *
+ *  * Keyed on the address rather than an account because the weekly digest goes
+ *  * to people who own action items without having accounts — they are reachable
+ *  * by email alone, and an opt-out they cannot exercise is not an opt-out.
+ *  *
+ *  * Only the digest is suppressible. Everything else this platform sends is
+ *  * operational: you cannot unsubscribe from being told a meeting you are
+ *  * expected at has moved.
+ */
+export type EmailSuppression = Prisma.EmailSuppressionModel
+/**
  * Model AuditLog
  * 
  */

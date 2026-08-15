@@ -33,6 +33,15 @@ import { SettingsModule } from './common/settings/settings.module';
     ScheduleModule.forRoot(),
     BullModule.forRoot({
       connection: redisConnectionOptions(),
+      // Without these, BullMQ's default of one attempt applies and a job that
+      // throws is gone — a Resend blip at 08:00 silently lost that morning's
+      // reminders, and three comments in the processor claimed otherwise.
+      // Three tries over roughly a minute covers a transient failure without
+      // hammering an API that is already refusing us.
+      defaultJobOptions: {
+        attempts: 3,
+        backoff: { type: 'exponential', delay: 5_000 },
+      },
     }),
     // 'notification-queue' was registered here too but had no processor and no
     // producer. In-app notifications are written straight to the database.

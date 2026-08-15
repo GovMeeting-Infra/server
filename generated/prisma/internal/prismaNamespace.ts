@@ -415,6 +415,7 @@ export const ModelName = {
   ActionItem: 'ActionItem',
   ActionItemAssistant: 'ActionItemAssistant',
   Notification: 'Notification',
+  EmailSuppression: 'EmailSuppression',
   AuditLog: 'AuditLog',
   PlatformSetting: 'PlatformSetting'
 } as const
@@ -432,7 +433,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "session" | "account" | "verification" | "ministry" | "userPreferences" | "event" | "eventSeries" | "eventCoOrganizer" | "eventAttendee" | "attendance" | "qRToken" | "minutes" | "minutePoint" | "minutesAccessToken" | "actionItem" | "actionItemAssistant" | "notification" | "auditLog" | "platformSetting"
+    modelProps: "user" | "session" | "account" | "verification" | "ministry" | "userPreferences" | "event" | "eventSeries" | "eventCoOrganizer" | "eventAttendee" | "attendance" | "qRToken" | "minutes" | "minutePoint" | "minutesAccessToken" | "actionItem" | "actionItemAssistant" | "notification" | "emailSuppression" | "auditLog" | "platformSetting"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1768,6 +1769,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    EmailSuppression: {
+      payload: Prisma.$EmailSuppressionPayload<ExtArgs>
+      fields: Prisma.EmailSuppressionFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.EmailSuppressionFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailSuppressionPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.EmailSuppressionFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailSuppressionPayload>
+        }
+        findFirst: {
+          args: Prisma.EmailSuppressionFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailSuppressionPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.EmailSuppressionFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailSuppressionPayload>
+        }
+        findMany: {
+          args: Prisma.EmailSuppressionFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailSuppressionPayload>[]
+        }
+        create: {
+          args: Prisma.EmailSuppressionCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailSuppressionPayload>
+        }
+        createMany: {
+          args: Prisma.EmailSuppressionCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.EmailSuppressionCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailSuppressionPayload>[]
+        }
+        delete: {
+          args: Prisma.EmailSuppressionDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailSuppressionPayload>
+        }
+        update: {
+          args: Prisma.EmailSuppressionUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailSuppressionPayload>
+        }
+        deleteMany: {
+          args: Prisma.EmailSuppressionDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.EmailSuppressionUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.EmailSuppressionUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailSuppressionPayload>[]
+        }
+        upsert: {
+          args: Prisma.EmailSuppressionUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailSuppressionPayload>
+        }
+        aggregate: {
+          args: Prisma.EmailSuppressionAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateEmailSuppression>
+        }
+        groupBy: {
+          args: Prisma.EmailSuppressionGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EmailSuppressionGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.EmailSuppressionCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EmailSuppressionCountAggregateOutputType> | number
+        }
+      }
+    }
     AuditLog: {
       payload: Prisma.$AuditLogPayload<ExtArgs>
       fields: Prisma.AuditLogFieldRefs
@@ -2228,6 +2303,7 @@ export const ActionItemScalarFieldEnum = {
   progressNotes: 'progressNotes',
   progressLink: 'progressLink',
   reminderSentAt: 'reminderSentAt',
+  overdueNotifiedAt: 'overdueNotifiedAt',
   priority: 'priority',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -2264,6 +2340,16 @@ export const NotificationScalarFieldEnum = {
 } as const
 
 export type NotificationScalarFieldEnum = (typeof NotificationScalarFieldEnum)[keyof typeof NotificationScalarFieldEnum]
+
+
+export const EmailSuppressionScalarFieldEnum = {
+  id: 'id',
+  email: 'email',
+  kind: 'kind',
+  createdAt: 'createdAt'
+} as const
+
+export type EmailSuppressionScalarFieldEnum = (typeof EmailSuppressionScalarFieldEnum)[keyof typeof EmailSuppressionScalarFieldEnum]
 
 
 export const AuditLogScalarFieldEnum = {
@@ -2786,6 +2872,7 @@ export type GlobalOmitConfig = {
   actionItem?: Prisma.ActionItemOmit
   actionItemAssistant?: Prisma.ActionItemAssistantOmit
   notification?: Prisma.NotificationOmit
+  emailSuppression?: Prisma.EmailSuppressionOmit
   auditLog?: Prisma.AuditLogOmit
   platformSetting?: Prisma.PlatformSettingOmit
 }

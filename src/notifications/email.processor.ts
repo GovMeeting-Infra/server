@@ -6,8 +6,12 @@ import { MailService } from '../mail/mail.service';
 import { NotificationsService } from './notifications.service';
 import {
   actionItemAssignedEmail,
+  actionItemCompletedEmail,
   actionItemDigestEmail,
+  actionItemOverdueEmail,
   actionItemReminderEmail,
+  actionItemUnassignedEmail,
+  meetingChangedEmail,
   meetingInvitationEmail,
   meetingReminderEmail,
   minutesPublishedEmail,
@@ -46,6 +50,32 @@ interface MeetingReminderPayload {
   userId: string;
 }
 
+/** One person, already resolved by the producer. */
+interface PersonPayload {
+  email: string;
+  name: string;
+}
+
+interface ActionItemCompletedPayload extends PersonPayload {
+  itemId: string;
+}
+
+interface ActionItemOverduePayload {
+  itemId: string;
+}
+
+interface ActionItemUnassignedPayload extends PersonPayload {
+  itemId: string;
+  newOwnerName: string | null;
+}
+
+interface MeetingChangedPayload extends PersonPayload {
+  eventId: string;
+  cancelled: boolean;
+  previousStartAt: string | null;
+  previousVenueName: string | null;
+}
+
 interface MinutesPublishedPayload {
   eventId: string;
   /** Null for a guest, who has no account and no session to open a page with. */
@@ -63,7 +93,20 @@ function textOf(points: any[], type: string): string[] {
     .map((p: any) => p.text);
 }
 
-@Processor('email-queue')
+/**
+ * Concurrency and a rate limit, together.
+ *
+ * The worker defaulted to one job at a time, which was the platform's
+ * accidental rate limiter: a distribution to every attendee drained one
+ * round trip to Resend at a time. Raising concurrency alone would have run
+ * straight into Resend's 10 requests per second, so the limiter is what makes
+ * it safe — eight per second leaves headroom for the direct sends (invites,
+ * password resets) that bypass this queue entirely.
+ */
+@Processor('email-queue', {
+  concurrency: 5,
+  limiter: { max: 8, duration: 1_000 },
+})
 export class EmailProcessor extends WorkerHost {
   private logger = new Logger('EmailProcessor');
 
@@ -89,6 +132,14 @@ export class EmailProcessor extends WorkerHost {
         return this.sendMeetingReminder(job);
       case 'send-minutes-published':
         return this.sendMinutesPublished(job);
+      case 'send-action-item-completed':
+        return this.sendActionItemCompleted(job);
+      case 'send-action-item-overdue':
+        return this.sendActionItemOverdue(job);
+      case 'send-action-item-unassigned':
+        return this.sendActionItemUnassigned(job);
+      case 'send-meeting-changed':
+        return this.sendMeetingChanged(job);
       default:
         throw new Error(`Unknown job type: ${job.name}`);
     }
@@ -166,6 +217,169 @@ export class EmailProcessor extends WorkerHost {
       this.logger.error('Error sending meeting invitation', error);
       throw error;
     }
+  }
+
+  /**
+   * A task closed. One job per recipient, so a bad address costs only that
+   * person their copy.
+   */
+  private async sendActionItemCompleted(job: Job<ActionItemCompletedPayload>) {
+    const { itemId, email, name } = job.data;
+
+    const item = await (this.prisma as any).actionItem.findUnique({
+      where: { id: itemId },
+      select: {
+        title: true,
+        owner: { select: { name: true } },
+        ownerName: true,
+        minutes: { select: { event: { select: { title: true } } } },
+      },
+    });
+
+    if (!item) return { sent: 0, error: 'Action item not found' };
+
+    const result = await this.mail.send(
+      email,
+      actionItemCompletedEmail({
+        name,
+        title: item.title,
+        completedByName: item.owner?.name ?? item.ownerName ?? null,
+        eventTitle: item.minutes?.event?.title ?? null,
+      }),
+    );
+
+    if (!result.sent) throw new Error(result.error ?? 'Send failed');
+    return { sent: 1 };
+  }
+
+  /**
+   * A deadline passed. Resolves its own recipients — the owner and whoever
+   * raised it — because both are on the row already.
+   */
+  private async sendActionItemOverdue(job: Job<ActionItemOverduePayload>) {
+    const { itemId } = job.data;
+
+    const item = await (this.prisma as any).actionItem.findUnique({
+      where: { id: itemId },
+      select: {
+        title: true,
+        dueDate: true,
+        ownerName: true,
+        ownerEmail: true,
+        owner: { select: { id: true, name: true, email: true } },
+        assignedBy: { select: { id: true, name: true, email: true } },
+        minutes: { select: { event: { select: { title: true } } } },
+      },
+    });
+
+    if (!item) return { sent: 0, error: 'Action item not found' };
+
+    const ownerEmail = item.owner?.email ?? item.ownerEmail;
+    const ownerName = item.owner?.name ?? item.ownerName ?? 'Colleague';
+    const eventTitle = item.minutes?.event?.title ?? null;
+
+    const recipients: { email: string; name: string; isOwner: boolean }[] = [];
+    if (ownerEmail) {
+      recipients.push({ email: ownerEmail, name: ownerName, isOwner: true });
+    }
+    // The raiser hears about it too — they asked for the work, and until now
+    // nothing told them it had stalled.
+    if (
+      item.assignedBy?.email &&
+      item.assignedBy.email.toLowerCase() !== ownerEmail?.toLowerCase()
+    ) {
+      recipients.push({
+        email: item.assignedBy.email,
+        name: item.assignedBy.name,
+        isOwner: false,
+      });
+    }
+
+    let sent = 0;
+    for (const r of recipients) {
+      const result = await this.mail.send(
+        r.email,
+        actionItemOverdueEmail({
+          name: r.name,
+          title: item.title,
+          dueDate: item.dueDate,
+          eventTitle,
+          ownerName,
+          isOwner: r.isOwner,
+        }),
+      );
+      if (result.sent) sent++;
+    }
+
+    // Stamped only once somebody was actually told, so a total failure is
+    // picked up by tomorrow's sweep rather than being silently written off.
+    if (sent > 0) {
+      await (this.prisma as any).actionItem.update({
+        where: { id: itemId },
+        data: { overdueNotifiedAt: new Date() },
+      });
+    }
+
+    return { sent };
+  }
+
+  /** Told to the person a task was taken from. */
+  private async sendActionItemUnassigned(
+    job: Job<ActionItemUnassignedPayload>,
+  ) {
+    const { itemId, email, name, newOwnerName } = job.data;
+
+    const item = await (this.prisma as any).actionItem.findUnique({
+      where: { id: itemId },
+      select: {
+        title: true,
+        minutes: { select: { event: { select: { title: true } } } },
+      },
+    });
+
+    if (!item) return { sent: 0, error: 'Action item not found' };
+
+    const result = await this.mail.send(
+      email,
+      actionItemUnassignedEmail({
+        name,
+        title: item.title,
+        newOwnerName,
+        eventTitle: item.minutes?.event?.title ?? null,
+      }),
+    );
+
+    if (!result.sent) throw new Error(result.error ?? 'Send failed');
+    return { sent: 1 };
+  }
+
+  /** A meeting was called off or moved. */
+  private async sendMeetingChanged(job: Job<MeetingChangedPayload>) {
+    const { eventId, email, name, cancelled, previousStartAt, previousVenueName } =
+      job.data;
+
+    const event = await (this.prisma as any).event.findUnique({
+      where: { id: eventId },
+      select: { title: true, startAt: true, venueName: true },
+    });
+
+    if (!event) return { sent: 0, error: 'Event not found' };
+
+    const result = await this.mail.send(
+      email,
+      meetingChangedEmail({
+        name,
+        eventTitle: event.title,
+        cancelled,
+        startAt: event.startAt,
+        previousStartAt,
+        venueName: event.venueName,
+        previousVenueName,
+      }),
+    );
+
+    if (!result.sent) throw new Error(result.error ?? 'Send failed');
+    return { sent: 1 };
   }
 
   /**
@@ -301,10 +515,21 @@ export class EmailProcessor extends WorkerHost {
         }),
       );
 
-      // The reminder is already marked sent by the cron before this runs, so
-      // failing the job would retry an email the scheduler will not re-queue.
-      // Report the outcome instead and let the logged error be the signal.
-      return result.sent ? { sent: 1 } : { sent: 0, error: result.error };
+      // Stamped here, after a send, rather than by the cron before the job
+      // ran. The old order meant a Resend outage at 08:00 lost that day's
+      // reminders for good: the row was already marked, so the next sweep
+      // skipped it and the job had nowhere to retry into.
+      if (result.sent) {
+        await (this.prisma as any).actionItem.update({
+          where: { id: itemId },
+          data: { reminderSentAt: new Date() },
+        });
+        return { sent: 1 };
+      }
+
+      // Thrown, not returned: with attempts configured this now retries, and
+      // an unstamped row is picked up by tomorrow's sweep if it never lands.
+      throw new Error(result.error ?? 'Reminder could not be sent');
     } catch (error) {
       this.logger.error('Error sending action item reminder', error);
       throw error;
