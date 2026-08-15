@@ -162,15 +162,18 @@ export class NotificationsService {
     if (recipients.length === 0) return [];
 
     try {
-      const lookup = await this.preferencesFor(recipients.map((r) => r.userId));
-      const key = PREFERENCE_FOR[payload.type];
-
-      // ministryId is nullable now. It used to be a required column, and this
-      // filter dropped anyone without one — so a super admin, who belongs to
-      // no ministry, silently received no in-app notification of anything.
-      const wanted = recipients.filter(
-        (r) => lookup(r.userId)[key] !== false,
-      );
+      // No filtering. Platform mail and its in-app twin are part of the
+      // service now, and the four Settings toggles that gated this were
+      // removed rather than left as switches that saved and did nothing. The
+      // weekly summary is the one thing anyone can turn off, and it is
+      // suppressed by address rather than by preference — see
+      // unsubscribe.controller.
+      //
+      // Two things the gating did quietly go with it: turning off "Meeting
+      // reminders" also stopped invitations, because they shared a key; and
+      // anyone without a ministry was dropped, so super admins received
+      // nothing at all.
+      const wanted = recipients;
 
       if (wanted.length > 0) {
         await (this.prisma as any).notification.createMany({

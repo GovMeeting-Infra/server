@@ -45,7 +45,19 @@ export class MailService {
     return this.apiKey.length > 0;
   }
 
-  async send(to: string, body: EmailBody): Promise<SendResult> {
+  /**
+   * @param options.listUnsubscribe A URL for the List-Unsubscribe header.
+   *   Only the weekly digest sets it: everything else this platform sends is
+   *   operational, and you cannot unsubscribe from being told a meeting you
+   *   are expected at has moved. Gmail and Yahoo read this header rather than
+   *   the visible link, and its absence on bulk mail is what gets a sending
+   *   domain filtered — taking the password resets down with it.
+   */
+  async send(
+    to: string,
+    body: EmailBody,
+    options: { listUnsubscribe?: string } = {},
+  ): Promise<SendResult> {
     if (!this.isConfigured) {
       this.logger.warn(
         `RESEND_API_KEY is not set — skipping "${body.subject}" to ${to}`,
@@ -66,6 +78,14 @@ export class MailService {
           subject: body.subject,
           html: body.html,
           text: body.text,
+          ...(options.listUnsubscribe && {
+            headers: {
+              'List-Unsubscribe': `<${options.listUnsubscribe}>`,
+              // Required alongside the URL for one-click to count as one
+              // click; without it the header is treated as a mailto fallback.
+              'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+            },
+          }),
         }),
       });
 

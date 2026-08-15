@@ -32,7 +32,17 @@ describe('TasksService.sendMeetingReminders', () => {
     const notifications = {
       notifyActionItemWeeklyDigest: jest.fn().mockResolvedValue(undefined),
     };
-    service = new TasksService(prisma, notifications as any, queue as any);
+    // The digest resolves who hears about last week's closures through the
+    // same union that decides who receives published minutes.
+    const minutesAccess = {
+      recipientsFor: jest.fn().mockResolvedValue([]),
+    };
+    service = new TasksService(
+      prisma,
+      notifications as any,
+      minutesAccess as any,
+      queue as any,
+    );
   });
 
   // addBulk rather than add: this cron sweeps every ten minutes across a

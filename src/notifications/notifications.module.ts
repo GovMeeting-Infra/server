@@ -6,6 +6,10 @@ import { EmailProcessor } from './email.processor';
 import { TasksService } from './tasks.service';
 import { PrismaModule } from '../prisma/prisma.module';
 import { MailModule } from '../mail/mail.module';
+import { MinutesAccessService } from '../minutes/minutes-access.service';
+import { UnsubscribeController } from './unsubscribe.controller';
+import { RateLimitGuard } from '../common/guards/rate-limit.guard';
+import { CacheModule } from '../cache/cache.module';
 
 @Module({
   // 'notification-queue' used to be registered here and injected by
@@ -14,10 +18,22 @@ import { MailModule } from '../mail/mail.module';
   imports: [
     PrismaModule,
     MailModule,
+    // CacheModule backs the rate limiter on the public unsubscribe route.
+    CacheModule,
     BullModule.registerQueue({ name: 'email-queue' }),
   ],
-  providers: [NotificationsService, EmailProcessor, TasksService],
-  controllers: [NotificationsController],
+  // MinutesAccessService is provided here rather than imported from
+  // MinutesModule, which already imports this module — taking it the other way
+  // would be circular. It holds no state and depends only on Prisma, so a
+  // second instance costs nothing and avoids a forwardRef.
+  providers: [
+    NotificationsService,
+    EmailProcessor,
+    TasksService,
+    MinutesAccessService,
+    RateLimitGuard,
+  ],
+  controllers: [NotificationsController, UnsubscribeController],
   exports: [NotificationsService, TasksService],
 })
 export class NotificationsModule {}

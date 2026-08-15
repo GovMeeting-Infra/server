@@ -5,6 +5,7 @@ import { InjectQueue } from '@nestjs/bullmq';
 import { PrismaService } from '../prisma/prisma.service';
 import { NotificationsService } from './notifications.service';
 import { archiveCutoff } from '../minutes/archive.policy';
+import { MinutesAccessService } from '../minutes/minutes-access.service';
 
 /**
  * Crons carry an explicit zone. Without one @Cron runs at the given hour in
@@ -36,6 +37,10 @@ export class TasksService {
   constructor(
     private prisma: PrismaService,
     private notifications: NotificationsService,
+    // The same union that decides who receives published minutes: invited
+    // minus declines, plus walk-ins. Reused rather than re-derived so the
+    // digest and the minutes never disagree about who was at a meeting.
+    private minutesAccess: MinutesAccessService,
     @InjectQueue('email-queue') private emailQueue: Queue,
   ) {}
 
@@ -202,68 +207,195 @@ export class TasksService {
    * included and reached by email alone, since there is no inbox to file an
    * in-app notification against.
    */
-  @Cron('0 8 * * 1', { timeZone: CRON_TZ })
+  @Cron('0 7 * * 1', { timeZone: CRON_TZ })
   async sendWeeklyActionItemDigest() {
     this.logger.log('Starting weekly action item digest...');
 
     try {
-      const open = await (this.prisma as any).actionItem.findMany({
-        where: {
-          status: { in: ['TODO', 'IN_PROGRESS', 'BLOCKED'] },
-        },
-        select: {
-          title: true,
-          dueDate: true,
-          ownerId: true,
-          ownerName: true,
-          ownerEmail: true,
-          owner: {
-            select: { id: true, name: true, email: true, ministryId: true },
+      const [startOfToday] = todayBounds();
+      const weekAgo = new Date(startOfToday.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+      const [open, closed] = await Promise.all([
+        (this.prisma as any).actionItem.findMany({
+          where: { status: { in: ['TODO', 'IN_PROGRESS', 'BLOCKED'] } },
+          select: {
+            title: true,
+            dueDate: true,
+            ownerId: true,
+            ownerName: true,
+            ownerEmail: true,
+            owner: {
+              select: { id: true, name: true, email: true, ministryId: true },
+            },
+            // Someone helping sees it alongside what they own — they are
+            // doing the work too, and it appeared on nobody's list but the
+            // owner's.
+            assistants: {
+              select: {
+                user: {
+                  select: { id: true, name: true, email: true, ministryId: true },
+                },
+              },
+            },
+            minutes: { select: { event: { select: { title: true } } } },
           },
-          minutes: { select: { event: { select: { title: true } } } },
-        },
-        orderBy: { dueDate: 'asc' },
-      });
+          orderBy: { dueDate: 'asc' },
+        }),
+        // What closed last week, per meeting. This is what replaces mailing
+        // every attendee each time a task is completed.
+        (this.prisma as any).actionItem.findMany({
+          where: {
+            status: 'COMPLETED',
+            completedAt: { gte: weekAgo, lt: startOfToday },
+          },
+          select: {
+            title: true,
+            ownerName: true,
+            owner: { select: { name: true } },
+            minutes: {
+              select: {
+                event: { select: { id: true, title: true } },
+              },
+            },
+          },
+        }),
+      ]);
+
+      // Everyone entitled to hear about each meeting's closures, resolved
+      // through the same union that decides who receives published minutes.
+      const closedByRecipient = new Map<
+        string,
+        { person: { id: string | null; name: string; email: string }; lines: any[] }
+      >();
+      const eventIds = [
+        ...new Set(
+          closed
+            .map((c: any) => c.minutes?.event?.id)
+            .filter(Boolean) as string[],
+        ),
+      ];
+
+      for (const eventId of eventIds) {
+        const recipients = await this.minutesAccess.recipientsFor(eventId);
+        const forEvent = closed.filter(
+          (c: any) => c.minutes?.event?.id === eventId,
+        );
+
+        for (const r of recipients) {
+          const key = r.userId ?? r.email?.toLowerCase();
+          if (!key || !r.email) continue;
+          const bucket = closedByRecipient.get(key) ?? {
+            person: { id: r.userId, name: r.name, email: r.email },
+            lines: [],
+          };
+          bucket.lines.push(
+            ...forEvent.map((c: any) => ({
+              title: c.title,
+              ownerName: c.owner?.name ?? c.ownerName ?? null,
+              eventTitle: c.minutes?.event?.title ?? null,
+            })),
+          );
+          closedByRecipient.set(key, bucket);
+        }
+      }
 
       // Group by account where there is one, otherwise by address. Keying on
       // the account id matters: the same person's email could differ in case
       // from what was typed on an item.
       const byRecipient = new Map<string, any>();
 
-      for (const item of open) {
-        const email = item.owner?.email ?? item.ownerEmail;
-        if (!email) continue;
-
-        const key = item.owner?.id ?? email.toLowerCase();
+      const bucketFor = (person: {
+        id: string | null;
+        name: string;
+        email: string;
+        ministryId: string | null;
+      }) => {
+        const key = person.id ?? person.email.toLowerCase();
         if (!byRecipient.has(key)) {
           byRecipient.set(key, {
-            userId: item.owner?.id ?? null,
-            ministryId: item.owner?.ministryId ?? null,
-            email,
-            name: item.owner?.name ?? item.ownerName ?? 'Colleague',
+            key,
+            userId: person.id,
+            ministryId: person.ministryId,
+            email: person.email,
+            name: person.name,
             items: [],
           });
         }
+        return byRecipient.get(key);
+      };
 
-        byRecipient.get(key).items.push({
+      for (const item of open) {
+        const line = {
           title: item.title,
           dueDate: item.dueDate.toISOString(),
           eventTitle: item.minutes?.event?.title ?? null,
+          overdue: item.dueDate < startOfToday,
+        };
+
+        const email = item.owner?.email ?? item.ownerEmail;
+        if (email) {
+          bucketFor({
+            id: item.owner?.id ?? null,
+            name: item.owner?.name ?? item.ownerName ?? 'Colleague',
+            email,
+            ministryId: item.owner?.ministryId ?? null,
+          }).items.push(line);
+        }
+
+        for (const a of item.assistants ?? []) {
+          if (!a.user?.email) continue;
+          bucketFor({
+            id: a.user.id,
+            name: a.user.name,
+            email: a.user.email,
+            ministryId: a.user.ministryId ?? null,
+          }).items.push({ ...line, assisting: true });
+        }
+      }
+
+      // Somebody carrying nothing themselves still hears what closed around
+      // them — which is the half of this that replaces mailing every attendee
+      // per completion.
+      for (const [key, entry] of closedByRecipient) {
+        if (byRecipient.has(key)) continue;
+        bucketFor({
+          id: entry.person.id,
+          name: entry.person.name,
+          email: entry.person.email,
+          ministryId: null,
         });
       }
 
-      for (const [key, r] of byRecipient) {
-        await this.emailQueue.add(
-          'send-action-item-digest',
-          { userId: r.userId, email: r.email, name: r.name, items: r.items },
-          {
+      const suppressed = await this.suppressedDigestAddresses(
+        [...byRecipient.values()].map((r) => r.email),
+      );
+
+      const jobs = [...byRecipient.values()]
+        .filter((r) => !suppressed.has(r.email.toLowerCase()))
+        .map((r) => ({
+          name: 'send-action-item-digest',
+          data: {
+            userId: r.userId,
+            email: r.email,
+            name: r.name,
+            items: r.items,
+            closed: closedByRecipient.get(r.key)?.lines ?? [],
+          },
+          opts: {
             // Dated, so a redeploy on the same Monday cannot send it twice.
-            jobId: `action-item-digest:${key}:${new Date().toISOString().slice(0, 10)}`,
+            jobId: `action-item-digest:${r.key}:${startOfToday
+              .toISOString()
+              .slice(0, 10)}`,
             removeOnComplete: { age: 24 * 60 * 60 },
             removeOnFail: { age: 24 * 60 * 60 },
           },
-        );
+        }));
 
+      if (jobs.length > 0) {
+        await this.emailQueue.addBulk(jobs);
+      }
+
+      for (const r of byRecipient.values()) {
         if (r.userId) {
           await this.notifications.notifyActionItemWeeklyDigest(
             r.userId,
@@ -273,10 +405,29 @@ export class TasksService {
         }
       }
 
-      this.logger.log(`Queued ${byRecipient.size} action item digests`);
+      this.logger.log(
+        `Queued ${jobs.length} action item digests (${byRecipient.size - jobs.length} unsubscribed)`,
+      );
     } catch (error) {
       this.logger.error('Error in weekly action item digest cron', error);
     }
+  }
+
+  /** Addresses that have unsubscribed from the weekly summary. */
+  private async suppressedDigestAddresses(
+    emails: string[],
+  ): Promise<Set<string>> {
+    if (emails.length === 0) return new Set();
+
+    const rows = await (this.prisma as any).emailSuppression.findMany({
+      where: {
+        kind: 'WEEKLY_DIGEST',
+        email: { in: emails.map((e) => e.toLowerCase()) },
+      },
+      select: { email: true },
+    });
+
+    return new Set(rows.map((r: any) => r.email));
   }
 
   @Cron(CronExpression.EVERY_DAY_AT_1AM)

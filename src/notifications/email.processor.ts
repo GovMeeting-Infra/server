@@ -16,6 +16,7 @@ import {
   meetingReminderEmail,
   minutesPublishedEmail,
 } from '../mail/templates';
+import { digestUnsubscribeUrl } from './unsubscribe.util';
 
 interface MeetingInvitationPayload {
   eventId: string;
@@ -42,7 +43,15 @@ interface ActionItemDigestPayload {
   userId: string | null;
   email: string;
   name: string;
-  items: { title: string; dueDate: string; eventTitle: string | null }[];
+  items: {
+    title: string;
+    dueDate: string;
+    eventTitle: string | null;
+    overdue?: boolean;
+    assisting?: boolean;
+  }[];
+  /** Completed last week on meetings this person was invited to. */
+  closed?: { title: string; ownerName: string | null; eventTitle: string | null }[];
 }
 
 interface MeetingReminderPayload {
@@ -176,16 +185,6 @@ export class EmailProcessor extends WorkerHost {
       // have been queued before it was called off.
       if (event.status === 'CANCELLED') {
         return { sent: 0, error: 'Event cancelled' };
-      }
-
-      // Preferences only exist for people with accounts; a guest cannot have
-      // muted anything. The in-app copy is raised by EventsService and applies
-      // its own check, so muting email does not mute the inbox.
-      if (
-        userId &&
-        !(await this.notifications.wantsEmail(userId, 'MEETING_INVITATION'))
-      ) {
-        return { sent: 0, error: 'Muted by preference' };
       }
 
       const result = await this.mail.send(
@@ -409,19 +408,6 @@ export class EmailProcessor extends WorkerHost {
         return { sent: 0, error: 'No owner address' };
       }
 
-      // Only consult preferences when there is an account to have them. An
-      // external owner has no UserPreferences row, and running the check
-      // against a missing user would mute the one channel they have.
-      if (
-        actionItem.owner &&
-        !(await this.notifications.wantsEmail(
-          actionItem.owner.id,
-          'ACTION_ITEM_ASSIGNED',
-        ))
-      ) {
-        return { sent: 0, error: 'Muted by preference' };
-      }
-
       const result = await this.mail.send(
         to,
         actionItemAssignedEmail({
@@ -443,24 +429,23 @@ export class EmailProcessor extends WorkerHost {
 
   /** The Monday summary. One message per person, prepared by the cron. */
   private async sendActionItemDigest(job: Job<ActionItemDigestPayload>) {
-    const { userId, email, name, items } = job.data;
+    const { email, name, items, closed = [] } = job.data;
 
     try {
-      if (items.length === 0) return { sent: 0 };
-
-      if (
-        userId &&
-        !(await this.notifications.wantsEmail(
-          userId,
-          'ACTION_ITEM_WEEKLY_DIGEST',
-        ))
-      ) {
-        return { sent: 0, error: 'Muted by preference' };
-      }
+      // Nothing owed and nothing closed is not worth a message.
+      if (items.length === 0 && closed.length === 0) return { sent: 0 };
 
       const result = await this.mail.send(
         email,
-        actionItemDigestEmail({ name, items }),
+        actionItemDigestEmail({
+          name,
+          items,
+          closed,
+          unsubscribeUrl: digestUnsubscribeUrl(email),
+        }),
+        // The header Gmail and Yahoo actually read. The visible link alone is
+        // not what keeps a weekly bulk send out of the spam folder.
+        { listUnsubscribe: digestUnsubscribeUrl(email) },
       );
 
       return result.sent ? { sent: 1 } : { sent: 0, error: result.error };
@@ -490,15 +475,6 @@ export class EmailProcessor extends WorkerHost {
       if (!actionItem.owner) {
         this.logger.warn(`Action item ${itemId} has no owner assigned`);
         return { sent: 0, error: 'No owner assigned' };
-      }
-
-      if (
-        !(await this.notifications.wantsEmail(
-          actionItem.owner.id,
-          'ACTION_ITEM_ASSIGNED',
-        ))
-      ) {
-        return { sent: 0, error: 'Muted by preference' };
       }
 
       // The in-app half. Written here rather than in the cron so it lands
@@ -563,10 +539,6 @@ export class EmailProcessor extends WorkerHost {
       // its own preference check, so muting email does not mute the inbox.
       await this.notifications.notifyMeetingReminder(eventId, userId);
 
-      if (!(await this.notifications.wantsEmail(userId, 'MEETING_REMINDER'))) {
-        return { sent: 0, error: 'Muted by preference' };
-      }
-
       const result = await this.mail.send(
         user.email,
         meetingReminderEmail({
@@ -610,15 +582,6 @@ export class EmailProcessor extends WorkerHost {
 
       if (!minutes) {
         return { sent: 0, error: 'Minutes not found' };
-      }
-
-      // Preferences only exist for account holders. A guest has no row, and
-      // checking one would mute the only channel they have.
-      if (
-        userId &&
-        !(await this.notifications.wantsEmail(userId, 'MINUTES_PUBLISHED'))
-      ) {
-        return { sent: 0, error: 'Muted by preference' };
       }
 
       const base =
