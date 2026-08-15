@@ -7,6 +7,7 @@ import {
 import { Reflector } from '@nestjs/core';
 import { PrismaService } from '../../prisma/prisma.service';
 import { ALLOW_CO_ORGANIZERS } from '../decorators/allow-co-organizers.decorator';
+import { ALLOW_MINISTRY_OVERSIGHT } from '../decorators/allow-ministry-oversight.decorator';
 
 @Injectable()
 export class CanManageEventGuard implements CanActivate {
@@ -29,6 +30,13 @@ export class CanManageEventGuard implements CanActivate {
     const allowCoOrganizers =
       this.reflector.get<boolean>(ALLOW_CO_ORGANIZERS, context.getHandler()) ===
       true;
+
+    // Reads that a minister is entitled to across their own ministry.
+    const allowMinistryOversight =
+      this.reflector.get<boolean>(
+        ALLOW_MINISTRY_OVERSIGHT,
+        context.getHandler(),
+      ) === true;
 
     const event = await (this.prisma as any).event.findUnique({
       where: { id: eventId },
@@ -56,6 +64,17 @@ export class CanManageEventGuard implements CanActivate {
     if (
       allowCoOrganizers &&
       event.coOrganizers?.some((c: { userId: string }) => c.userId === user.id)
+    ) {
+      return true;
+    }
+
+    // A minister answers for everything held under their ministry, including
+    // meetings that do have an organizer — the branch below only reaches the
+    // ones that do not.
+    if (
+      allowMinistryOversight &&
+      user.systemRole === 'MINISTER' &&
+      event.ministryId === user.ministryId
     ) {
       return true;
     }

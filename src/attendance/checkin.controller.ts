@@ -22,6 +22,7 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { CanManageEventGuard } from '../events/guards/can-manage-event.guard';
 import { AllowCoOrganizers } from '../events/decorators/allow-co-organizers.decorator';
+import { AllowMinistryOversight } from '../events/decorators/allow-ministry-oversight.decorator';
 import { RateLimitGuard } from '../common/guards/rate-limit.guard';
 import { RateLimit } from '../common/decorators/rate-limit.decorator';
 
@@ -164,15 +165,25 @@ export class CheckinController {
     return this.rsvpService.respond(tokenHash, dto.status);
   }
 
+  /**
+   * These three lists carry names, emails and phone numbers, so they are
+   * confined to the event's own people. The role list alone let any staff
+   * member of any ministry read the attendance of any event whose id they
+   * had — the same hole CanManageEventGuard already closed on the writes.
+   */
   @Get('events/:eventId/attendees/confirmed')
-  @UseGuards(RolesGuard)
+  @UseGuards(RolesGuard, CanManageEventGuard)
+  @AllowCoOrganizers()
+  @AllowMinistryOversight()
   @Roles(...CODE_ROLES)
   async getConfirmedAttendees(@Param('eventId') eventId: string) {
     return this.rsvpService.getAttendeesByStatus(eventId, 'CONFIRMED');
   }
 
   @Get('events/:eventId/attendees/declined')
-  @UseGuards(RolesGuard)
+  @UseGuards(RolesGuard, CanManageEventGuard)
+  @AllowCoOrganizers()
+  @AllowMinistryOversight()
   @Roles(...CODE_ROLES)
   async getDeclinedAttendees(@Param('eventId') eventId: string) {
     return this.rsvpService.getAttendeesByStatus(eventId, 'DECLINED');
@@ -183,14 +194,21 @@ export class CheckinController {
    * check-ins) and is distinct from the RSVP lists above.
    */
   @Get('events/:eventId/checkins')
-  @UseGuards(RolesGuard)
+  @UseGuards(RolesGuard, CanManageEventGuard)
+  @AllowCoOrganizers()
+  @AllowMinistryOversight()
   @Roles(...CODE_ROLES)
   async getCheckIns(@Param('eventId') eventId: string) {
     return this.checkinService.listCheckIns(eventId);
   }
 
+  /**
+   * Deleting an attendance record is not oversight, so ministers get no
+   * blanket pass here — this stays with the people running the meeting.
+   */
   @Delete('events/:eventId/checkins/:attendanceId')
-  @UseGuards(RolesGuard)
+  @UseGuards(RolesGuard, CanManageEventGuard)
+  @AllowCoOrganizers()
   @Roles('SUPER_ADMIN', 'MINISTRY_ADMIN', 'STAFF')
   @HttpCode(204)
   async removeCheckIn(
