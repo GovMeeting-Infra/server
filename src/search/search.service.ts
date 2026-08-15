@@ -12,7 +12,7 @@ export class SearchService {
   constructor(private prisma: PrismaService) {}
 
   /**
-   * Global search across events, minutes, rooms and people.
+   * Global search across events, minutes and people.
    *
    * Everything is ministry-scoped through the shared helper, so a user cannot
    * reach another ministry's records by guessing a term. People are only
@@ -30,7 +30,6 @@ export class SearchService {
         tooShort: true,
         events: [],
         minutes: [],
-        rooms: [],
         people: [],
       };
     }
@@ -39,7 +38,7 @@ export class SearchService {
     const like = { contains: q, mode: 'insensitive' as const };
     const isAdmin = ADMIN_ROLES.includes(user.systemRole);
 
-    const [events, minutes, rooms, people] = await Promise.all([
+    const [events, minutes, people] = await Promise.all([
       (this.prisma as any).event.findMany({
         where: { ...scope, OR: [{ title: like }, { description: like }] },
         select: {
@@ -74,16 +73,6 @@ export class SearchService {
         take: LIMIT,
       }),
 
-      (this.prisma as any).room.findMany({
-        where: {
-          ...scope,
-          active: true,
-          OR: [{ name: like }, { location: like }],
-        },
-        select: { id: true, name: true, location: true, capacity: true },
-        take: LIMIT,
-      }),
-
       isAdmin
         ? (this.prisma as any).user.findMany({
             where: {
@@ -109,7 +98,6 @@ export class SearchService {
         event: m.event,
         snippet: (m.summary || m.body || '').slice(0, 200),
       })),
-      rooms,
       people,
     };
   }

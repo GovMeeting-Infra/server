@@ -125,16 +125,6 @@ export type MinutesAccessToken = Prisma.MinutesAccessTokenModel
  */
 export type ActionItem = Prisma.ActionItemModel
 /**
- * Model Room
- * 
- */
-export type Room = Prisma.RoomModel
-/**
- * Model RoomBooking
- * 
- */
-export type RoomBooking = Prisma.RoomBookingModel
-/**
  * Model Notification
  * 
  */

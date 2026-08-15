@@ -66,8 +66,6 @@ export const ModelName = {
   Minutes: 'Minutes',
   MinutesAccessToken: 'MinutesAccessToken',
   ActionItem: 'ActionItem',
-  Room: 'Room',
-  RoomBooking: 'RoomBooking',
   Notification: 'Notification',
   AuditLog: 'AuditLog',
   PlatformSetting: 'PlatformSetting'
@@ -211,6 +209,7 @@ export const EventScalarFieldEnum = {
   checkInAnchorSetAt: 'checkInAnchorSetAt',
   checkInAnchorSetById: 'checkInAnchorSetById',
   allowGuestCheckIn: 'allowGuestCheckIn',
+  requireGeofence: 'requireGeofence',
   bannerImage: 'bannerImage',
   contactEmail: 'contactEmail',
   contactPhone: 'contactPhone',
@@ -220,7 +219,6 @@ export const EventScalarFieldEnum = {
   ministryId: 'ministryId',
   organizerId: 'organizerId',
   seriesId: 'seriesId',
-  roomId: 'roomId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -273,6 +271,9 @@ export const AttendanceScalarFieldEnum = {
   userId: 'userId',
   guestName: 'guestName',
   guestEmail: 'guestEmail',
+  guestTitle: 'guestTitle',
+  guestOrganisation: 'guestOrganisation',
+  guestPhone: 'guestPhone',
   isWalkIn: 'isWalkIn',
   signedName: 'signedName',
   signature: 'signature',
@@ -354,42 +355,6 @@ export const ActionItemScalarFieldEnum = {
 } as const
 
 export type ActionItemScalarFieldEnum = (typeof ActionItemScalarFieldEnum)[keyof typeof ActionItemScalarFieldEnum]
-
-
-export const RoomScalarFieldEnum = {
-  id: 'id',
-  ministryId: 'ministryId',
-  name: 'name',
-  location: 'location',
-  capacity: 'capacity',
-  amenities: 'amenities',
-  latitude: 'latitude',
-  longitude: 'longitude',
-  active: 'active',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-} as const
-
-export type RoomScalarFieldEnum = (typeof RoomScalarFieldEnum)[keyof typeof RoomScalarFieldEnum]
-
-
-export const RoomBookingScalarFieldEnum = {
-  id: 'id',
-  ministryId: 'ministryId',
-  roomId: 'roomId',
-  userId: 'userId',
-  startTime: 'startTime',
-  endTime: 'endTime',
-  purpose: 'purpose',
-  attendeeCount: 'attendeeCount',
-  notes: 'notes',
-  status: 'status',
-  cancelledAt: 'cancelledAt',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-} as const
-
-export type RoomBookingScalarFieldEnum = (typeof RoomBookingScalarFieldEnum)[keyof typeof RoomBookingScalarFieldEnum]
 
 
 export const NotificationScalarFieldEnum = {

@@ -179,20 +179,6 @@ export class EventsService {
       }
     }
 
-    if (dto.roomId) {
-      const conflicts = await this.eventsRepository.checkRoomConflicts(
-        dto.roomId,
-        startAt,
-        endAt,
-      );
-
-      if (conflicts.length > 0) {
-        throw new ConflictException(
-          'Room is already booked for this time period',
-        );
-      }
-    }
-
     if (invitedMinistryIds?.length) {
       const found = await (this.prisma as any).ministry.findMany({
         where: { id: { in: invitedMinistryIds } },
@@ -382,7 +368,6 @@ export class EventsService {
       timeframe?: string;
       from?: string;
       to?: string;
-      roomId?: string;
     } = {},
   ) {
     const now = new Date();
@@ -406,9 +391,6 @@ export class EventsService {
       ...(options.isPublic !== undefined && { isPublic: options.isPublic }),
       ...timeframeWhere,
       ...(range && { startAt: range }),
-      // Lets the rooms pages ask "what is scheduled in this room", which is
-      // also how availability learns that an event occupies a slot.
-      ...(options.roomId && { roomId: options.roomId }),
     };
 
     const page = Math.max(1, options.page || 1);
@@ -430,7 +412,7 @@ export class EventsService {
     // paginated server-side, so a different sort is a different page of data.
     const cacheKey = options.timeframe
       ? null
-      : `events:list:${ministryId}:${page}:${options.isPublic || 'all'}:${sortBy}:${order}:${options.from ?? '-'}:${options.to ?? '-'}:${options.roomId ?? '-'}`;
+      : `events:list:${ministryId}:${page}:${options.isPublic || 'all'}:${sortBy}:${order}:${options.from ?? '-'}:${options.to ?? '-'}`;
 
     if (cacheKey) {
       const cached = await this.cache.get(cacheKey);
@@ -628,19 +610,6 @@ export class EventsService {
 
       if (startAt >= endAt) {
         throw new BadRequestException('Start time must be before end time');
-      }
-
-      if (event.roomId) {
-        const conflicts = await this.eventsRepository.checkRoomConflicts(
-          event.roomId,
-          startAt,
-          endAt,
-          id,
-        );
-
-        if (conflicts.length > 0) {
-          throw new ConflictException('Room conflict with the new time slot');
-        }
       }
 
       updateData.startAt = startAt;

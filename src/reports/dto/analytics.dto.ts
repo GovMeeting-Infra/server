@@ -10,13 +10,6 @@ export class AttendanceStatsDto {
   attendanceRate: number;
 }
 
-export class RoomStatsDto {
-  totalRooms: number;
-  activeRooms: number;
-  bookingsThisMonth: number;
-  averageUtilization: number;
-}
-
 export class UserStatsDto {
   totalUsers: number;
   activeUsers: number;
@@ -49,7 +42,6 @@ export class EventsOverTimeDto {
 export class AnalyticsDashboardDto {
   eventStats: EventStatsDto;
   attendanceStats: AttendanceStatsDto;
-  roomStats: RoomStatsDto;
   userStats: UserStatsDto;
   actionItemStats: ActionItemStatsDto;
   checkInMethods: CheckInMethodsDto;

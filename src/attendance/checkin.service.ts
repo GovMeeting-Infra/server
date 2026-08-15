@@ -88,6 +88,7 @@ export class CheckinService {
         endAt: true,
         ministryId: true,
         allowGuestCheckIn: true,
+        requireGeofence: true,
         ...ANCHOR_FIELDS,
       },
     });
@@ -112,6 +113,27 @@ export class CheckinService {
       dto.gpsAccuracy != null &&
       dto.gpsAccuracy > 0 &&
       dto.gpsAccuracy <= ANCHOR_MAX_ACCURACY_METERS;
+
+    // Whether this call would leave the event with no fence at all: either
+    // there was never an anchor and this fix is too poor to set one, or the
+    // organizer asked to reset and cannot.
+    const wouldBeUnfenced = wantsCapture && !usableFix && !hasAnchor;
+
+    if (event.requireGeofence && wouldBeUnfenced) {
+      // The whole point of the setting. Before it existed, a fix worse than
+      // ANCHOR_MAX_ACCURACY_METERS quietly minted a code with no fence, and
+      // whether a meeting was protected came down to the organizer's handset.
+      // Refusing is the honest answer: the organizer can move, wait, or turn
+      // the requirement off, and any of those is a decision rather than an
+      // accident.
+      throw new BadRequestException(
+        dto.lat == null || dto.lng == null
+          ? 'This meeting requires location verification, so a check-in code cannot be generated without your location. Enable GPS and try again.'
+          : `This meeting requires location verification, but your location is only accurate to ${Math.round(
+              dto.gpsAccuracy ?? 0,
+            )}m. Move into the open or wait for a better signal, then try again.`,
+      );
+    }
 
     let anchorChange: 'set' | 'cleared' | null = null;
     let anchorData: Record<string, unknown> | null = null;
@@ -156,6 +178,7 @@ export class CheckinService {
             endAt: true,
             ministryId: true,
             allowGuestCheckIn: true,
+            requireGeofence: true,
             ...ANCHOR_FIELDS,
           },
         });
@@ -221,6 +244,7 @@ export class CheckinService {
         status: true,
         endAt: true,
         allowGuestCheckIn: true,
+        requireGeofence: true,
         ...ANCHOR_FIELDS,
       },
     });
@@ -290,6 +314,10 @@ export class CheckinService {
         anchorLng: event.checkInAnchorLng,
         anchorAccuracy: event.checkInAnchorAccuracy,
         anchorSetAt: event.checkInAnchorSetAt,
+        // Whether this event insists on a fence. Surfaced so the organizer
+        // page can say why generating was refused, rather than leaving the
+        // refusal to look like a fault.
+        required: event.requireGeofence ?? false,
       },
       allowGuestCheckIn: event.allowGuestCheckIn,
       eventStatus: event.status,
@@ -464,6 +492,9 @@ export class CheckinService {
         signedName: dto.guestName.trim(),
         guestName: dto.guestName.trim(),
         guestEmail: email,
+        guestTitle: dto.guestTitle.trim(),
+        guestOrganisation: dto.guestOrganisation.trim(),
+        guestPhone: dto.guestPhone.trim(),
         isWalkIn: !invite,
       });
     } catch (error: any) {
@@ -530,11 +561,18 @@ export class CheckinService {
     if (!anchored) {
       // No area was captured, so nothing can be verified. null rather than
       // false: "unverified" is a genuinely different state from "outside".
+      //
+      // A location may still arrive — the client now asks for one on every
+      // check-in, not only where a fence gates entry — and recordAttendance
+      // stores whatever it is given. Nothing here rejects or discards it: with
+      // no anchor there is nothing to measure against, only something to
+      // record. The mock heuristic still applies, so an unverified row does
+      // not quietly claim a clean fix.
       return {
         withinGeofence: null,
         checkInMethod: 'QR',
         distance: null,
-        mockLocationFlag: false,
+        mockLocationFlag: dto.gpsAccuracy === 0,
       };
     }
 
@@ -593,6 +631,11 @@ export class CheckinService {
       signedName: string;
       guestName?: string;
       guestEmail?: string;
+      // Collected only on the guest self-service path. Staff carry a title and
+      // ministry on their account; a desk walk-in is recorded by someone else.
+      guestTitle?: string;
+      guestOrganisation?: string;
+      guestPhone?: string;
       isWalkIn?: boolean;
     },
   ) {
@@ -602,6 +645,9 @@ export class CheckinService {
         userId: identity.userId,
         guestName: identity.guestName ?? null,
         guestEmail: identity.guestEmail ?? null,
+        guestTitle: identity.guestTitle ?? null,
+        guestOrganisation: identity.guestOrganisation ?? null,
+        guestPhone: identity.guestPhone ?? null,
         isWalkIn: identity.isWalkIn ?? false,
         signedName: identity.signedName,
         signature: dto.signature,
@@ -847,6 +893,9 @@ export class CheckinService {
         userId: true,
         guestName: true,
         guestEmail: true,
+        guestTitle: true,
+        guestOrganisation: true,
+        guestPhone: true,
         isWalkIn: true,
         signedName: true,
         signature: true,

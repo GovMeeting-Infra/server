@@ -28,9 +28,6 @@ describe('EventsService', () => {
       update: jest.fn(),
       delete: jest.fn(),
     },
-    room: {
-      findUnique: jest.fn(),
-    },
     // Co-organizer ids are validated against real accounts before creation.
     user: {
       findMany: jest
@@ -78,7 +75,6 @@ describe('EventsService', () => {
     })),
     findMany: jest.fn().mockResolvedValue({ data: [], total: 0 }),
     create: jest.fn().mockResolvedValue({ id: 'event-1' }),
-    checkRoomConflicts: jest.fn().mockResolvedValue([]),
   };
 
   const mockNotifications = {
@@ -183,35 +179,6 @@ describe('EventsService', () => {
       await expect(
         service.createEvent(dto, 'user-1', 'ministry-1'),
       ).rejects.toThrow(BadRequestException);
-    });
-
-    it('should check room conflicts when roomId provided', async () => {
-      const dto: CreateEventDto = {
-        title: 'Event with Room',
-        startAt: new Date('2026-08-01T10:00:00'),
-        endAt: new Date('2026-08-01T11:00:00'),
-        roomId: 'room-1',
-        coOrganizerIds: ['user-2'],
-      };
-
-      mockPrisma.room.findUnique.mockResolvedValue({
-        id: 'room-1',
-        ministryId: 'ministry-1',
-      });
-
-      // The conflict check moved onto the repository; an empty list means the
-      // room is free and creation proceeds.
-      mockRepository.checkRoomConflicts.mockResolvedValue([]);
-      mockRepository.create.mockResolvedValue({
-        id: 'event-1',
-        ...dto,
-        organizerId: 'user-1',
-        ministryId: 'ministry-1',
-      });
-
-      await service.createEvent(dto, 'user-1', 'ministry-1');
-
-      expect(mockRepository.checkRoomConflicts).toHaveBeenCalled();
     });
   });
 

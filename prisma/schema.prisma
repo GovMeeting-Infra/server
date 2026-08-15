@@ -40,7 +40,6 @@ model User {
   minutesPublished Minutes[] @relation("publishedBy")
   assignedActionItems ActionItem[] @relation("actionOwner")
   createdActionItems ActionItem[] @relation("actionAssignedBy")
-  roomBookings   RoomBooking[]
   auditLogs      AuditLog[]
   notifications  Notification[]
   settingsChanged PlatformSetting[]
@@ -124,8 +123,6 @@ model Ministry {
   users                 User[]
   events                Event[]
   invitedToEvents       Event[]  @relation("EventInvitedMinistries")
-  rooms                 Room[]
-  roomBookings          RoomBooking[]
   auditLogs             AuditLog[]
   notifications         Notification[]
 
@@ -190,6 +187,12 @@ model Event {
   // back-relation on User and an FK for something never joined on.
   checkInAnchorSetById    String?
   allowGuestCheckIn       Boolean  @default(true)
+  /// Refuse to mint a check-in code unless a geofence can actually be
+  /// anchored. Off by default, which is how every event behaved before this
+  /// existed: a poor fix at code-generation time silently minted an
+  /// ungeofenced code, so whether a meeting was fenced depended on the
+  /// organizer's handset rather than on anyone's decision.
+  requireGeofence         Boolean  @default(false)
   bannerImage             String?
   contactEmail            String?
   contactPhone            String?
@@ -199,13 +202,11 @@ model Event {
   ministryId              String
   organizerId             String?
   seriesId                String?
-  roomId                  String?
   createdAt               DateTime @default(now())
   updatedAt               DateTime @updatedAt
 
   ministry                Ministry @relation(fields: [ministryId], references: [id], onDelete: Cascade)
   invitedMinistries       Ministry[] @relation("EventInvitedMinistries")
-  room                    Room? @relation(fields: [roomId], references: [id])
   organizer               User? @relation("organizer", fields: [organizerId], references: [id])
   series                  EventSeries? @relation(fields: [seriesId], references: [id])
   coOrganizers            EventCoOrganizer[]
@@ -330,6 +331,13 @@ model Attendance {
   userId            String?
   guestName         String?
   guestEmail        String?
+  // Required of a guest checking themselves in, but nullable here: every row
+  // written before these existed has none, and an organizer recording a
+  // walk-in at the desk is not asked for them. Staff rows carry none either —
+  // a signed-in user's title and ministry are on their account.
+  guestTitle        String?
+  guestOrganisation String?
+  guestPhone        String?
   // A guest with no matching EventAttendee invite for this event.
   isWalkIn          Boolean  @default(false)
   signedName        String
@@ -496,68 +504,6 @@ enum ActionItemStatus {
 // ============================================================================
 // ROOMS & BOOKINGS
 // ============================================================================
-
-model Room {
-  id                String   @id @default(cuid())
-  ministryId        String
-  name              String
-  location          String
-  capacity          Int
-  amenities         String[]
-  latitude          Float?
-  longitude         Float?
-  active            Boolean  @default(true)
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-
-  ministry          Ministry @relation(fields: [ministryId], references: [id], onDelete: Cascade)
-  events            Event[]
-  bookings          RoomBooking[]
-
-  @@unique([ministryId, name])
-  @@index([ministryId])
-}
-
-model RoomBooking {
-  id                String   @id @default(cuid())
-  ministryId        String
-  roomId            String
-  userId            String
-  startTime         DateTime
-  endTime           DateTime
-  purpose           BookingPurpose
-  attendeeCount     Int
-  notes             String?
-  status            BookingStatus @default(CONFIRMED)
-  cancelledAt       DateTime?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-
-  ministry          Ministry @relation(fields: [ministryId], references: [id], onDelete: Cascade)
-  room              Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
-  bookedBy          User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([roomId, startTime, endTime])
-  @@index([ministryId])
-  @@index([roomId])
-  @@index([startTime])
-  @@index([userId])
-}
-
-enum BookingPurpose {
-  MEETING
-  TRAINING
-  CONFERENCE
-  WORKSHOP
-  INTERVIEW
-  OTHER
-}
-
-enum BookingStatus {
-  CONFIRMED
-  CANCELLED
-  TENTATIVE
-}
 
 // ============================================================================
 // NOTIFICATIONS

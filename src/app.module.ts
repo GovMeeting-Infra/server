@@ -13,7 +13,6 @@ import { CacheModule } from './cache/cache.module';
 import { EventsModule } from './events/events.module';
 import { AttendanceModule } from './attendance/attendance.module';
 import { MinutesModule } from './minutes/minutes.module';
-import { RoomsModule } from './rooms/rooms.module';
 import { ReportsModule } from './reports/reports.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { HealthModule } from './health/health.module';
@@ -49,7 +48,6 @@ import { SettingsModule } from './common/settings/settings.module';
     EventsModule,
     AttendanceModule,
     MinutesModule,
-    RoomsModule,
     ReportsModule,
     NotificationsModule,
     HealthModule,

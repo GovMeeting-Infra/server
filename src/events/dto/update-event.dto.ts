@@ -67,9 +67,15 @@ export class UpdateEventDto {
   @IsBoolean()
   allowGuestCheckIn?: boolean;
 
+  /**
+   * Refuse to mint a check-in code unless a geofence can actually be anchored.
+   * Off by default: a poor fix at code-generation time used to mint an
+   * ungeofenced code silently, so whether a meeting was fenced depended on the
+   * organizer's handset rather than on anyone's decision.
+   */
   @IsOptional()
-  @IsString()
-  roomId?: string;
+  @IsBoolean()
+  requireGeofence?: boolean;
 
   @IsOptional()
   @IsString()

@@ -127,27 +127,6 @@ export const ActionItemStatus = {
 export type ActionItemStatus = (typeof ActionItemStatus)[keyof typeof ActionItemStatus]
 
 
-export const BookingPurpose = {
-  MEETING: 'MEETING',
-  TRAINING: 'TRAINING',
-  CONFERENCE: 'CONFERENCE',
-  WORKSHOP: 'WORKSHOP',
-  INTERVIEW: 'INTERVIEW',
-  OTHER: 'OTHER'
-} as const
-
-export type BookingPurpose = (typeof BookingPurpose)[keyof typeof BookingPurpose]
-
-
-export const BookingStatus = {
-  CONFIRMED: 'CONFIRMED',
-  CANCELLED: 'CANCELLED',
-  TENTATIVE: 'TENTATIVE'
-} as const
-
-export type BookingStatus = (typeof BookingStatus)[keyof typeof BookingStatus]
-
-
 export const AuditStatus = {
   SUCCESS: 'SUCCESS',
   FAILURE: 'FAILURE',

@@ -93,23 +93,6 @@ async function main() {
       console.log(`✅ User: ${user.email}`);
     }
 
-    // 3. Create test room
-    const room = {
-      id: 'room-001',
-      name: 'Conference Room A',
-      location: 'Building 1, Floor 2',
-      capacity: 50,
-      ministryId: 'moh-001',
-      active: true,
-    };
-
-    await prisma.room.upsert({
-      where: { id: room.id },
-      update: {},
-      create: room,
-    });
-    console.log(`✅ Room: ${room.name}`);
-
     console.log('\n✅ Seed complete!');
     console.log(
       '\n📝 Note: User accounts (email/password) are managed by BetterAuth.',
