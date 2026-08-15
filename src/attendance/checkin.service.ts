@@ -902,8 +902,19 @@ export class CheckinService {
         checkInAt: true,
         checkInMethod: true,
         withinGeofence: true,
+        gpsAccuracy: true,
         mockLocationFlag: true,
-        user: { select: { id: true, name: true, email: true } },
+        // A staff member gives no title or organisation at check-in — their
+        // account is where those live, so the list has to join them.
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            jobTitle: true,
+            ministry: { select: { name: true } },
+          },
+        },
       },
       orderBy: { checkInAt: 'desc' },
     });

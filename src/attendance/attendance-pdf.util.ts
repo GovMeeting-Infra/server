@@ -11,18 +11,22 @@ const GREY = '#6b7280';
 const RULE = '#d3deef';
 
 const MARGIN = 40;
-const SIGNATURE_WIDTH = 110;
+const SIGNATURE_WIDTH = 100;
 const SIGNATURE_HEIGHT = 34;
 const ROW_HEIGHT = SIGNATURE_HEIGHT + 12;
 
-/** x offset and width of each column, left to right. */
+/**
+ * x offset and width of each column, left to right. They add up to 515pt,
+ * which is A4 less both margins — any wider and the signatures run off the
+ * right edge of the paper.
+ */
 const COLUMNS = {
-  index: { x: 0, width: 22 },
-  name: { x: 22, width: 118 },
-  role: { x: 140, width: 130 },
-  contact: { x: 270, width: 132 },
-  time: { x: 402, width: 58 },
-  signature: { x: 460, width: SIGNATURE_WIDTH },
+  index: { x: 0, width: 20 },
+  name: { x: 20, width: 110 },
+  role: { x: 130, width: 115 },
+  contact: { x: 245, width: 120 },
+  time: { x: 365, width: 50 },
+  signature: { x: 415, width: SIGNATURE_WIDTH },
 };
 
 /**
