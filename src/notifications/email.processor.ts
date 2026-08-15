@@ -56,6 +56,13 @@ interface MinutesPublishedPayload {
   guestLink: string | null;
 }
 
+/** The points of one kind, already ordered by the query, as plain text. */
+function textOf(points: any[], type: string): string[] {
+  return (points ?? [])
+    .filter((p: any) => p.type === type)
+    .map((p: any) => p.text);
+}
+
 @Processor('email-queue')
 export class EmailProcessor extends WorkerHost {
   private logger = new Logger('EmailProcessor');
@@ -367,7 +374,7 @@ export class EmailProcessor extends WorkerHost {
       const minutes = await (this.prisma as any).minutes.findUnique({
         where: { eventId },
         select: {
-          summary: true,
+          points: { orderBy: [{ type: 'asc' }, { order: 'asc' }] },
           event: { select: { title: true, startAt: true, id: true } },
           actionItems: {
             select: { title: true, ownerName: true, dueDate: true },
@@ -400,7 +407,8 @@ export class EmailProcessor extends WorkerHost {
           name,
           eventTitle: minutes.event.title,
           eventDate: minutes.event.startAt,
-          summary: minutes.summary,
+          decisions: textOf(minutes.points, 'DECISION'),
+          nextSteps: textOf(minutes.points, 'NEXT_STEP'),
           actionItems: minutes.actionItems,
           link: guestLink ?? `${base}/administrative/events/${eventId}/minutes`,
           isGuest: !userId,

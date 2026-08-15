@@ -72,13 +72,13 @@ export class MinutesService {
       minutes = await (this.prisma as any).minutes.create({
         data: {
           eventId,
-          body: dto.body,
-          summary: dto.summary,
           status: 'DRAFT',
           draftedById: userId,
           draftedAt: new Date(),
         },
       });
+
+      await this.replacePoints(minutes.id, dto);
 
       await this.audit.log({
         action: 'MINUTES_DRAFTED',
@@ -95,12 +95,12 @@ export class MinutesService {
       minutes = await (this.prisma as any).minutes.update({
         where: { id: minutes.id },
         data: {
-          body: dto.body,
-          summary: dto.summary,
           draftedById: userId,
           draftedAt: new Date(),
         },
       });
+
+      await this.replacePoints(minutes.id, dto);
 
       await this.audit.log({
         action: 'MINUTES_UPDATED',
@@ -115,7 +115,42 @@ export class MinutesService {
       });
     }
 
-    return minutes;
+    return this.getMinutes(eventId);
+  }
+
+  /**
+   * Swap a list of points for the one just submitted.
+   *
+   * Replace rather than reconcile: the client sends the list as the drafter
+   * arranged it, so position is the array index and there is nothing to merge.
+   * Only the lists actually present in the payload are touched — omitting a
+   * key leaves that list alone, while sending an empty array clears it, which
+   * is how a drafter removes their last decision.
+   *
+   * One transaction so a record can never be seen having lost its old points
+   * and not yet gained the new ones.
+   */
+  private async replacePoints(minutesId: string, dto: UpdateMinutesDto) {
+    const lists: [string, string[] | undefined][] = [
+      ['DECISION', dto.decisions],
+      ['NEXT_STEP', dto.nextSteps],
+    ];
+
+    const work = lists
+      .filter(([, values]) => values !== undefined)
+      .flatMap(([type, values]) => [
+        (this.prisma as any).minutePoint.deleteMany({
+          where: { minutesId, type },
+        }),
+        (this.prisma as any).minutePoint.createMany({
+          data: (values as string[])
+            .map((text) => text.trim())
+            .filter((text) => text.length > 0)
+            .map((text, order) => ({ minutesId, type, text, order })),
+        }),
+      ]);
+
+    if (work.length) await (this.prisma as any).$transaction(work);
   }
 
   async updateMinutes(
@@ -162,13 +197,7 @@ export class MinutesService {
       throw new ForbiddenException('Edit window expired (2 days after event)');
     }
 
-    const updated = await (this.prisma as any).minutes.update({
-      where: { id: minutes.id },
-      data: {
-        ...(dto.body && { body: dto.body }),
-        ...(dto.summary && { summary: dto.summary }),
-      },
-    });
+    await this.replacePoints(minutes.id, dto);
 
     await this.audit.log({
       action: 'MINUTES_EDITED',
@@ -183,7 +212,7 @@ export class MinutesService {
       changes: dto as unknown as Record<string, unknown>,
     });
 
-    return updated;
+    return this.getMinutes(eventId);
   }
 
   async publishMinutes(eventId: string, userId: string, ministryId: string) {
@@ -209,6 +238,7 @@ export class MinutesService {
 
     const minutes = await (this.prisma as any).minutes.findUnique({
       where: { eventId },
+      include: { _count: { select: { points: true, actionItems: true } } },
     });
 
     if (!minutes) {
@@ -221,8 +251,14 @@ export class MinutesService {
       );
     }
 
-    if (!minutes.body?.trim()) {
-      throw new BadRequestException('Minutes body cannot be empty');
+    // Any one of the three is a record worth sending. Which one is the
+    // meeting's business — plenty of meetings decide nothing and only agree
+    // who does what next — but an empty record should not reach everyone who
+    // attended.
+    if (minutes._count.points + minutes._count.actionItems === 0) {
+      throw new BadRequestException(
+        'Record at least one decision, action item or next step before publishing',
+      );
     }
 
     if (!event.attendees?.length) {
@@ -401,8 +437,13 @@ export class MinutesService {
         ? {
             OR: [
               { event: { title: { contains: term, mode: 'insensitive' } } },
-              { summary: { contains: term, mode: 'insensitive' } },
-              { body: { contains: term, mode: 'insensitive' } },
+              // The record has no prose left to match on: its content is the
+              // decisions and next steps themselves.
+              {
+                points: {
+                  some: { text: { contains: term, mode: 'insensitive' } },
+                },
+              },
             ],
           }
         : {}),
@@ -421,7 +462,15 @@ export class MinutesService {
         select: {
           id: true,
           status: true,
-          summary: true,
+          // Enough to say what the meeting settled without opening it. The
+          // list used to show a summary line; the first decisions are the
+          // closest honest equivalent.
+          points: {
+            where: { type: 'DECISION' },
+            orderBy: { order: 'asc' },
+            take: 2,
+            select: { id: true, text: true },
+          },
           draftedAt: true,
           publishedAt: true,
           updatedAt: true,
@@ -430,7 +479,7 @@ export class MinutesService {
           },
           draftedBy: { select: { id: true, name: true } },
           publishedBy: { select: { id: true, name: true } },
-          _count: { select: { actionItems: true } },
+          _count: { select: { actionItems: true, points: true } },
         },
         orderBy: { event: { startAt: 'desc' } },
         skip,
@@ -563,6 +612,9 @@ export class MinutesService {
         actionItems: {
           orderBy: { createdAt: 'desc' },
         },
+        // As the drafter arranged them, which is the only order that means
+        // anything for a list of decisions.
+        points: { orderBy: [{ type: 'asc' }, { order: 'asc' }] },
         draftedBy: { select: { id: true, name: true, email: true } },
         publishedBy: { select: { id: true, name: true, email: true } },
       },

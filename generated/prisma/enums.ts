@@ -98,6 +98,14 @@ export const CheckInMethod = {
 export type CheckInMethod = (typeof CheckInMethod)[keyof typeof CheckInMethod]
 
 
+export const MinutePointType = {
+  DECISION: 'DECISION',
+  NEXT_STEP: 'NEXT_STEP'
+} as const
+
+export type MinutePointType = (typeof MinutePointType)[keyof typeof MinutePointType]
+
+
 export const MinutesStatus = {
   DRAFT: 'DRAFT',
   PUBLISHED: 'PUBLISHED',

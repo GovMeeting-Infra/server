@@ -79,19 +79,31 @@ export type Attendance = Prisma.AttendanceModel
 export type QRToken = Prisma.QRTokenModel
 /**
  * Model Minutes
- * 
+ * *
+ *  * What a meeting settled, not what was said in it.
+ *  * The record carries no prose of its own. It used to be one long body plus a
+ *  * summary, which meant decisions were buried inside a paragraph nobody read
+ *  * twice and nothing could be counted or searched precisely. The content is
+ *  * now three lists: decisions and next steps in MinutePoint, and the action
+ *  * items that already existed.
  */
 export type Minutes = Prisma.MinutesModel
+/**
+ * Model MinutePoint
+ * *
+ *  * One line of a minutes record: something decided, or something happening next.
+ *  * Single-line by design. A decision that can hold a paragraph becomes a
+ *  * paragraph, which is the thing this replaced.
+ */
+export type MinutePoint = Prisma.MinutePointModel
 /**
  * Model MinutesAccessToken
  * *
  *  * Read access to one published minutes record for one person, so an attendee
  *  * with no account can be sent the record.
- *  *
  *  * Keyed by email rather than by attendee row: a walk-in has no EventAttendee at
  *  * all, and reusing rsvpTokenHash would mean fabricating one. Only the sha256 is
  *  * stored, matching InvitesService, so a database read yields no usable link.
- *  *
  *  * There is no expiry column on purpose. A token resolves only while its minutes
  *  * are PUBLISHED, so archiving is what ends access — one lifecycle rather than
  *  * two clocks that can disagree.

@@ -337,7 +337,12 @@ export function actionItemReminderEmail({
 }
 
 /**
- * The published record, with the action items it produced.
+ * The published record, in full.
+ *
+ * The whole minutes now fit in an email — decisions, then who is doing what,
+ * then what happens next. That is worth doing rather than teasing: this
+ * message used to carry a summary paragraph and a table, and for most
+ * recipients the email is as far as they ever get.
  *
  * Carries a link for a guest and a different one for staff: a guest has no
  * session, so the in-app URL would be a dead end for them.
@@ -346,7 +351,8 @@ export function minutesPublishedEmail({
   name,
   eventTitle,
   eventDate,
-  summary,
+  decisions,
+  nextSteps,
   actionItems,
   link,
   isGuest,
@@ -354,7 +360,8 @@ export function minutesPublishedEmail({
   name: string;
   eventTitle: string;
   eventDate: Date | string;
-  summary?: string | null;
+  decisions?: string[];
+  nextSteps?: string[];
   actionItems: {
     title: string;
     ownerName?: string | null;
@@ -377,14 +384,25 @@ export function minutesPublishedEmail({
     )
     .join('');
 
+  /** A headed list, or nothing at all — an empty heading says less than none. */
+  const listHtml = (heading: string, lines: string[]) =>
+    lines.length
+      ? `<p style="margin:16px 0 8px;color:#0f172a;font-size:14px;font-weight:600;">${heading} (${lines.length})</p>
+         <ul style="margin:0;padding-left:20px;color:#334155;font-size:14px;line-height:22px;">${lines
+           .map((line) => `<li>${escapeHtml(line)}</li>`)
+           .join('')}</ul>`
+      : '';
+
+  const decisionList = decisions ?? [];
+  const nextStepList = nextSteps ?? [];
+
   const bodyHtml = [
-    summary
-      ? `<p style="margin:0 0 16px;color:#334155;font-size:14px;">${escapeHtml(summary)}</p>`
-      : '',
+    listHtml('Decisions', decisionList),
     actionItems.length
       ? `<p style="margin:16px 0 8px;color:#0f172a;font-size:14px;font-weight:600;">Action items (${actionItems.length})</p>
          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#ffffff;border:1px solid #e6eef8;border-radius:12px;">${itemRows}</table>`
       : `<p style="margin:16px 0 0;color:#64748b;font-size:14px;">No action items were raised.</p>`,
+    listHtml('Next steps', nextStepList),
   ].join('');
 
   return {
@@ -402,7 +420,9 @@ export function minutesPublishedEmail({
     text: [
       intro,
       '',
-      summary ?? '',
+      ...(decisionList.length
+        ? [`Decisions (${decisionList.length}):`, ...decisionList.map((d) => `- ${d}`), '']
+        : []),
       actionItems.length
         ? `Action items (${actionItems.length}):`
         : 'No action items were raised.',
@@ -410,10 +430,13 @@ export function minutesPublishedEmail({
         (i) =>
           `- ${i.title}${i.ownerName ? ` (${i.ownerName})` : ''}, due ${formatDate(i.dueDate)}`,
       ),
+      ...(nextStepList.length
+        ? ['', `Next steps (${nextStepList.length}):`, ...nextStepList.map((s) => `- ${s}`)]
+        : []),
       '',
       link,
     ]
-      .filter(Boolean)
+      .filter((line) => line !== undefined)
       .join('\n'),
   };
 }

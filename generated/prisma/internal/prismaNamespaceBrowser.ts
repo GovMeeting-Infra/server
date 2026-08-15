@@ -64,6 +64,7 @@ export const ModelName = {
   Attendance: 'Attendance',
   QRToken: 'QRToken',
   Minutes: 'Minutes',
+  MinutePoint: 'MinutePoint',
   MinutesAccessToken: 'MinutesAccessToken',
   ActionItem: 'ActionItem',
   Notification: 'Notification',
@@ -306,8 +307,6 @@ export type QRTokenScalarFieldEnum = (typeof QRTokenScalarFieldEnum)[keyof typeo
 export const MinutesScalarFieldEnum = {
   id: 'id',
   eventId: 'eventId',
-  body: 'body',
-  summary: 'summary',
   status: 'status',
   draftedById: 'draftedById',
   draftedAt: 'draftedAt',
@@ -320,6 +319,19 @@ export const MinutesScalarFieldEnum = {
 } as const
 
 export type MinutesScalarFieldEnum = (typeof MinutesScalarFieldEnum)[keyof typeof MinutesScalarFieldEnum]
+
+
+export const MinutePointScalarFieldEnum = {
+  id: 'id',
+  minutesId: 'minutesId',
+  type: 'type',
+  text: 'text',
+  order: 'order',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type MinutePointScalarFieldEnum = (typeof MinutePointScalarFieldEnum)[keyof typeof MinutePointScalarFieldEnum]
 
 
 export const MinutesAccessTokenScalarFieldEnum = {
