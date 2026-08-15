@@ -34,7 +34,9 @@ describe('CanManageEventGuard', () => {
   function withMetadata(keys: string[]) {
     jest
       .spyOn(reflector, 'get')
-      .mockImplementation((key: any) => (keys.includes(key) ? true : undefined));
+      .mockImplementation((key: any) =>
+        keys.includes(key) ? true : undefined,
+      );
   }
 
   beforeEach(() => {
