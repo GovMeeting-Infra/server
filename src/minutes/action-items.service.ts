@@ -238,6 +238,7 @@ export class ActionItemsService {
       updateData.progressNotes = dto.progressNotes;
     if (dto.progressLink !== undefined)
       updateData.progressLink = dto.progressLink;
+    if (dto.priority !== undefined) updateData.priority = dto.priority;
 
     if (dto.dueDate !== undefined) {
       const next = new Date(dto.dueDate);

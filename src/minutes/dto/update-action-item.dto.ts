@@ -7,6 +7,12 @@ import {
   ValidateIf,
 } from 'class-validator';
 
+export enum ActionItemPriorityEnum {
+  LOW = 'low',
+  MEDIUM = 'medium',
+  HIGH = 'high',
+}
+
 export enum ActionItemStatusEnum {
   TODO = 'TODO',
   IN_PROGRESS = 'IN_PROGRESS',
@@ -54,6 +60,14 @@ export class UpdateActionItemDto {
   @IsOptional()
   @IsEnum(ActionItemStatusEnum)
   status?: ActionItemStatusEnum;
+
+  /**
+   * The column has existed with a "medium" default since it was added and no
+   * client has ever written to it, so every row reads medium today.
+   */
+  @IsOptional()
+  @IsEnum(ActionItemPriorityEnum)
+  priority?: ActionItemPriorityEnum;
 
   /**
    * Reassign the item. Pass null to unassign; omit to leave the owner alone —

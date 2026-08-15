@@ -89,27 +89,33 @@ export class ReportsService {
     const where = { minutes: { event: scope } };
     const now = new Date();
 
-    const [total, completed, inProgress, todo, overdue] = await Promise.all([
-      (this.prisma as any).actionItem.count({ where }),
-      (this.prisma as any).actionItem.count({
-        where: { ...where, status: 'COMPLETED' },
-      }),
-      (this.prisma as any).actionItem.count({
-        where: { ...where, status: 'IN_PROGRESS' },
-      }),
-      (this.prisma as any).actionItem.count({
-        where: { ...where, status: { in: ['TODO', 'BLOCKED'] } },
-      }),
-      (this.prisma as any).actionItem.count({
-        where: {
-          ...where,
-          dueDate: { lt: now },
-          status: { notIn: ['COMPLETED', 'CANCELLED'] },
-        },
-      }),
-    ]);
+    const [total, completed, inProgress, todo, overdue, cancelled] =
+      await Promise.all([
+        (this.prisma as any).actionItem.count({ where }),
+        (this.prisma as any).actionItem.count({
+          where: { ...where, status: 'COMPLETED' },
+        }),
+        (this.prisma as any).actionItem.count({
+          where: { ...where, status: 'IN_PROGRESS' },
+        }),
+        (this.prisma as any).actionItem.count({
+          where: { ...where, status: { in: ['TODO', 'BLOCKED'] } },
+        }),
+        (this.prisma as any).actionItem.count({
+          where: {
+            ...where,
+            dueDate: { lt: now },
+            status: { notIn: ['COMPLETED', 'CANCELLED'] },
+          },
+        }),
+        // Counted so a progress bar can say what it leaves out. Without it,
+        // todo + inProgress + completed silently fails to reach total.
+        (this.prisma as any).actionItem.count({
+          where: { ...where, status: 'CANCELLED' },
+        }),
+      ]);
 
-    return { total, completed, inProgress, todo, overdue };
+    return { total, completed, inProgress, todo, overdue, cancelled };
   }
 
   /** QR vs manual vs geofence, aggregated from the stored checkInMethod. */
