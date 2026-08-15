@@ -105,7 +105,12 @@ export class CheckinController {
   /** Check-in by a signed-in member of staff. */
   @Post('checkin/:token')
   @UseGuards(RateLimitGuard)
-  @RateLimit({ perIp: 10, perToken: 30, windowSeconds: 60 })
+  // Budgets sized for a room, not a single visitor. Everyone at a venue leaves
+  // through one public IP, so the old perIp of 10 meant the eleventh person to
+  // scan in a minute was refused as if they were attacking us; perToken of 30
+  // capped a meeting at thirty arrivals a minute. Both still bound a leaked or
+  // photographed code, which is what they are for.
+  @RateLimit({ perIp: 60, perToken: 200, windowSeconds: 60 })
   @HttpCode(200)
   async checkIn(
     @Param('token') token: string,
@@ -122,7 +127,12 @@ export class CheckinController {
   /** Check-in by someone without an account. */
   @Post('checkin/:token/guest')
   @UseGuards(RateLimitGuard)
-  @RateLimit({ perIp: 10, perToken: 30, windowSeconds: 60 })
+  // Budgets sized for a room, not a single visitor. Everyone at a venue leaves
+  // through one public IP, so the old perIp of 10 meant the eleventh person to
+  // scan in a minute was refused as if they were attacking us; perToken of 30
+  // capped a meeting at thirty arrivals a minute. Both still bound a leaked or
+  // photographed code, which is what they are for.
+  @RateLimit({ perIp: 60, perToken: 200, windowSeconds: 60 })
   @HttpCode(200)
   async guestCheckIn(
     @Param('token') token: string,

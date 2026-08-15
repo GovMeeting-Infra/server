@@ -1,5 +1,8 @@
-import { haversineDistance, isWithinRadius } from '../geofence.util';
-import { GEOFENCE_RADIUS_METERS } from '../geofence.constants';
+import { haversineDistance, isWithinRadius, classifyFix } from '../geofence.util';
+import {
+  GEOFENCE_RADIUS_METERS,
+  CHECKIN_MAX_ACCURACY_METERS,
+} from '../geofence.constants';
 
 /** Freetown, Sierra Leone — a plausible ministry venue. */
 const ANCHOR_LAT = 8.4657;
@@ -96,5 +99,48 @@ describe('isWithinRadius', () => {
         GEOFENCE_RADIUS_METERS,
       ),
     ).toBe(false);
+  });
+});
+
+describe('classifyFix', () => {
+  const classify = (distance: number, accuracy: number) =>
+    classifyFix({
+      distance,
+      accuracy,
+      radius: GEOFENCE_RADIUS_METERS,
+      ceiling: CHECKIN_MAX_ACCURACY_METERS,
+    });
+
+  // A perfect reading behaves exactly as the old plain comparison did.
+  it('treats a pinpoint fix as a plain distance test', () => {
+    expect(classify(100, 0)).toBe('VERIFIED');
+    expect(classify(101, 0)).toBe('OUTSIDE');
+  });
+
+  it('verifies only when the whole error disc sits inside', () => {
+    expect(classify(60, 40)).toBe('VERIFIED');
+    expect(classify(60, 41)).toBe('PLAUSIBLE');
+  });
+
+  // The case that was being refused outright: someone indoors, positioned by
+  // Wi-Fi, who may well be standing in the room.
+  it('accepts an overlapping disc as plausible rather than refusing it', () => {
+    expect(classify(150, 60)).toBe('PLAUSIBLE');
+  });
+
+  it('still refuses someone who cannot be inside even at their closest', () => {
+    expect(classify(150, 49)).toBe('OUTSIDE');
+  });
+
+  // The property the constants exist to produce: radius + ceiling is the
+  // furthest anyone can stand and still be let in.
+  it('caps the reachable distance at radius plus ceiling', () => {
+    expect(classify(600, 500)).toBe('PLAUSIBLE');
+    expect(classify(601, 500)).toBe('OUTSIDE');
+  });
+
+  it('refuses a fix too vague to localise anything, at any distance', () => {
+    expect(classify(0, 501)).toBe('TOO_VAGUE');
+    expect(classify(5_000, 5_000)).toBe('TOO_VAGUE');
   });
 });

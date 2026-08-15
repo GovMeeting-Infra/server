@@ -20,7 +20,14 @@ async function bootstrap() {
 
   // nginx terminates TLS and forwards X-Forwarded-For; without this req.ip is
   // the proxy, and the IP recorded against every check-in would be useless.
-  app.getHttpAdapter().getInstance().set('trust proxy', 1);
+  //
+  // 'loopback' rather than a hop count: attendee traffic reaches this process
+  // through two proxies on the same box, nginx and then the Next rewrite that
+  // forwards /api/* to 127.0.0.1:4000. Trusting exactly one left req.ip as the
+  // loopback address, which put every attendee in the country into a single
+  // per-IP rate-limit bucket and wrote 127.0.0.1 into every attendance record.
+  // Trusting the whole loopback chain resolves it to the client instead.
+  app.getHttpAdapter().getInstance().set('trust proxy', 'loopback');
 
   app.enableVersioning({
     type: VersioningType.URI,
