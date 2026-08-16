@@ -18,6 +18,10 @@ model User {
   name          String
   image         String?
   jobTitle      String?
+  /// Work phone. Optional, self-edited, and stamped onto the attendance record
+  /// at check-in so a staff row carries a contact the way a guest row already
+  /// does. Cleared by anonymize() — it is personal data like any other.
+  phone         String?
   systemRole    SystemRole @default(STAFF)
   ministryId    String?
   active        Boolean    @default(true)

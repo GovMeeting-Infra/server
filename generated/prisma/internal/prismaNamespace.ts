@@ -2037,6 +2037,7 @@ export const UserScalarFieldEnum = {
   name: 'name',
   image: 'image',
   jobTitle: 'jobTitle',
+  phone: 'phone',
   systemRole: 'systemRole',
   ministryId: 'ministryId',
   active: 'active',

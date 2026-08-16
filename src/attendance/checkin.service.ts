@@ -427,7 +427,7 @@ export class CheckinService {
   async checkIn(
     token: string,
     dto: CheckInDto,
-    user: { id: string; name?: string },
+    user: { id: string; name?: string; phone?: string | null },
     meta: RequestMeta = {},
   ) {
     const event = await this.resolveOpenEvent(token);
@@ -443,6 +443,13 @@ export class CheckinService {
     return this.recordAttendance(event, dto, verdict, meta, {
       userId: user.id,
       signedName: dto.signedName.trim(),
+      // Copied from the account rather than asked for at the door. The form
+      // here is a name and a signature on whatever phone someone has in a
+      // corridor, and it stays that way — but the attendance row has always had
+      // a phone column that only guests ever filled, so every staff row showed
+      // a dash. The session carries the whole user record, so this costs no
+      // extra query. Undefined when they have not set one, which keeps it null.
+      guestPhone: user.phone?.trim() || undefined,
     });
   }
 
@@ -823,7 +830,7 @@ export class CheckinService {
     // record instead of being stranded as an unrelated guest row.
     const target = await (this.prisma as any).user.findFirst({
       where: { email, active: true, deletedAt: null },
-      select: { id: true },
+      select: { id: true, phone: true },
     });
 
     // findFirst, not findUnique on the compound key: userId is nullable, so the
@@ -861,6 +868,9 @@ export class CheckinService {
           userId: target?.id ?? null,
           guestName: target ? null : name,
           guestEmail: target ? null : email,
+          // An organizer recording someone at the desk has no reason to know
+          // their number, but if the person has an account we already do.
+          guestPhone: target?.phone?.trim() || null,
           isWalkIn: !invite,
           signedName: name,
           // Null, not '': nobody signed. An empty string already means

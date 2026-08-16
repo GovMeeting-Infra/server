@@ -17,6 +17,17 @@ export class UpdateMeDto {
   @MaxLength(120)
   jobTitle?: string;
 
+  /**
+   * Work phone. Optional, and deliberately not pattern-matched: Sierra Leone
+   * numbers get written +232, 00232, 0 and spaced a dozen different ways, and
+   * a regex here would reject a number that reaches the person perfectly well.
+   * An empty string clears it.
+   */
+  @IsOptional()
+  @IsString()
+  @MaxLength(32)
+  phone?: string;
+
   /** Avatar URL. */
   @IsOptional()
   @IsString()

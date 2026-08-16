@@ -810,6 +810,13 @@ export class UsersService {
         email: anonEmail,
         name: 'Anonymous',
         jobTitle: '',
+        // Both of these are personal data and neither was being cleared. A
+        // profile photo is a face, so an "anonymised" account was still
+        // showing one wherever an avatar renders; the phone number was still
+        // dialable. Erasure has to reach every identifying column, not the
+        // three that happen to appear on the user list.
+        phone: null,
+        image: null,
         deletedAt: new Date(),
       },
     });
