@@ -299,7 +299,11 @@ export function actionItemDigestEmail({
   name: string;
   items: DigestItem[];
   /** Completed last week on meetings this person was invited to. */
-  closed?: { title: string; ownerName?: string | null; eventTitle?: string | null }[];
+  closed?: {
+    title: string;
+    ownerName?: string | null;
+    eventTitle?: string | null;
+  }[];
   unsubscribeUrl?: string;
 }): EmailBody {
   const count = items.length;
@@ -333,7 +337,9 @@ export function actionItemDigestEmail({
          .map(
            (c) =>
              `<li>${escapeHtml(c.title)}${c.ownerName ? ` &mdash; ${escapeHtml(c.ownerName)}` : ''}${
-               c.eventTitle ? ` <span style="color:#64748b;">(${escapeHtml(c.eventTitle)})</span>` : ''
+               c.eventTitle
+                 ? ` <span style="color:#64748b;">(${escapeHtml(c.eventTitle)})</span>`
+                 : ''
              }</li>`,
          )
          .join('')}</ul>`
@@ -381,7 +387,9 @@ export function actionItemDigestEmail({
             ),
           ]
         : []),
-      ...(unsubscribeUrl ? ['', `Unsubscribe from this summary: ${unsubscribeUrl}`] : []),
+      ...(unsubscribeUrl
+        ? ['', `Unsubscribe from this summary: ${unsubscribeUrl}`]
+        : []),
     ].join('\n'),
   };
 }
@@ -425,11 +433,9 @@ export function actionItemCompletedEmail({
       </table>`,
       footnote: 'Nothing further is needed from you.',
     }),
-    text: [
-      intro,
-      '',
-      `- ${title}${eventTitle ? ` (${eventTitle})` : ''}`,
-    ].join('\n'),
+    text: [intro, '', `- ${title}${eventTitle ? ` (${eventTitle})` : ''}`].join(
+      '\n',
+    ),
   };
 }
 
@@ -575,9 +581,7 @@ export function meetingChangedEmail({
       ].join('');
 
   return {
-    subject: cancelled
-      ? `Cancelled: ${eventTitle}`
-      : `Changed: ${eventTitle}`,
+    subject: cancelled ? `Cancelled: ${eventTitle}` : `Changed: ${eventTitle}`,
     html: layout({
       heading: cancelled ? 'Meeting cancelled' : 'Meeting details changed',
       intro,
@@ -740,7 +744,11 @@ export function minutesPublishedEmail({
       intro,
       '',
       ...(decisionList.length
-        ? [`Decisions (${decisionList.length}):`, ...decisionList.map((d) => `- ${d}`), '']
+        ? [
+            `Decisions (${decisionList.length}):`,
+            ...decisionList.map((d) => `- ${d}`),
+            '',
+          ]
         : []),
       actionItems.length
         ? `Action items (${actionItems.length}):`
@@ -750,7 +758,11 @@ export function minutesPublishedEmail({
           `- ${i.title}${i.ownerName ? ` (${i.ownerName})` : ''}, due ${formatDate(i.dueDate)}`,
       ),
       ...(nextStepList.length
-        ? ['', `Next steps (${nextStepList.length}):`, ...nextStepList.map((s) => `- ${s}`)]
+        ? [
+            '',
+            `Next steps (${nextStepList.length}):`,
+            ...nextStepList.map((s) => `- ${s}`),
+          ]
         : []),
       '',
       link,

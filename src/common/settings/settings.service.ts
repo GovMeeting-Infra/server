@@ -14,6 +14,7 @@ import { AuditService } from '../../audit/audit.service';
 export const SETTINGS = {
   SESSION_TIMEOUT_SECONDS: 'SESSION_TIMEOUT_SECONDS',
   GOVERNMENT_EMAIL_DOMAIN: 'GOVERNMENT_EMAIL_DOMAIN',
+  SUPPORT_EMAIL: 'SUPPORT_EMAIL',
 } as const;
 
 export type SettingKey = (typeof SETTINGS)[keyof typeof SETTINGS];
@@ -59,6 +60,27 @@ const SPECS: Record<SettingKey, SettingSpec> = {
         );
       }
       return `.${value}`;
+    },
+  },
+  [SETTINGS.SUPPORT_EMAIL]: {
+    envVar: 'SUPPORT_EMAIL',
+    // Empty on purpose. The help page hardcoded support@ministry.gov.sl, which
+    // is not a domain any ministry owns — moh.gov.sl and med.gov.sl are — so
+    // the one "ask a human" route on the page bounced. An unset value makes the
+    // page point at the reader's own ministry administrator, who demonstrably
+    // exists, rather than at an address that does not.
+    fallback: '',
+    describe:
+      'Address the help page offers when someone is stuck. Blank sends them to their ministry administrator instead.',
+    parse: (raw) => {
+      const value = raw.trim().toLowerCase();
+      if (!value) return '';
+      if (!/^[^\s@]+@[a-z0-9-]+(\.[a-z0-9-]+)+$/.test(value)) {
+        throw new BadRequestException(
+          'The support address must be a single email address, or blank',
+        );
+      }
+      return value;
     },
   },
 };

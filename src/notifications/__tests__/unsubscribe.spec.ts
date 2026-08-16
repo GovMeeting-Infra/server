@@ -20,7 +20,9 @@ describe('unsubscribe signing', () => {
   });
 
   it('refuses a signature made for a different address', () => {
-    expect(verifyEmail('someone.else@moh.gov.sl', signEmail(EMAIL))).toBe(false);
+    expect(verifyEmail('someone.else@moh.gov.sl', signEmail(EMAIL))).toBe(
+      false,
+    );
   });
 
   it('refuses a tampered signature', () => {
@@ -46,9 +48,9 @@ describe('unsubscribe signing', () => {
     const url = new URL(digestUnsubscribeUrl(EMAIL));
     expect(url.pathname).toBe('/unsubscribe');
     expect(url.searchParams.get('email')).toBe(EMAIL);
-    expect(
-      verifyEmail(EMAIL, url.searchParams.get('token') as string),
-    ).toBe(true);
+    expect(verifyEmail(EMAIL, url.searchParams.get('token') as string)).toBe(
+      true,
+    );
   });
 });
 

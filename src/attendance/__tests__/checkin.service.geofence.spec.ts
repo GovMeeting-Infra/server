@@ -36,12 +36,13 @@ describe('CheckinService — geofence enforcement', () => {
   let service: CheckinService;
 
   /**
-   * An open, published event, anchored and gating unless told otherwise.
+   * An open, published event.
    *
-   * The two are separate now: an anchor makes the position measurable,
-   * requireGeofence decides whether a bad one turns anyone away.
+   * Anchored or not is the only question: an anchored event gates entry, and an
+   * unanchored one has no code to scan in the first place — the generate path
+   * refuses a fix too poor to anchor from.
    */
-  const seedEvent = (anchored = true, requireGeofence = anchored) => {
+  const seedEvent = (anchored = true) => {
     qrToken.findToken.mockResolvedValue({
       token: 'tok',
       eventId: 'e1',
@@ -56,7 +57,6 @@ describe('CheckinService — geofence enforcement', () => {
       allowGuestCheckIn: true,
       checkInAnchorLat: anchored ? ANCHOR_LAT : null,
       checkInAnchorLng: anchored ? ANCHOR_LNG : null,
-      requireGeofence,
     });
   };
 
@@ -214,33 +214,35 @@ describe('CheckinService — geofence enforcement', () => {
     });
   });
 
-  describe('anchored event with the requirement switched off', () => {
-    // The organizer captured an area but did not ask for it to gate entry.
-    // Measure, record, refuse nobody.
-    beforeEach(() => seedEvent(true, false));
+  describe('an anchor always gates', () => {
+    // Location verification is no longer a per-event setting. Generating a code
+    // requires a fix good enough to anchor from, so every code that exists is
+    // fenced and every holder of one has to be inside the area.
+    beforeEach(() => seedEvent(true));
 
-    it('records how far away someone was without turning them away', async () => {
+    it('turns away someone plainly outside the area', async () => {
       const far = metresNorth(4_000);
 
-      await service.checkIn('tok', dto({ ...far, gpsAccuracy: 15 }), staff, {});
-
-      expect(created().withinGeofence).toBe(false);
-      expect(created().checkInMethod).toBe('GEO');
+      await expect(
+        service.checkIn('tok', dto({ ...far, gpsAccuracy: 15 }), staff, {}),
+      ).rejects.toThrow();
     });
 
-    it('still verifies someone who is plainly inside', async () => {
+    it('verifies someone plainly inside', async () => {
       const near = metresNorth(20);
 
-      await service.checkIn('tok', dto({ ...near, gpsAccuracy: 10 }), staff, {});
+      await service.checkIn(
+        'tok',
+        dto({ ...near, gpsAccuracy: 10 }),
+        staff,
+        {},
+      );
 
       expect(created().withinGeofence).toBe(true);
     });
 
-    it('checks in without a location rather than demanding one', async () => {
-      await service.checkIn('tok', dto(), staff, {});
-
-      expect(created().withinGeofence).toBeNull();
-      expect(created().checkInMethod).toBe('QR');
+    it('refuses a check-in that sends no location at all', async () => {
+      await expect(service.checkIn('tok', dto(), staff, {})).rejects.toThrow();
     });
   });
 

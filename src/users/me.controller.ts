@@ -6,9 +6,11 @@ import {
   Body,
   UseGuards,
   HttpCode,
+  Req,
   Res,
 } from '@nestjs/common';
-import type { Response } from 'express';
+import type { Request, Response } from 'express';
+import { extractToken } from '../auth/extract-token';
 import { MeService } from './me.service';
 import { UpdateMeDto } from './dto/update-me.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
@@ -57,8 +59,14 @@ export class MeController {
   @Post('password')
   @HttpCode(200)
   @Roles('SUPER_ADMIN', 'MINISTER', 'MINISTRY_ADMIN', 'STAFF')
-  changePassword(@CurrentUser() user: any, @Body() dto: ChangePasswordDto) {
-    return this.meService.changePassword(user.id, dto);
+  changePassword(
+    @CurrentUser() user: any,
+    @Body() dto: ChangePasswordDto,
+    @Req() req: Request,
+  ) {
+    // The token identifies the session doing the changing, so it can be spared
+    // when the rest are revoked.
+    return this.meService.changePassword(user.id, dto, extractToken(req));
   }
 
   @Get('preferences')

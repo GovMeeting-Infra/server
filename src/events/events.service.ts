@@ -359,7 +359,7 @@ export class EventsService {
 
   async listEvents(
     ministryId: string,
-    user: { systemRole: string; ministryId?: string },
+    user: { id?: string; systemRole: string; ministryId?: string },
     options: {
       page?: number;
       isPublic?: boolean;
@@ -368,6 +368,7 @@ export class EventsService {
       timeframe?: string;
       from?: string;
       to?: string;
+      mine?: boolean;
     } = {},
   ) {
     const now = new Date();
@@ -386,11 +387,28 @@ export class EventsService {
             ? { endAt: { lt: now } }
             : {};
 
+    // "Mine" means connected to me in any of the three ways this product
+    // recognises — I run it, I co-run it, or I was invited. Ministry scope still
+    // applies on top, so this narrows a ministry list rather than reaching
+    // across ministries. Without an actor id there is no personal list to build,
+    // so the filter drops rather than matching everything.
+    const mineWhere =
+      options.mine && user.id
+        ? {
+            OR: [
+              { organizerId: user.id },
+              { coOrganizers: { some: { userId: user.id } } },
+              { attendees: { some: { userId: user.id } } },
+            ],
+          }
+        : {};
+
     const where = {
       ...ministryScope(user),
       ...(options.isPublic !== undefined && { isPublic: options.isPublic }),
       ...timeframeWhere,
       ...(range && { startAt: range }),
+      ...mineWhere,
     };
 
     const page = Math.max(1, options.page || 1);
@@ -410,9 +428,13 @@ export class EventsService {
     // reporting an event as "happening now" after it ended — those queries skip
     // the cache. For the rest, sort belongs in the key because results are
     // paginated server-side, so a different sort is a different page of data.
+    // The actor is in the key whenever `mine` narrowed the query, because that
+    // result set belongs to one person: cached under the ministry-wide key it
+    // would be served to the next colleague who asked, which is the exact
+    // cross-user leak ministry scoping exists to prevent.
     const cacheKey = options.timeframe
       ? null
-      : `events:list:${ministryId}:${page}:${options.isPublic || 'all'}:${sortBy}:${order}:${options.from ?? '-'}:${options.to ?? '-'}`;
+      : `events:list:${ministryId}:${options.mine && user.id ? `u:${user.id}` : 'all'}:${page}:${options.isPublic || 'all'}:${sortBy}:${order}:${options.from ?? '-'}:${options.to ?? '-'}`;
 
     if (cacheKey) {
       const cached = await this.cache.get(cacheKey);
@@ -637,8 +659,7 @@ export class EventsService {
     // Only when something an attendee would travel on has moved. Renaming a
     // meeting or editing its description is not worth an email to everyone
     // invited; changing when or where it happens is.
-    const startMoved =
-      updated.startAt.getTime() !== event.startAt.getTime();
+    const startMoved = updated.startAt.getTime() !== event.startAt.getTime();
     const venueMoved = updated.venueName !== event.venueName;
 
     if (startMoved || venueMoved) {

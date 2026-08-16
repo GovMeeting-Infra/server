@@ -19,6 +19,7 @@ import { UpdateActionItemDto } from './dto/update-action-item.dto';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { ARCHIVE_MANAGER_ROLES, canReadArchived } from './archive.policy';
 
 @ApiTags('Minutes & Action Items')
 @ApiBearerAuth()
@@ -122,14 +123,33 @@ export class MinutesController {
     @Param('eventId') eventId: string,
     @CurrentUser() user: any,
   ) {
-    const canEdit = await this.minutesService.canEditMinutes(
+    const permission = await this.minutesService.describeEditPermission(
       eventId,
       user.id,
       user.systemRole,
       user.ministryId,
     );
 
-    return { canEdit };
+    // The capability flags travel with it so the page stops keeping its own
+    // copies of the role lists. It had three — organiser-or-co-organiser for
+    // publishing, MINISTER/SUPER_ADMIN for archiving, and the archive reader
+    // roles on the list page — each one a place the client can drift from the
+    // server without anything failing loudly.
+    return {
+      ...permission,
+      canPublish: await this.minutesService.canPublishMinutes(
+        eventId,
+        user.id,
+        user.systemRole,
+      ),
+      // Who publishing would reach. The page asks people to confirm an act
+      // that emails a record it cannot recall; "Send to 14 people, 3 of them
+      // outside government" is the fact that makes that confirmation mean
+      // something, and it was not available to ask for.
+      recipients: await this.minutesService.countPublishRecipients(eventId),
+      canArchive: ARCHIVE_MANAGER_ROLES.includes(user.systemRole),
+      canReadArchived: canReadArchived(user.systemRole),
+    };
   }
 
   @Post('minutes/action-items')

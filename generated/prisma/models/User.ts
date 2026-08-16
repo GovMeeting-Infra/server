@@ -41,6 +41,7 @@ export type UserMinAggregateOutputType = {
   name: string | null
   image: string | null
   jobTitle: string | null
+  phone: string | null
   systemRole: $Enums.SystemRole | null
   ministryId: string | null
   active: boolean | null
@@ -59,6 +60,7 @@ export type UserMaxAggregateOutputType = {
   name: string | null
   image: string | null
   jobTitle: string | null
+  phone: string | null
   systemRole: $Enums.SystemRole | null
   ministryId: string | null
   active: boolean | null
@@ -77,6 +79,7 @@ export type UserCountAggregateOutputType = {
   name: number
   image: number
   jobTitle: number
+  phone: number
   systemRole: number
   ministryId: number
   active: number
@@ -105,6 +108,7 @@ export type UserMinAggregateInputType = {
   name?: true
   image?: true
   jobTitle?: true
+  phone?: true
   systemRole?: true
   ministryId?: true
   active?: true
@@ -123,6 +127,7 @@ export type UserMaxAggregateInputType = {
   name?: true
   image?: true
   jobTitle?: true
+  phone?: true
   systemRole?: true
   ministryId?: true
   active?: true
@@ -141,6 +146,7 @@ export type UserCountAggregateInputType = {
   name?: true
   image?: true
   jobTitle?: true
+  phone?: true
   systemRole?: true
   ministryId?: true
   active?: true
@@ -246,6 +252,7 @@ export type UserGroupByOutputType = {
   name: string
   image: string | null
   jobTitle: string | null
+  phone: string | null
   systemRole: $Enums.SystemRole
   ministryId: string | null
   active: boolean
@@ -287,6 +294,7 @@ export type UserWhereInput = {
   name?: Prisma.StringFilter<"User"> | string
   image?: Prisma.StringNullableFilter<"User"> | string | null
   jobTitle?: Prisma.StringNullableFilter<"User"> | string | null
+  phone?: Prisma.StringNullableFilter<"User"> | string | null
   systemRole?: Prisma.EnumSystemRoleFilter<"User"> | $Enums.SystemRole
   ministryId?: Prisma.StringNullableFilter<"User"> | string | null
   active?: Prisma.BoolFilter<"User"> | boolean
@@ -321,6 +329,7 @@ export type UserOrderByWithRelationInput = {
   name?: Prisma.SortOrder
   image?: Prisma.SortOrderInput | Prisma.SortOrder
   jobTitle?: Prisma.SortOrderInput | Prisma.SortOrder
+  phone?: Prisma.SortOrderInput | Prisma.SortOrder
   systemRole?: Prisma.SortOrder
   ministryId?: Prisma.SortOrderInput | Prisma.SortOrder
   active?: Prisma.SortOrder
@@ -358,6 +367,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   name?: Prisma.StringFilter<"User"> | string
   image?: Prisma.StringNullableFilter<"User"> | string | null
   jobTitle?: Prisma.StringNullableFilter<"User"> | string | null
+  phone?: Prisma.StringNullableFilter<"User"> | string | null
   systemRole?: Prisma.EnumSystemRoleFilter<"User"> | $Enums.SystemRole
   ministryId?: Prisma.StringNullableFilter<"User"> | string | null
   active?: Prisma.BoolFilter<"User"> | boolean
@@ -392,6 +402,7 @@ export type UserOrderByWithAggregationInput = {
   name?: Prisma.SortOrder
   image?: Prisma.SortOrderInput | Prisma.SortOrder
   jobTitle?: Prisma.SortOrderInput | Prisma.SortOrder
+  phone?: Prisma.SortOrderInput | Prisma.SortOrder
   systemRole?: Prisma.SortOrder
   ministryId?: Prisma.SortOrderInput | Prisma.SortOrder
   active?: Prisma.SortOrder
@@ -418,6 +429,7 @@ export type UserScalarWhereWithAggregatesInput = {
   name?: Prisma.StringWithAggregatesFilter<"User"> | string
   image?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   jobTitle?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  phone?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   systemRole?: Prisma.EnumSystemRoleWithAggregatesFilter<"User"> | $Enums.SystemRole
   ministryId?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   active?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
@@ -436,6 +448,7 @@ export type UserCreateInput = {
   name: string
   image?: string | null
   jobTitle?: string | null
+  phone?: string | null
   systemRole?: $Enums.SystemRole
   active?: boolean
   loginAttempts?: number
@@ -469,6 +482,7 @@ export type UserUncheckedCreateInput = {
   name: string
   image?: string | null
   jobTitle?: string | null
+  phone?: string | null
   systemRole?: $Enums.SystemRole
   ministryId?: string | null
   active?: boolean
@@ -502,6 +516,7 @@ export type UserUpdateInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   jobTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
@@ -535,6 +550,7 @@ export type UserUncheckedUpdateInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   jobTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   ministryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -568,6 +584,7 @@ export type UserCreateManyInput = {
   name: string
   image?: string | null
   jobTitle?: string | null
+  phone?: string | null
   systemRole?: $Enums.SystemRole
   ministryId?: string | null
   active?: boolean
@@ -586,6 +603,7 @@ export type UserUpdateManyMutationInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   jobTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
@@ -603,6 +621,7 @@ export type UserUncheckedUpdateManyInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   jobTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   ministryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -621,6 +640,7 @@ export type UserCountOrderByAggregateInput = {
   name?: Prisma.SortOrder
   image?: Prisma.SortOrder
   jobTitle?: Prisma.SortOrder
+  phone?: Prisma.SortOrder
   systemRole?: Prisma.SortOrder
   ministryId?: Prisma.SortOrder
   active?: Prisma.SortOrder
@@ -643,6 +663,7 @@ export type UserMaxOrderByAggregateInput = {
   name?: Prisma.SortOrder
   image?: Prisma.SortOrder
   jobTitle?: Prisma.SortOrder
+  phone?: Prisma.SortOrder
   systemRole?: Prisma.SortOrder
   ministryId?: Prisma.SortOrder
   active?: Prisma.SortOrder
@@ -661,6 +682,7 @@ export type UserMinOrderByAggregateInput = {
   name?: Prisma.SortOrder
   image?: Prisma.SortOrder
   jobTitle?: Prisma.SortOrder
+  phone?: Prisma.SortOrder
   systemRole?: Prisma.SortOrder
   ministryId?: Prisma.SortOrder
   active?: Prisma.SortOrder
@@ -1005,6 +1027,7 @@ export type UserCreateWithoutSessionsInput = {
   name: string
   image?: string | null
   jobTitle?: string | null
+  phone?: string | null
   systemRole?: $Enums.SystemRole
   active?: boolean
   loginAttempts?: number
@@ -1037,6 +1060,7 @@ export type UserUncheckedCreateWithoutSessionsInput = {
   name: string
   image?: string | null
   jobTitle?: string | null
+  phone?: string | null
   systemRole?: $Enums.SystemRole
   ministryId?: string | null
   active?: boolean
@@ -1085,6 +1109,7 @@ export type UserUpdateWithoutSessionsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   jobTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1117,6 +1142,7 @@ export type UserUncheckedUpdateWithoutSessionsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   jobTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   ministryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1149,6 +1175,7 @@ export type UserCreateWithoutAccountsInput = {
   name: string
   image?: string | null
   jobTitle?: string | null
+  phone?: string | null
   systemRole?: $Enums.SystemRole
   active?: boolean
   loginAttempts?: number
@@ -1181,6 +1208,7 @@ export type UserUncheckedCreateWithoutAccountsInput = {
   name: string
   image?: string | null
   jobTitle?: string | null
+  phone?: string | null
   systemRole?: $Enums.SystemRole
   ministryId?: string | null
   active?: boolean
@@ -1229,6 +1257,7 @@ export type UserUpdateWithoutAccountsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   jobTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1261,6 +1290,7 @@ export type UserUncheckedUpdateWithoutAccountsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   jobTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   ministryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1293,6 +1323,7 @@ export type UserCreateWithoutMinistryInput = {
   name: string
   image?: string | null
   jobTitle?: string | null
+  phone?: string | null
   systemRole?: $Enums.SystemRole
   active?: boolean
   loginAttempts?: number
@@ -1325,6 +1356,7 @@ export type UserUncheckedCreateWithoutMinistryInput = {
   name: string
   image?: string | null
   jobTitle?: string | null
+  phone?: string | null
   systemRole?: $Enums.SystemRole
   active?: boolean
   loginAttempts?: number
@@ -1386,6 +1418,7 @@ export type UserScalarWhereInput = {
   name?: Prisma.StringFilter<"User"> | string
   image?: Prisma.StringNullableFilter<"User"> | string | null
   jobTitle?: Prisma.StringNullableFilter<"User"> | string | null
+  phone?: Prisma.StringNullableFilter<"User"> | string | null
   systemRole?: Prisma.EnumSystemRoleFilter<"User"> | $Enums.SystemRole
   ministryId?: Prisma.StringNullableFilter<"User"> | string | null
   active?: Prisma.BoolFilter<"User"> | boolean
@@ -1404,6 +1437,7 @@ export type UserCreateWithoutPreferencesInput = {
   name: string
   image?: string | null
   jobTitle?: string | null
+  phone?: string | null
   systemRole?: $Enums.SystemRole
   active?: boolean
   loginAttempts?: number
@@ -1436,6 +1470,7 @@ export type UserUncheckedCreateWithoutPreferencesInput = {
   name: string
   image?: string | null
   jobTitle?: string | null
+  phone?: string | null
   systemRole?: $Enums.SystemRole
   ministryId?: string | null
   active?: boolean
@@ -1484,6 +1519,7 @@ export type UserUpdateWithoutPreferencesInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   jobTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1516,6 +1552,7 @@ export type UserUncheckedUpdateWithoutPreferencesInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   jobTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   ministryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1548,6 +1585,7 @@ export type UserCreateWithoutOrganizedEventsInput = {
   name: string
   image?: string | null
   jobTitle?: string | null
+  phone?: string | null
   systemRole?: $Enums.SystemRole
   active?: boolean
   loginAttempts?: number
@@ -1580,6 +1618,7 @@ export type UserUncheckedCreateWithoutOrganizedEventsInput = {
   name: string
   image?: string | null
   jobTitle?: string | null
+  phone?: string | null
   systemRole?: $Enums.SystemRole
   ministryId?: string | null
   active?: boolean
@@ -1628,6 +1667,7 @@ export type UserUpdateWithoutOrganizedEventsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   jobTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1660,6 +1700,7 @@ export type UserUncheckedUpdateWithoutOrganizedEventsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   jobTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   ministryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1692,6 +1733,7 @@ export type UserCreateWithoutCoOrganizedEventsInput = {
   name: string
   image?: string | null
   jobTitle?: string | null
+  phone?: string | null
   systemRole?: $Enums.SystemRole
   active?: boolean
   loginAttempts?: number
@@ -1724,6 +1766,7 @@ export type UserUncheckedCreateWithoutCoOrganizedEventsInput = {
   name: string
   image?: string | null
   jobTitle?: string | null
+  phone?: string | null
   systemRole?: $Enums.SystemRole
   ministryId?: string | null
   active?: boolean
@@ -1772,6 +1815,7 @@ export type UserUpdateWithoutCoOrganizedEventsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   jobTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1804,6 +1848,7 @@ export type UserUncheckedUpdateWithoutCoOrganizedEventsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   jobTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   ministryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1836,6 +1881,7 @@ export type UserCreateWithoutEventAttendeesInput = {
   name: string
   image?: string | null
   jobTitle?: string | null
+  phone?: string | null
   systemRole?: $Enums.SystemRole
   active?: boolean
   loginAttempts?: number
@@ -1868,6 +1914,7 @@ export type UserUncheckedCreateWithoutEventAttendeesInput = {
   name: string
   image?: string | null
   jobTitle?: string | null
+  phone?: string | null
   systemRole?: $Enums.SystemRole
   ministryId?: string | null
   active?: boolean
@@ -1916,6 +1963,7 @@ export type UserUpdateWithoutEventAttendeesInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   jobTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1948,6 +1996,7 @@ export type UserUncheckedUpdateWithoutEventAttendeesInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   jobTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   ministryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1980,6 +2029,7 @@ export type UserCreateWithoutAttendancesInput = {
   name: string
   image?: string | null
   jobTitle?: string | null
+  phone?: string | null
   systemRole?: $Enums.SystemRole
   active?: boolean
   loginAttempts?: number
@@ -2012,6 +2062,7 @@ export type UserUncheckedCreateWithoutAttendancesInput = {
   name: string
   image?: string | null
   jobTitle?: string | null
+  phone?: string | null
   systemRole?: $Enums.SystemRole
   ministryId?: string | null
   active?: boolean
@@ -2060,6 +2111,7 @@ export type UserUpdateWithoutAttendancesInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   jobTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
@@ -2092,6 +2144,7 @@ export type UserUncheckedUpdateWithoutAttendancesInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   jobTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   ministryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -2124,6 +2177,7 @@ export type UserCreateWithoutMinutesDraftedInput = {
   name: string
   image?: string | null
   jobTitle?: string | null
+  phone?: string | null
   systemRole?: $Enums.SystemRole
   active?: boolean
   loginAttempts?: number
@@ -2156,6 +2210,7 @@ export type UserUncheckedCreateWithoutMinutesDraftedInput = {
   name: string
   image?: string | null
   jobTitle?: string | null
+  phone?: string | null
   systemRole?: $Enums.SystemRole
   ministryId?: string | null
   active?: boolean
@@ -2193,6 +2248,7 @@ export type UserCreateWithoutMinutesPublishedInput = {
   name: string
   image?: string | null
   jobTitle?: string | null
+  phone?: string | null
   systemRole?: $Enums.SystemRole
   active?: boolean
   loginAttempts?: number
@@ -2225,6 +2281,7 @@ export type UserUncheckedCreateWithoutMinutesPublishedInput = {
   name: string
   image?: string | null
   jobTitle?: string | null
+  phone?: string | null
   systemRole?: $Enums.SystemRole
   ministryId?: string | null
   active?: boolean
@@ -2273,6 +2330,7 @@ export type UserUpdateWithoutMinutesDraftedInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   jobTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
@@ -2305,6 +2363,7 @@ export type UserUncheckedUpdateWithoutMinutesDraftedInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   jobTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   ministryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -2348,6 +2407,7 @@ export type UserUpdateWithoutMinutesPublishedInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   jobTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
@@ -2380,6 +2440,7 @@ export type UserUncheckedUpdateWithoutMinutesPublishedInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   jobTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   ministryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -2412,6 +2473,7 @@ export type UserCreateWithoutAssignedActionItemsInput = {
   name: string
   image?: string | null
   jobTitle?: string | null
+  phone?: string | null
   systemRole?: $Enums.SystemRole
   active?: boolean
   loginAttempts?: number
@@ -2444,6 +2506,7 @@ export type UserUncheckedCreateWithoutAssignedActionItemsInput = {
   name: string
   image?: string | null
   jobTitle?: string | null
+  phone?: string | null
   systemRole?: $Enums.SystemRole
   ministryId?: string | null
   active?: boolean
@@ -2481,6 +2544,7 @@ export type UserCreateWithoutCreatedActionItemsInput = {
   name: string
   image?: string | null
   jobTitle?: string | null
+  phone?: string | null
   systemRole?: $Enums.SystemRole
   active?: boolean
   loginAttempts?: number
@@ -2513,6 +2577,7 @@ export type UserUncheckedCreateWithoutCreatedActionItemsInput = {
   name: string
   image?: string | null
   jobTitle?: string | null
+  phone?: string | null
   systemRole?: $Enums.SystemRole
   ministryId?: string | null
   active?: boolean
@@ -2561,6 +2626,7 @@ export type UserUpdateWithoutAssignedActionItemsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   jobTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
@@ -2593,6 +2659,7 @@ export type UserUncheckedUpdateWithoutAssignedActionItemsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   jobTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   ministryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -2636,6 +2703,7 @@ export type UserUpdateWithoutCreatedActionItemsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   jobTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
@@ -2668,6 +2736,7 @@ export type UserUncheckedUpdateWithoutCreatedActionItemsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   jobTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   ministryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -2700,6 +2769,7 @@ export type UserCreateWithoutAssistingActionItemsInput = {
   name: string
   image?: string | null
   jobTitle?: string | null
+  phone?: string | null
   systemRole?: $Enums.SystemRole
   active?: boolean
   loginAttempts?: number
@@ -2732,6 +2802,7 @@ export type UserUncheckedCreateWithoutAssistingActionItemsInput = {
   name: string
   image?: string | null
   jobTitle?: string | null
+  phone?: string | null
   systemRole?: $Enums.SystemRole
   ministryId?: string | null
   active?: boolean
@@ -2780,6 +2851,7 @@ export type UserUpdateWithoutAssistingActionItemsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   jobTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
@@ -2812,6 +2884,7 @@ export type UserUncheckedUpdateWithoutAssistingActionItemsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   jobTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   ministryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -2844,6 +2917,7 @@ export type UserCreateWithoutNotificationsInput = {
   name: string
   image?: string | null
   jobTitle?: string | null
+  phone?: string | null
   systemRole?: $Enums.SystemRole
   active?: boolean
   loginAttempts?: number
@@ -2876,6 +2950,7 @@ export type UserUncheckedCreateWithoutNotificationsInput = {
   name: string
   image?: string | null
   jobTitle?: string | null
+  phone?: string | null
   systemRole?: $Enums.SystemRole
   ministryId?: string | null
   active?: boolean
@@ -2924,6 +2999,7 @@ export type UserUpdateWithoutNotificationsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   jobTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
@@ -2956,6 +3032,7 @@ export type UserUncheckedUpdateWithoutNotificationsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   jobTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   ministryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -2988,6 +3065,7 @@ export type UserCreateWithoutAuditLogsInput = {
   name: string
   image?: string | null
   jobTitle?: string | null
+  phone?: string | null
   systemRole?: $Enums.SystemRole
   active?: boolean
   loginAttempts?: number
@@ -3020,6 +3098,7 @@ export type UserUncheckedCreateWithoutAuditLogsInput = {
   name: string
   image?: string | null
   jobTitle?: string | null
+  phone?: string | null
   systemRole?: $Enums.SystemRole
   ministryId?: string | null
   active?: boolean
@@ -3068,6 +3147,7 @@ export type UserUpdateWithoutAuditLogsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   jobTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
@@ -3100,6 +3180,7 @@ export type UserUncheckedUpdateWithoutAuditLogsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   jobTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   ministryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -3132,6 +3213,7 @@ export type UserCreateWithoutSettingsChangedInput = {
   name: string
   image?: string | null
   jobTitle?: string | null
+  phone?: string | null
   systemRole?: $Enums.SystemRole
   active?: boolean
   loginAttempts?: number
@@ -3164,6 +3246,7 @@ export type UserUncheckedCreateWithoutSettingsChangedInput = {
   name: string
   image?: string | null
   jobTitle?: string | null
+  phone?: string | null
   systemRole?: $Enums.SystemRole
   ministryId?: string | null
   active?: boolean
@@ -3212,6 +3295,7 @@ export type UserUpdateWithoutSettingsChangedInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   jobTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
@@ -3244,6 +3328,7 @@ export type UserUncheckedUpdateWithoutSettingsChangedInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   jobTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   ministryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -3276,6 +3361,7 @@ export type UserCreateManyMinistryInput = {
   name: string
   image?: string | null
   jobTitle?: string | null
+  phone?: string | null
   systemRole?: $Enums.SystemRole
   active?: boolean
   loginAttempts?: number
@@ -3293,6 +3379,7 @@ export type UserUpdateWithoutMinistryInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   jobTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
@@ -3325,6 +3412,7 @@ export type UserUncheckedUpdateWithoutMinistryInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   jobTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
@@ -3357,6 +3445,7 @@ export type UserUncheckedUpdateManyWithoutMinistryInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   jobTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
@@ -3522,6 +3611,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   name?: boolean
   image?: boolean
   jobTitle?: boolean
+  phone?: boolean
   systemRole?: boolean
   ministryId?: boolean
   active?: boolean
@@ -3557,6 +3647,7 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   name?: boolean
   image?: boolean
   jobTitle?: boolean
+  phone?: boolean
   systemRole?: boolean
   ministryId?: boolean
   active?: boolean
@@ -3576,6 +3667,7 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   name?: boolean
   image?: boolean
   jobTitle?: boolean
+  phone?: boolean
   systemRole?: boolean
   ministryId?: boolean
   active?: boolean
@@ -3595,6 +3687,7 @@ export type UserSelectScalar = {
   name?: boolean
   image?: boolean
   jobTitle?: boolean
+  phone?: boolean
   systemRole?: boolean
   ministryId?: boolean
   active?: boolean
@@ -3606,7 +3699,7 @@ export type UserSelectScalar = {
   deletedAt?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "emailVerified" | "name" | "image" | "jobTitle" | "systemRole" | "ministryId" | "active" | "loginAttempts" | "lockedUntil" | "lastLoginAt" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "emailVerified" | "name" | "image" | "jobTitle" | "phone" | "systemRole" | "ministryId" | "active" | "loginAttempts" | "lockedUntil" | "lastLoginAt" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   ministry?: boolean | Prisma.User$ministryArgs<ExtArgs>
   sessions?: boolean | Prisma.User$sessionsArgs<ExtArgs>
@@ -3660,6 +3753,12 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     name: string
     image: string | null
     jobTitle: string | null
+    /**
+     * Work phone. Optional, self-edited, and stamped onto the attendance record
+     * at check-in so a staff row carries a contact the way a guest row already
+     * does. Cleared by anonymize() — it is personal data like any other.
+     */
+    phone: string | null
     systemRole: $Enums.SystemRole
     ministryId: string | null
     active: boolean
@@ -4114,6 +4213,7 @@ export interface UserFieldRefs {
   readonly name: Prisma.FieldRef<"User", 'String'>
   readonly image: Prisma.FieldRef<"User", 'String'>
   readonly jobTitle: Prisma.FieldRef<"User", 'String'>
+  readonly phone: Prisma.FieldRef<"User", 'String'>
   readonly systemRole: Prisma.FieldRef<"User", 'SystemRole'>
   readonly ministryId: Prisma.FieldRef<"User", 'String'>
   readonly active: Prisma.FieldRef<"User", 'Boolean'>

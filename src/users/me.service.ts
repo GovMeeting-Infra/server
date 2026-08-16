@@ -13,6 +13,26 @@ import { ChangePasswordDto } from './dto/change-password.dto';
 import { UpdatePreferencesDto } from './dto/update-preferences.dto';
 
 /**
+ * What a profile edit is allowed to leave in the audit log.
+ *
+ * AuditLog is append-only and readable by every ministry admin, so whatever
+ * lands in `changes` is there permanently with no erasure path — including
+ * after the account has been anonymised. Recording that someone set a phone
+ * number is the useful half; recording the number itself would build a
+ * permanent directory of personal contact details as a side effect of people
+ * keeping their own profile current.
+ */
+function redactForAudit(dto: UpdateMeDto): Record<string, unknown> {
+  const { phone, ...rest } = dto;
+  return {
+    ...rest,
+    ...(phone !== undefined && {
+      phone: phone.trim() ? '[set]' : '[cleared]',
+    }),
+  };
+}
+
+/**
  * Self-service account operations.
  *
  * UsersService sits behind api/v1/admin/users and is admin-only, so until now
@@ -36,6 +56,7 @@ export class MeService {
         name: true,
         image: true,
         jobTitle: true,
+        phone: true,
         systemRole: true,
         ministryId: true,
         active: true,
@@ -62,9 +83,20 @@ export class MeService {
             status: { notIn: ['COMPLETED', 'CANCELLED'] },
           },
         }),
-        // Events they are invited to that haven't started yet.
-        (this.prisma as any).eventAttendee.count({
-          where: { userId, event: { startAt: { gt: now } } },
+        // Meetings ahead of them, counted the same three ways the events list
+        // means "mine": they run it, they co-run it, or they were invited.
+        // Counting invitations alone made this disagree with the list rendered
+        // directly beneath it on the dashboard — a meeting you organised but
+        // were never added to as an attendee appeared there and not here.
+        (this.prisma as any).event.count({
+          where: {
+            startAt: { gt: now },
+            OR: [
+              { organizerId: userId },
+              { coOrganizers: { some: { userId } } },
+              { attendees: { some: { userId } } },
+            ],
+          },
         }),
       ]);
 
@@ -75,7 +107,7 @@ export class MeService {
   }
 
   /**
-   * Only name, jobTitle and image. systemRole, ministryId and active are
+   * Only name, jobTitle, phone and image. systemRole, ministryId and active are
    * deliberately not accepted here — they are administered through
    * /admin/users, and honouring them on a self-service route would let any
    * user promote themselves.
@@ -86,6 +118,10 @@ export class MeService {
       data: {
         ...(dto.name !== undefined && { name: dto.name }),
         ...(dto.jobTitle !== undefined && { jobTitle: dto.jobTitle }),
+        // An empty string is how the form says "clear it", and it has to reach
+        // the column as null rather than as "" — otherwise a cleared number
+        // still renders as a blank contact on every attendance row.
+        ...(dto.phone !== undefined && { phone: dto.phone.trim() || null }),
         ...(dto.image !== undefined && { image: dto.image }),
       },
       select: {
@@ -94,6 +130,7 @@ export class MeService {
         name: true,
         image: true,
         jobTitle: true,
+        phone: true,
         systemRole: true,
         ministryId: true,
       },
@@ -109,7 +146,7 @@ export class MeService {
       ministryId: updated.ministryId ?? undefined,
       actorId: userId,
       description: 'Updated own profile',
-      changes: dto as unknown as Record<string, unknown>,
+      changes: redactForAudit(dto),
     });
 
     return updated;
@@ -119,8 +156,19 @@ export class MeService {
    * Verifies the current password against the stored credential hash and
    * replaces it, using the same better-auth/crypto helpers UsersService.create
    * already uses to seed passwords.
+   *
+   * `currentToken` is the session doing the changing, and it is the one session
+   * that survives. Everything else is deleted: the common reason to change a
+   * password is believing someone else has it, and until now this method left
+   * every other session alive while the page implied otherwise. The reset flow
+   * has always revoked (password-reset.service.ts) — this brings the
+   * self-service path in line, minus signing you out of the device in your hand.
    */
-  async changePassword(userId: string, dto: ChangePasswordDto) {
+  async changePassword(
+    userId: string,
+    dto: ChangePasswordDto,
+    currentToken?: string | null,
+  ) {
     if (dto.newPassword.length < 8) {
       throw new BadRequestException(
         'New password must be at least 8 characters',
@@ -169,6 +217,17 @@ export class MeService {
       data: { password: await hashPassword(dto.newPassword) },
     });
 
+    // Everything except the session in front of us. Without the token we cannot
+    // tell which one that is, so we revoke the lot rather than leave the others
+    // running — being signed out is recoverable, a stranger's live session is
+    // not.
+    const { count: revoked } = await (this.prisma as any).session.deleteMany({
+      where: {
+        userId,
+        ...(currentToken ? { NOT: { token: currentToken } } : {}),
+      },
+    });
+
     await this.audit.log({
       action: 'PASSWORD_CHANGED',
       actionCategory: 'USER_MANAGEMENT',
@@ -177,10 +236,15 @@ export class MeService {
       status: 'SUCCESS',
       ministryId: owner?.ministryId ?? undefined,
       actorId: userId,
-      description: 'Changed own password',
+      description:
+        revoked > 0
+          ? `Changed own password; signed out of ${revoked} other session${revoked === 1 ? '' : 's'}`
+          : 'Changed own password',
     });
 
-    return { success: true };
+    // The page tells the person what happened to their other devices, so it
+    // needs the number rather than a bare success flag.
+    return { success: true, otherSessionsSignedOut: revoked };
   }
 
   /** Upsert-backed so a user with no preferences row gets defaults, not a 404. */

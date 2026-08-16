@@ -53,8 +53,8 @@ export class UsersController {
 
   @Get(':id')
   @Roles('SUPER_ADMIN', 'MINISTER', 'MINISTRY_ADMIN')
-  findOne(@Param('id') id: string) {
-    return this.usersService.findOne(id);
+  findOne(@Param('id') id: string, @CurrentUser() user: any) {
+    return this.usersService.findOne(id, user.ministryId, user.systemRole);
   }
 
   @Patch(':id/role')

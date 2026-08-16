@@ -7,6 +7,7 @@ import {
   Param,
   Req,
   HttpCode,
+  NotFoundException,
   UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
@@ -164,6 +165,16 @@ export class CheckinController {
       user.id,
       requestMeta(req),
     );
+  }
+
+  /** Public: the invitation behind an RSVP link, so the page can name it. */
+  @Get('rsvp/:tokenHash')
+  async rsvpInvitation(@Param('tokenHash') tokenHash: string) {
+    const invitation = await this.rsvpService.getInvitation(tokenHash);
+    if (!invitation) {
+      throw new NotFoundException('This invitation link is no longer valid');
+    }
+    return invitation;
   }
 
   @Post('rsvp/:tokenHash')

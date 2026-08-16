@@ -61,9 +61,47 @@ describe('ActionItemsService — permissions', () => {
       } as any,
     );
 
-    jest
-      .spyOn(service, 'getActionItem')
-      .mockResolvedValue({ id: ITEM } as any);
+    jest.spyOn(service, 'getActionItem').mockResolvedValue({ id: ITEM } as any);
+  });
+
+  /**
+   * The detail view reads item.minutes.event.title straight off whatever a
+   * write returned. updateStatus used to return the bare prisma.update result
+   * — scalars only — so every save replaced the open item with an object that
+   * had no meeting on it and the next render threw.
+   */
+  describe('what a write hands back', () => {
+    it('returns the full record, not the bare update result', async () => {
+      seedItem();
+      const full = {
+        id: ITEM,
+        minutes: { event: { id: 'e1', title: 'Budget' } },
+      };
+      (service.getActionItem as jest.Mock).mockResolvedValue(full);
+
+      const result = await service.updateStatus(
+        ITEM,
+        { status: 'IN_PROGRESS' } as any,
+        OWNER,
+        MINISTRY,
+        'STAFF',
+      );
+
+      expect(result).toBe(full);
+      expect(service.getActionItem).toHaveBeenCalledWith(ITEM);
+    });
+
+    it('asks for the meeting when it loads one', async () => {
+      (service.getActionItem as jest.Mock).mockRestore();
+      prisma.actionItem.findUnique.mockResolvedValue({ id: ITEM });
+
+      await service.getActionItem(ITEM);
+
+      const include = prisma.actionItem.findUnique.mock.calls.at(-1)[0].include;
+      expect(include.minutes.select.event).toBeTruthy();
+      expect(include.assistants).toBeTruthy();
+      expect(include.assignedBy).toBeTruthy();
+    });
   });
 
   describe('an assistant', () => {

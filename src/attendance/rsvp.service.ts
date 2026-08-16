@@ -25,6 +25,44 @@ export class RSVPService {
     );
   }
 
+  /**
+   * What the invitation is for, so the RSVP page can name the meeting it is
+   * asking about. Without this the page asked "Will you be attending?" over a
+   * blank card — the recipient had to go back to the email to find out what
+   * they were answering, and nothing tied the link to the invitation.
+   *
+   * Returns null for an unknown, malformed or already-detached token rather
+   * than distinguishing them, matching how the guest minutes route refuses to
+   * confirm whether a token ever existed.
+   */
+  async getInvitation(rsvpTokenHash: string) {
+    const attendee = await (this.prisma as any).eventAttendee.findFirst({
+      where: { rsvpTokenHash },
+      include: {
+        event: {
+          select: {
+            title: true,
+            description: true,
+            startAt: true,
+            endAt: true,
+            venueName: true,
+            ministry: { select: { name: true } },
+          },
+        },
+        user: { select: { name: true } },
+      },
+    });
+
+    if (!attendee) return null;
+
+    return {
+      event: attendee.event,
+      inviteeName: attendee.user?.name ?? attendee.externalName ?? null,
+      status: attendee.status,
+      respondedAt: attendee.respondedAt,
+    };
+  }
+
   async respond(rsvpTokenHash: string, status: RSVPStatus) {
     // rsvpTokenHash is indexed but not declared @unique, so findUnique throws
     // at the client layer — look it up as a non-unique field.

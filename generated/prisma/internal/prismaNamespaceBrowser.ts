@@ -97,6 +97,7 @@ export const UserScalarFieldEnum = {
   name: 'name',
   image: 'image',
   jobTitle: 'jobTitle',
+  phone: 'phone',
   systemRole: 'systemRole',
   ministryId: 'ministryId',
   active: 'active',
@@ -395,8 +396,7 @@ export const NotificationScalarFieldEnum = {
   readAt: 'readAt',
   entityType: 'entityType',
   entityId: 'entityId',
-  createdAt: 'createdAt',
-  expiresAt: 'expiresAt'
+  createdAt: 'createdAt'
 } as const
 
 export type NotificationScalarFieldEnum = (typeof NotificationScalarFieldEnum)[keyof typeof NotificationScalarFieldEnum]

@@ -120,19 +120,21 @@ export class CheckinService {
     // organizer asked to reset and cannot.
     const wouldBeUnfenced = wantsCapture && !usableFix && !hasAnchor;
 
-    if (event.requireGeofence && wouldBeUnfenced) {
-      // The whole point of the setting. Before it existed, a fix worse than
-      // ANCHOR_MAX_ACCURACY_METERS quietly minted a code with no fence, and
-      // whether a meeting was protected came down to the organizer's handset.
-      // Refusing is the honest answer: the organizer can move, wait, or turn
-      // the requirement off, and any of those is a decision rather than an
-      // accident.
+    if (wouldBeUnfenced) {
+      // Always, now — this is no longer a per-event setting.
+      //
+      // A fix worse than ANCHOR_MAX_ACCURACY_METERS used to quietly mint a code
+      // with no fence unless the organizer had ticked a box, so whether a
+      // meeting was protected came down to their handset and whether they
+      // remembered. Refusing is the honest answer: the organizer can move,
+      // wait for a better signal, or record people at the desk — and any of
+      // those is a decision rather than an accident.
       throw new BadRequestException(
         dto.lat == null || dto.lng == null
-          ? 'This meeting requires location verification, so a check-in code cannot be generated without your location. Enable GPS and try again.'
-          : `This meeting requires location verification, but your location is only accurate to ${Math.round(
+          ? 'A check-in code sets the 100m area attendees must be inside, so it cannot be generated without your location. Turn on location for this site and try again. If you cannot, record people at the desk from the attendees page instead.'
+          : `Your location is only accurate to ${Math.round(
               dto.gpsAccuracy ?? 0,
-            )}m. Move into the open or wait for a better signal, then try again.`,
+            )}m, which is too vague to set the check-in area from. Step outside or near a window and try again. If the signal will not improve, record people at the desk from the attendees page instead.`,
       );
     }
 
@@ -315,10 +317,11 @@ export class CheckinService {
         anchorLng: event.checkInAnchorLng,
         anchorAccuracy: event.checkInAnchorAccuracy,
         anchorSetAt: event.checkInAnchorSetAt,
-        // Whether this event insists on a fence. Surfaced so the organizer
-        // page can say why generating was refused, rather than leaving the
-        // refusal to look like a fault.
-        required: event.requireGeofence ?? false,
+        // Always true now. Kept in the response so the organizer page can keep
+        // explaining why generating was refused rather than leaving the
+        // refusal looking like a fault, and so an older client still reads a
+        // field it expects.
+        required: true,
       },
       allowGuestCheckIn: event.allowGuestCheckIn,
       eventStatus: event.status,
@@ -375,14 +378,11 @@ export class CheckinService {
       };
     }
 
-    // Both halves, because they answer different questions: an area has to
-    // have been captured, and the organizer has to have asked for it to gate
-    // entry. An anchored meeting with the requirement off is measured, not
-    // policed, so the client must not block anyone over a refused fix.
+    // An anchor is now the only question. Generating a code requires a usable
+    // fix, so every code that exists is fenced, and every attendee holding one
+    // has to be inside the area.
     const geofenceRequired =
-      event.requireGeofence === true &&
-      event.checkInAnchorLat !== null &&
-      event.checkInAnchorLng !== null;
+      event.checkInAnchorLat !== null && event.checkInAnchorLng !== null;
 
     if (event.status === 'DRAFT' || event.status === 'CANCELLED') {
       // Rendered identically to INVALID by the client: someone holding a code
@@ -427,7 +427,7 @@ export class CheckinService {
   async checkIn(
     token: string,
     dto: CheckInDto,
-    user: { id: string; name?: string },
+    user: { id: string; name?: string; phone?: string | null },
     meta: RequestMeta = {},
   ) {
     const event = await this.resolveOpenEvent(token);
@@ -443,6 +443,13 @@ export class CheckinService {
     return this.recordAttendance(event, dto, verdict, meta, {
       userId: user.id,
       signedName: dto.signedName.trim(),
+      // Copied from the account rather than asked for at the door. The form
+      // here is a name and a signature on whatever phone someone has in a
+      // corridor, and it stays that way — but the attendance row has always had
+      // a phone column that only guests ever filled, so every staff row showed
+      // a dash. The session carries the whole user record, so this costs no
+      // extra query. Undefined when they have not set one, which keeps it null.
+      guestPhone: user.phone?.trim() || undefined,
     });
   }
 
@@ -564,17 +571,16 @@ export class CheckinService {
     event: {
       checkInAnchorLat: number | null;
       checkInAnchorLng: number | null;
-      requireGeofence?: boolean;
     },
     dto: { lat?: number; lng?: number; gpsAccuracy?: number },
   ): GeofenceVerdict {
     const anchored =
       event.checkInAnchorLat !== null && event.checkInAnchorLng !== null;
 
-    // Measuring and refusing are different things, and only the organizer
-    // decides the second. An anchored meeting with the requirement off still
-    // records where people were; it just never turns anyone away over it.
-    const gates = anchored && event.requireGeofence === true;
+    // An anchored meeting always gates. Measuring without refusing was a
+    // per-event choice; it is not one any more, because a code cannot be minted
+    // without an anchor in the first place.
+    const gates = anchored;
 
     if (!anchored) {
       // No area was captured, so nothing can be verified. null rather than
@@ -824,7 +830,7 @@ export class CheckinService {
     // record instead of being stranded as an unrelated guest row.
     const target = await (this.prisma as any).user.findFirst({
       where: { email, active: true, deletedAt: null },
-      select: { id: true },
+      select: { id: true, phone: true },
     });
 
     // findFirst, not findUnique on the compound key: userId is nullable, so the
@@ -862,6 +868,9 @@ export class CheckinService {
           userId: target?.id ?? null,
           guestName: target ? null : name,
           guestEmail: target ? null : email,
+          // An organizer recording someone at the desk has no reason to know
+          // their number, but if the person has an account we already do.
+          guestPhone: target?.phone?.trim() || null,
           isWalkIn: !invite,
           signedName: name,
           // Null, not '': nobody signed. An empty string already means
@@ -991,11 +1000,25 @@ export class CheckinService {
       orderBy: { checkInAt: 'desc' },
     });
 
-    // Reduced to a boolean here rather than selected as one — Prisma has no way
-    // to project "is this column non-empty", and the blob must not leave the
-    // server.
+    // Reduced here rather than selected — Prisma has no way to project "is this
+    // column non-empty", and the blob must not leave the server.
+    //
+    // Three states, not two. `hasSignature: !!signature` folded an erased
+    // signature in with a walk-in, and the attendee table then narrated the
+    // walk-in story over both: "recorded by an organiser at the desk, so there
+    // was nobody to sign" — said about someone who signed and later asked for
+    // it to be removed. Null means nobody ever signed; an empty string means a
+    // signature was captured and then erased. On a register meant to survive
+    // being challenged, those are not the same fact.
     return rows.map(({ signature, ...row }: any) => ({
       ...row,
+      signatureState:
+        signature === null || signature === undefined
+          ? ('NONE' as const)
+          : signature === ''
+            ? ('ERASED' as const)
+            : ('SIGNED' as const),
+      // Kept for callers that only ask whether an image can be fetched.
       hasSignature: !!signature,
     }));
   }

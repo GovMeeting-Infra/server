@@ -19,12 +19,14 @@ import { auth } from './auth.config';
 import { extractToken } from './extract-token';
 import { RateLimitGuard } from '../common/guards/rate-limit.guard';
 import { RateLimit } from '../common/decorators/rate-limit.decorator';
+import { SettingsService, SETTINGS } from '../common/settings/settings.service';
 
 @Controller('api/v1/auth')
 export class AuthController {
   constructor(
     private authService: AuthService,
     private passwordReset: PasswordResetService,
+    private settings: SettingsService,
   ) {}
 
   @Post('sign-in/email')
@@ -63,6 +65,17 @@ export class AuthController {
     return {
       authenticated: true,
       user: session,
+      // The idle window, so the web app can warn before it fires. WCAG 2.2.1
+      // requires a time limit to be announced and extendable, and nothing
+      // client-side could know this number: it is a platform setting a super
+      // admin can move between 5 minutes and 7 days.
+      sessionTimeoutSeconds: await this.settings.getNumber(
+        SETTINGS.SESSION_TIMEOUT_SECONDS,
+      ),
+      // Where the help page sends someone it could not answer. Empty string
+      // when unset, which the page reads as "point them at their ministry
+      // administrator" rather than printing a dead address.
+      supportEmail: await this.settings.get(SETTINGS.SUPPORT_EMAIL),
     };
   }
 

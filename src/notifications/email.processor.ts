@@ -51,7 +51,11 @@ interface ActionItemDigestPayload {
     assisting?: boolean;
   }[];
   /** Completed last week on meetings this person was invited to. */
-  closed?: { title: string; ownerName: string | null; eventTitle: string | null }[];
+  closed?: {
+    title: string;
+    ownerName: string | null;
+    eventTitle: string | null;
+  }[];
 }
 
 interface MeetingReminderPayload {
@@ -354,8 +358,14 @@ export class EmailProcessor extends WorkerHost {
 
   /** A meeting was called off or moved. */
   private async sendMeetingChanged(job: Job<MeetingChangedPayload>) {
-    const { eventId, email, name, cancelled, previousStartAt, previousVenueName } =
-      job.data;
+    const {
+      eventId,
+      email,
+      name,
+      cancelled,
+      previousStartAt,
+      previousVenueName,
+    } = job.data;
 
     const event = await (this.prisma as any).event.findUnique({
       where: { id: eventId },
@@ -477,10 +487,6 @@ export class EmailProcessor extends WorkerHost {
         return { sent: 0, error: 'No owner assigned' };
       }
 
-      // The in-app half. Written here rather than in the cron so it lands
-      // only when the item genuinely reached the send stage.
-      await this.notifications.notifyActionItemDueSoon(itemId);
-
       const result = await this.mail.send(
         actionItem.owner.email,
         actionItemReminderEmail({
@@ -496,6 +502,17 @@ export class EmailProcessor extends WorkerHost {
       // reminders for good: the row was already marked, so the next sweep
       // skipped it and the job had nowhere to retry into.
       if (result.sent) {
+        // The in-app half, written after the send rather than before it.
+        //
+        // It used to run first, above mail.send. A failed send throws (see
+        // below) into a queue configured with attempts: 3, and every retry
+        // re-ran this line — so one Resend blip left the owner with up to three
+        // identical "due today" rows for a single action item. Writing it here
+        // costs the in-app notice on a total send failure, but reminderSentAt
+        // is also left unstamped in that case, so tomorrow's sweep picks the
+        // item up again and both halves arrive together.
+        await this.notifications.notifyActionItemDueSoon(itemId);
+
         await (this.prisma as any).actionItem.update({
           where: { id: itemId },
           data: { reminderSentAt: new Date() },
