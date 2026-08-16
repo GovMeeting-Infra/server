@@ -41,6 +41,7 @@ export class EventsController {
     @Query('timeframe') timeframe?: string,
     @Query('from') from?: string,
     @Query('to') to?: string,
+    @Query('mine') mine?: string,
   ) {
     return this.eventsService.listEvents(user.ministryId, user, {
       page,
@@ -51,6 +52,7 @@ export class EventsController {
       timeframe,
       from,
       to,
+      mine: mine === 'true',
     });
   }
 

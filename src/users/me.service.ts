@@ -62,9 +62,20 @@ export class MeService {
             status: { notIn: ['COMPLETED', 'CANCELLED'] },
           },
         }),
-        // Events they are invited to that haven't started yet.
-        (this.prisma as any).eventAttendee.count({
-          where: { userId, event: { startAt: { gt: now } } },
+        // Meetings ahead of them, counted the same three ways the events list
+        // means "mine": they run it, they co-run it, or they were invited.
+        // Counting invitations alone made this disagree with the list rendered
+        // directly beneath it on the dashboard — a meeting you organised but
+        // were never added to as an attendee appeared there and not here.
+        (this.prisma as any).event.count({
+          where: {
+            startAt: { gt: now },
+            OR: [
+              { organizerId: userId },
+              { coOrganizers: { some: { userId } } },
+              { attendees: { some: { userId } } },
+            ],
+          },
         }),
       ]);
 

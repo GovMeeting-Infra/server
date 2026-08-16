@@ -60,7 +60,9 @@ export class EventsRepository {
         omit: OMIT_ANCHOR,
         include: {
           organizer: { select: { id: true, name: true } },
-          _count: { select: { attendees: true } },
+          // attendances alongside attendees so a list row can say how many of
+          // the invited have actually checked in, without a second request.
+          _count: { select: { attendees: true, attendances: true } },
         },
       }),
       (this.prisma as any).event.count({ where }),
