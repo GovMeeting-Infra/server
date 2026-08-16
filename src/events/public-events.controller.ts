@@ -48,6 +48,11 @@ export class PublicEventsController {
         type: true,
         venueName: true,
         bannerImage: true,
+        // Who is running it. A citizen scanning a government calendar asks
+        // "does this concern me", and for most people that is answered by the
+        // ministry, not the category — but it only appeared on the detail
+        // page, two clicks in.
+        ministry: { select: { name: true } },
       },
     });
   }
