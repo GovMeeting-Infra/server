@@ -311,6 +311,8 @@ export class ActionItemsService {
       }
     }
 
+    // Bare scalars only — no relations. Callers get the full record below
+    // instead; this local is used for the notification comparisons that follow.
     const updated = await (this.prisma as any).actionItem.update({
       where: { id: actionItemId },
       data: updateData,
@@ -373,9 +375,22 @@ export class ActionItemsService {
       );
     }
 
-    return updated;
+    // The full record, not the bare update. The client stores this as the open
+    // item and renders it immediately; returning scalars alone meant the
+    // detail view lost the meeting, the helpers and who raised the item, and
+    // threw on the first of those it tried to read.
+    return this.getActionItem(actionItemId);
   }
 
+  /**
+   * One action item in the shape the board and the detail view expect.
+   *
+   * The `minutes` relation is not optional here. Every write path returns
+   * through this method, the client stores what comes back as the open item,
+   * and the detail view reads item.minutes.event.title — so an item without it
+   * threw on the next render. Matching listForMinistry's include is what makes
+   * a written item and a listed item the same thing.
+   */
   async getActionItem(actionItemId: string) {
     const actionItem = await (this.prisma as any).actionItem.findUnique({
       where: { id: actionItemId },
@@ -387,6 +402,12 @@ export class ActionItemsService {
             id: true,
             userId: true,
             user: { select: { id: true, name: true, email: true } },
+          },
+        },
+        minutes: {
+          select: {
+            id: true,
+            event: { select: { id: true, title: true, ministryId: true } },
           },
         },
       },
