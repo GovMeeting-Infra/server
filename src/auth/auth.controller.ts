@@ -72,6 +72,10 @@ export class AuthController {
       sessionTimeoutSeconds: await this.settings.getNumber(
         SETTINGS.SESSION_TIMEOUT_SECONDS,
       ),
+      // Where the help page sends someone it could not answer. Empty string
+      // when unset, which the page reads as "point them at their ministry
+      // administrator" rather than printing a dead address.
+      supportEmail: await this.settings.get(SETTINGS.SUPPORT_EMAIL),
     };
   }
 
