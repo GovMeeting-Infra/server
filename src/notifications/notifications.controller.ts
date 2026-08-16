@@ -37,6 +37,13 @@ export class NotificationsController {
     );
   }
 
+  /** Declared before ':notificationId' routes so it is not read as an id. */
+  @Get('unread-count')
+  @Roles('STAFF', 'MINISTRY_ADMIN', 'MINISTER', 'SUPER_ADMIN')
+  async getUnreadCount(@CurrentUser() user: any) {
+    return { unread: await this.notificationsService.countUnread(user.id) };
+  }
+
   @Patch(':notificationId/read')
   @Roles('STAFF', 'MINISTRY_ADMIN', 'MINISTER', 'SUPER_ADMIN')
   async markAsRead(

@@ -650,6 +650,21 @@ export class NotificationsService {
   // Reading
   // ==========================================================================
 
+  /**
+   * How many are actually unread.
+   *
+   * The bell derived its badge from the length of the preview list it had
+   * already capped at six, so someone with forty unread notifications saw "6",
+   * and the button announced "6 unread" to a screen reader. A badge that
+   * silently plateaus stops carrying information within a week, and people
+   * learn to ignore it.
+   */
+  async countUnread(userId: string): Promise<number> {
+    return (this.prisma as any).notification.count({
+      where: { userId, read: false },
+    });
+  }
+
   async getUserNotifications(userId: string, limit = 20, includeRead = false) {
     const where: any = { userId };
     if (!includeRead) where.read = false;
