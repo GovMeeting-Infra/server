@@ -32,7 +32,15 @@ export class UploadsController {
     }
 
     const timestamp = Math.floor(Date.now() / 1000);
-    const targetFolder = folder === 'public-events' ? folder : 'event-banners';
+
+    // An allowlist, because the folder is signed and then trusted by Cloudinary
+    // — an unchecked value would let a caller write anywhere in the account.
+    // 'avatars' was missing, so every profile photo the account page uploaded
+    // asked for 'avatars', fell through to the fallback, and was filed with the
+    // event banners.
+    const ALLOWED_FOLDERS = ['public-events', 'event-banners', 'avatars'];
+    const targetFolder =
+      folder && ALLOWED_FOLDERS.includes(folder) ? folder : 'event-banners';
 
     // Cloudinary expects the parameters that will be sent, sorted by key,
     // joined as k=v pairs, with the API secret appended.
