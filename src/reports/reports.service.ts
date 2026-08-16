@@ -19,6 +19,9 @@ import {
   ActionItemStatsDto,
   CheckInMethodsDto,
   EventsOverTimeDto,
+  TrendDto,
+  EvidenceStatsDto,
+  MinistryBreakdownDto,
   AnalyticsDashboardDto,
 } from './dto/analytics.dto';
 import { ministryScope } from '../common/utils/ministry-scope.util';
@@ -56,6 +59,8 @@ export class ReportsService {
       actionItemStats,
       checkInMethods,
       eventsOverTime,
+      trend,
+      evidence,
     ] = await Promise.all([
       this.getEventStats(scope),
       this.getAttendanceStats(scope),
@@ -63,6 +68,8 @@ export class ReportsService {
       this.getActionItemStats(scope),
       this.getCheckInMethods(scope),
       this.getEventsOverTime(scope),
+      this.getRecentTrend(scope),
+      this.getEvidenceStats(scope),
     ]);
 
     const data: AnalyticsDashboardDto = {
@@ -72,6 +79,10 @@ export class ReportsService {
       actionItemStats,
       checkInMethods,
       eventsOverTime,
+      trend,
+      evidence,
+      // Only a super admin has more than one ministry to compare.
+      byMinistry: isAllMinistries ? await this.getByMinistry() : undefined,
       scope: isAllMinistries ? 'all' : 'ministry',
       generatedAt: new Date(),
     };
@@ -137,6 +148,67 @@ export class ReportsService {
     const geo = counts.get('GEO') ?? 0;
 
     return { qr, manual, geo, total: qr + manual + geo };
+  }
+
+  /**
+   * The last 30 days against the 30 before them.
+   *
+   * Every headline on the reports page is an all-time total, and a total with
+   * nothing to compare it to gets absorbed as identity rather than read as a
+   * measurement — "we are an 84% ministry" instead of "we were down six points
+   * this month". These are deliberately a separate, explicitly-windowed block
+   * rather than a filter on the totals: the totals are genuinely all-time, and
+   * the fix for a mislabelled period is not to relabel it again.
+   */
+  private async getRecentTrend(
+    scope: Record<string, unknown>,
+  ): Promise<TrendDto> {
+    const now = new Date();
+    const day = 24 * 60 * 60 * 1000;
+    const start = new Date(now.getTime() - 30 * day);
+    const priorStart = new Date(now.getTime() - 60 * day);
+
+    const published = { ...scope, status: 'PUBLISHED' };
+
+    const window = async (from: Date, to: Date) => {
+      const [checkIns, walkIns, invited, meetings] = await Promise.all([
+        (this.prisma as any).attendance.count({
+          where: { event: published, checkInAt: { gte: from, lt: to } },
+        }),
+        (this.prisma as any).attendance.count({
+          where: {
+            event: published,
+            isWalkIn: true,
+            checkInAt: { gte: from, lt: to },
+          },
+        }),
+        (this.prisma as any).eventAttendee.count({
+          where: { event: { ...published, startAt: { gte: from, lt: to } } },
+        }),
+        (this.prisma as any).event.count({
+          where: { ...published, startAt: { gte: from, lt: to } },
+        }),
+      ]);
+      return {
+        checkIns,
+        walkIns,
+        invited,
+        meetings,
+        // Walk-ins excluded from the numerator, for the same reason as the
+        // headline: they have no invitation for the denominator to hold.
+        attendanceRate:
+          invited > 0
+            ? parseFloat(((checkIns - walkIns) / invited).toFixed(2))
+            : 0,
+      };
+    };
+
+    const [current, previous] = await Promise.all([
+      window(start, now),
+      window(priorStart, start),
+    ]);
+
+    return { current, previous };
   }
 
   /** Events created per month over the last 12 months, oldest first. */
@@ -205,22 +277,138 @@ export class ReportsService {
   private async getAttendanceStats(
     scope: Record<string, unknown>,
   ): Promise<AttendanceStatsDto> {
-    // This previously read an arbitrary 50 events (take: 50, no orderBy), so
-    // the headline rate was computed over a truncated slice. Count across all
-    // in-scope records instead.
-    const [totalCheckIns, totalInvited] = await Promise.all([
-      (this.prisma as any).attendance.count({ where: { event: scope } }),
-      (this.prisma as any).eventAttendee.count({ where: { event: scope } }),
+    // This once read an arbitrary 50 events (take: 50, no orderBy), so the
+    // headline rate was computed over a truncated slice. It now counts across
+    // every in-scope record — and, since this change, published ones only.
+    //
+    // Neither count filtered on status, so every invitee of a DRAFT list that
+    // was never sent, and of every CANCELLED meeting that never happened, sat
+    // in the denominator with no check-in that could ever match. The headline
+    // rate was structurally depressed by meetings nobody was ever asked to
+    // attend, and the page reported it as turnout.
+    const published = { ...scope, status: 'PUBLISHED' };
+
+    const [totalCheckIns, walkIns, totalInvited] = await Promise.all([
+      (this.prisma as any).attendance.count({ where: { event: published } }),
+      (this.prisma as any).attendance.count({
+        where: { event: published, isWalkIn: true },
+      }),
+      (this.prisma as any).eventAttendee.count({ where: { event: published } }),
     ]);
 
-    // Overall rate: check-ins against invitations, rather than an unweighted
-    // mean of per-event rates where a 1-person event counts as much as a 500.
-    const attendanceRate = totalInvited > 0 ? totalCheckIns / totalInvited : 0;
+    // Turnout counts invited people who turned up, and nobody else.
+    //
+    // The numerator used to be every attendance row, walk-ins included — but a
+    // walk-in is by definition someone with no invitation, so they were counted
+    // by a numerator the denominator could not see. One real meeting with one
+    // invitee and one walk-in reported 200% turnout, which is not a rate at all;
+    // it is two different populations divided by each other.
+    //
+    // Excluding walk-ins bounds this at 100%: an invited person has one
+    // attendance row at most, enforced by the unique constraint on
+    // (eventId, userId). Walk-ins are still reported — separately, as the count
+    // they are.
+    const invitedWhoCame = totalCheckIns - walkIns;
+    const attendanceRate = totalInvited > 0 ? invitedWhoCame / totalInvited : 0;
 
     return {
       totalCheckIns,
+      invitedWhoCame,
+      walkIns,
+      totalInvited,
       attendanceRate: parseFloat(attendanceRate.toFixed(2)),
     };
+  }
+
+  /**
+   * How much of the attendance record would survive being challenged.
+   *
+   * This is the product's distinguishing mechanism — a signature drawn on the
+   * attendee's own device, and a position checked against the area the
+   * organiser anchored — and none of it reached the reports page. The columns
+   * were already stored and already in the CSV export.
+   *
+   * A null signature means an organiser recorded a walk-in and there was nobody
+   * at the device to sign; an empty string means a signature was captured and
+   * later erased under GDPR. Both are unsigned for this purpose, and they are
+   * deliberately not the same thing anywhere else.
+   */
+  private async getEvidenceStats(
+    scope: Record<string, unknown>,
+  ): Promise<EvidenceStatsDto> {
+    const published = { ...scope, status: 'PUBLISHED' };
+    const where = { event: published };
+
+    const [total, signed, insideArea, outsideArea, mockFlagged] =
+      await Promise.all([
+        (this.prisma as any).attendance.count({ where }),
+        (this.prisma as any).attendance.count({
+          where: { ...where, NOT: [{ signature: null }, { signature: '' }] },
+        }),
+        (this.prisma as any).attendance.count({
+          where: { ...where, withinGeofence: true },
+        }),
+        (this.prisma as any).attendance.count({
+          where: { ...where, withinGeofence: false },
+        }),
+        (this.prisma as any).attendance.count({
+          where: { ...where, mockLocationFlag: true },
+        }),
+      ]);
+
+    return {
+      total,
+      signed,
+      insideArea,
+      outsideArea,
+      // Neither inside nor outside: no area was anchored, or the fix was too
+      // vague to judge. "Unverified" is a real third state, not a failure.
+      unverified: total - insideArea - outsideArea,
+      mockFlagged,
+    };
+  }
+
+  /**
+   * The same headline figures, one row per ministry.
+   *
+   * Only a super admin sees this, and it is the single cut that role exists for
+   * — the cross-ministry view was one aggregate number, which is the one thing
+   * a platform operator can already guess and the one thing they cannot act on.
+   */
+  private async getByMinistry(): Promise<MinistryBreakdownDto[]> {
+    const ministries = await (this.prisma as any).ministry.findMany({
+      where: { active: true },
+      select: { id: true, name: true },
+      orderBy: { name: 'asc' },
+    });
+
+    return Promise.all(
+      ministries.map(async (m: { id: string; name: string }) => {
+        const published = { ministryId: m.id, status: 'PUBLISHED' };
+        const [meetings, checkIns, walkIns, invited] = await Promise.all([
+          (this.prisma as any).event.count({ where: published }),
+          (this.prisma as any).attendance.count({ where: { event: published } }),
+          (this.prisma as any).attendance.count({
+            where: { event: published, isWalkIn: true },
+          }),
+          (this.prisma as any).eventAttendee.count({
+            where: { event: published },
+          }),
+        ]);
+        const invitedWhoCame = checkIns - walkIns;
+        return {
+          ministryId: m.id,
+          name: m.name,
+          meetings,
+          checkIns,
+          invited,
+          attendanceRate:
+            invited > 0
+              ? parseFloat((invitedWhoCame / invited).toFixed(2))
+              : 0,
+        };
+      }),
+    );
   }
 
   private async getUserStats(
@@ -229,28 +417,34 @@ export class ReportsService {
     const now = new Date();
     const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
+    // Erasing someone sets deletedAt and anonymises them, but deliberately
+    // leaves `active` alone — so every count here was including people whose
+    // name is now "Anonymous". A ministry headcount that counts erased staff
+    // survives one briefing and fails one audit.
+    const present = { ...scope, deletedAt: null };
+
     const [totalUsers, activeUsers, usersByRole, userLoginData] =
       await Promise.all([
-        (this.prisma as any).user.count({ where: { ...scope } }),
+        (this.prisma as any).user.count({ where: present }),
         (this.prisma as any).user.count({
           where: {
-            ...scope,
+            ...present,
             active: true,
             lastLoginAt: { gte: thirtyDaysAgo },
           },
         }),
         (this.prisma as any).user.groupBy({
           by: ['systemRole'],
-          where: { ...scope },
+          where: present,
           _count: true,
         }),
         (this.prisma as any).user.findMany({
-          where: { ...scope, lastLoginAt: { not: null } },
+          where: { ...present, lastLoginAt: { not: null } },
           select: { lastLoginAt: true },
         }),
       ]);
 
-    let averageLoginFrequency = 0;
+    let averageDaysSinceLastLogin = 0;
     if (userLoginData.length > 0) {
       const totalDaysSinceLastLogin = userLoginData.reduce(
         (sum: number, user: any) => {
@@ -264,7 +458,7 @@ export class ReportsService {
         },
         0,
       );
-      averageLoginFrequency = parseFloat(
+      averageDaysSinceLastLogin = parseFloat(
         (totalDaysSinceLastLogin / userLoginData.length).toFixed(1),
       );
     }
@@ -276,7 +470,7 @@ export class ReportsService {
         role: item.systemRole,
         count: item._count,
       })),
-      averageLoginFrequency,
+      averageDaysSinceLastLogin,
     };
   }
 
