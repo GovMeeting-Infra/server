@@ -596,14 +596,17 @@ model Notification {
   entityType String?
   entityId   String?
   createdAt  DateTime  @default(now())
-  expiresAt  DateTime  @default(dbgenerated("now() + interval '30 days'"))
 
   user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   ministry Ministry? @relation(fields: [ministryId], references: [id], onDelete: Cascade)
 
-  @@index([userId])
-  @@index([read])
-  @@index([createdAt])
+  /// The two queries this table actually serves: the unread badge, and the
+  /// list ordered newest-first. Both start with userId, so the standalone
+  /// index on it was redundant and the one on `read` — a two-value boolean
+  /// across every user's rows — could never narrow anything worth the write
+  /// cost.
+  @@index([userId, read])
+  @@index([userId, createdAt])
 }
 
 /**

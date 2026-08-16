@@ -27,13 +27,25 @@ export class NotificationsController {
     @CurrentUser() user: any,
     @Query('limit') limit?: string,
     @Query('includeRead') includeRead?: string,
+    @Query('skip') skip?: string,
   ) {
-    const limitNum = limit ? parseInt(limit) : 20;
-    const includeReadBool = includeRead === 'true';
+    // Clamped rather than trusted: limit reaches Prisma's `take` directly, and
+    // an unbounded one from the query string is a way to ask for every
+    // notification a busy account has ever received.
+    const parsedLimit = limit ? parseInt(limit, 10) : 20;
+    const limitNum =
+      Number.isFinite(parsedLimit) && parsedLimit > 0
+        ? Math.min(parsedLimit, 100)
+        : 20;
+
+    const parsedSkip = skip ? parseInt(skip, 10) : 0;
+    const skipNum = Number.isFinite(parsedSkip) && parsedSkip > 0 ? parsedSkip : 0;
+
     return this.notificationsService.getUserNotifications(
       user.id,
       limitNum,
-      includeReadBool,
+      includeRead === 'true',
+      skipNum,
     );
   }
 
