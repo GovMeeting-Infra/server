@@ -341,19 +341,40 @@ export class MinutesService {
     );
   }
 
-  async canEditMinutes(
+  /**
+   * Whether the caller may edit, and why not when they may not.
+   *
+   * The boolean alone left the page unable to tell someone whether their two
+   * days had run out or they were never an organiser — so it said both at once,
+   * named no date, and offered nobody to ask. The window end comes back too:
+   * rendering a deadline the server calculated is presentation, where
+   * recomputing `endAt + 2 days` in the client would be a second copy of the
+   * rule waiting to drift.
+   */
+  async describeEditPermission(
     eventId: string,
     userId: string,
     userRole: string,
     actorMinistryId?: string,
-  ): Promise<boolean> {
+  ): Promise<{
+    canEdit: boolean;
+    reason:
+      | 'OPEN'
+      | 'ADMIN_OVERRIDE'
+      | 'WINDOW_CLOSED'
+      | 'NOT_ORGANIZER'
+      | 'ARCHIVED'
+      | 'OTHER_MINISTRY'
+      | 'NOT_FOUND';
+    editWindowEndsAt: Date | null;
+  }> {
     const event = await (this.prisma as any).event.findUnique({
       where: { id: eventId },
       include: { coOrganizers: true },
     });
 
     if (!event) {
-      return false;
+      return { canEdit: false, reason: 'NOT_FOUND' as const, editWindowEndsAt: null };
     }
 
     // An archived record is frozen for everyone, including leadership. That is
@@ -365,7 +386,7 @@ export class MinutesService {
     });
 
     if (existing?.status === 'ARCHIVED') {
-      return false;
+      return { canEdit: false, reason: 'ARCHIVED' as const, editWindowEndsAt: null };
     }
 
     // Without this a ministry admin could edit another ministry's minutes —
@@ -376,32 +397,148 @@ export class MinutesService {
       actorMinistryId !== undefined &&
       event.ministryId !== actorMinistryId
     ) {
-      return false;
+      return { canEdit: false, reason: 'OTHER_MINISTRY' as const, editWindowEndsAt: null };
     }
 
     const isOrganizerOrCoOrg =
       event.organizerId === userId ||
       event.coOrganizers?.some((c: any) => c.userId === userId);
 
-    if (
-      !isOrganizerOrCoOrg &&
-      !['MINISTER', 'MINISTRY_ADMIN'].includes(userRole)
-    ) {
-      return false;
-    }
+    const isMinistryLevel = ['MINISTER', 'MINISTRY_ADMIN'].includes(userRole);
 
     const editWindowEnd = new Date(
       event.endAt.getTime() + this.EDIT_WINDOW_DAYS * 24 * 60 * 60 * 1000,
     );
 
-    if (
-      new Date() > editWindowEnd &&
-      ['MINISTER', 'MINISTRY_ADMIN'].includes(userRole)
-    ) {
-      return true;
+    if (!isOrganizerOrCoOrg && !isMinistryLevel) {
+      return {
+        canEdit: false,
+        reason: 'NOT_ORGANIZER' as const,
+        editWindowEndsAt: editWindowEnd,
+      };
     }
 
-    return new Date() <= editWindowEnd;
+    const withinWindow = new Date() <= editWindowEnd;
+
+    if (!withinWindow && isMinistryLevel) {
+      return {
+        canEdit: true,
+        reason: 'ADMIN_OVERRIDE' as const,
+        editWindowEndsAt: editWindowEnd,
+      };
+    }
+
+    return {
+      canEdit: withinWindow,
+      // The two cases the UI has to tell apart: still open, or closed on a
+      // date the reader can be told. Fusing them into one boolean is why the
+      // page said "the window has closed or you aren't an organizer" and left
+      // people with no idea which, and nobody to ask.
+      reason: withinWindow ? ('OPEN' as const) : ('WINDOW_CLOSED' as const),
+      editWindowEndsAt: editWindowEnd,
+    };
+  }
+
+  /**
+   * How many people publishing would email, and how many are outside
+   * government.
+   *
+   * Uses the same recipientsFor the send itself uses, so the number shown in
+   * the confirmation cannot disagree with the number that actually receive it.
+   * External guests are counted separately because they are the part people do
+   * not expect: a walk-in with no account still gets the record, on a permanent
+   * link.
+   */
+  async countPublishRecipients(
+    eventId: string,
+  ): Promise<{ total: number; external: number }> {
+    const recipients = await this.access.recipientsFor(eventId);
+    return {
+      total: recipients.length,
+      external: recipients.filter((r) => !r.userId).length,
+    };
+  }
+
+  /**
+   * Whether this person could publish right now, and what is stopping them.
+   *
+   * The page mirrored these preconditions with its own copy of the
+   * organiser check and its own count. Reported here so the affordance and the
+   * rule that governs it come from one place, and so the blocked reason the
+   * page shows is the same sentence the server would have thrown.
+   */
+  async canPublishMinutes(
+    eventId: string,
+    userId: string,
+    _userRole: string,
+  ): Promise<{ allowed: boolean; blockedReason: string | null }> {
+    const event = await (this.prisma as any).event.findUnique({
+      where: { id: eventId },
+      select: {
+        organizerId: true,
+        isPublic: true,
+        coOrganizers: { select: { userId: true } },
+        attendees: { select: { id: true }, take: 1 },
+      },
+    });
+
+    if (!event) return { allowed: false, blockedReason: 'Meeting not found.' };
+
+    if (event.isPublic) {
+      return {
+        allowed: false,
+        blockedReason: 'Public activities do not have minutes.',
+      };
+    }
+
+    const isOrganizer =
+      event.organizerId === userId ||
+      event.coOrganizers?.some((c: any) => c.userId === userId);
+
+    if (!isOrganizer) {
+      return {
+        allowed: false,
+        blockedReason: 'Only the organiser and co-organisers can send minutes.',
+      };
+    }
+
+    const minutes = await (this.prisma as any).minutes.findUnique({
+      where: { eventId },
+      include: { _count: { select: { points: true, actionItems: true } } },
+    });
+
+    if (!minutes || minutes._count.points + minutes._count.actionItems === 0) {
+      return {
+        allowed: false,
+        blockedReason:
+          'Save at least one decision, action item or next step first.',
+      };
+    }
+
+    if (!event.attendees?.length) {
+      return {
+        allowed: false,
+        blockedReason: 'Add who attended before sending the minutes.',
+      };
+    }
+
+    return { allowed: true, blockedReason: null };
+  }
+
+  /** The boolean alone, for callers that only gate on it. */
+  async canEditMinutes(
+    eventId: string,
+    userId: string,
+    userRole: string,
+    actorMinistryId?: string,
+  ): Promise<boolean> {
+    const { canEdit } = await this.describeEditPermission(
+      eventId,
+      userId,
+      userRole,
+      actorMinistryId,
+    );
+    return canEdit;
   }
 
   /**

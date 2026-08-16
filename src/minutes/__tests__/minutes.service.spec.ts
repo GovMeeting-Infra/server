@@ -267,4 +267,71 @@ describe('MinutesService', () => {
       ).resolves.toBe(false);
     });
   });
+
+  /**
+   * The reason is user-facing now: the page turns it into "your two days ran
+   * out on Thursday, ask a ministry admin" rather than the single fused string
+   * that told people the window had closed OR they were not an organiser and
+   * left them to guess which.
+   */
+  describe('why editing is refused', () => {
+    it('reports the window as open, with the date it ends', async () => {
+      const endAt = new Date(Date.now() - 60_000);
+      seedEvent({ endAt });
+
+      const result = await service.describeEditPermission(
+        EVENT_ID,
+        ORGANIZER,
+        'STAFF',
+        MINISTRY,
+      );
+
+      expect(result.canEdit).toBe(true);
+      expect(result.reason).toBe('OPEN');
+      expect(result.editWindowEndsAt).toEqual(
+        new Date(endAt.getTime() + 2 * 24 * 60 * 60_000),
+      );
+    });
+
+    it('separates a closed window from not being an organizer', async () => {
+      seedEvent({ endAt: new Date(Date.now() - 5 * 24 * 60 * 60_000) });
+
+      const closed = await service.describeEditPermission(
+        EVENT_ID,
+        ORGANIZER,
+        'STAFF',
+        MINISTRY,
+      );
+      expect(closed).toMatchObject({ canEdit: false, reason: 'WINDOW_CLOSED' });
+
+      const stranger = await service.describeEditPermission(
+        EVENT_ID,
+        'not-the-organizer',
+        'STAFF',
+        MINISTRY,
+      );
+      expect(stranger).toMatchObject({
+        canEdit: false,
+        reason: 'NOT_ORGANIZER',
+      });
+    });
+
+    it('names the admin override rather than reporting a plain yes', async () => {
+      seedEvent({ endAt: new Date(Date.now() - 5 * 24 * 60 * 60_000) });
+
+      const result = await service.describeEditPermission(
+        EVENT_ID,
+        'someone',
+        'MINISTER',
+        MINISTRY,
+      );
+
+      expect(result).toMatchObject({
+        canEdit: true,
+        reason: 'ADMIN_OVERRIDE',
+      });
+      // So the page can say the window has passed and they are editing anyway.
+      expect(result.editWindowEndsAt).not.toBeNull();
+    });
+  });
 });
