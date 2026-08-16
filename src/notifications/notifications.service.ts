@@ -515,13 +515,17 @@ export class NotificationsService {
         title: true,
         ownerName: true,
         ownerEmail: true,
-        owner: { select: { id: true, name: true, email: true, ministryId: true } },
+        owner: {
+          select: { id: true, name: true, email: true, ministryId: true },
+        },
         assignedBy: {
           select: { id: true, name: true, email: true, ministryId: true },
         },
         assistants: {
           select: {
-            user: { select: { id: true, name: true, email: true, ministryId: true } },
+            user: {
+              select: { id: true, name: true, email: true, ministryId: true },
+            },
           },
         },
         minutes: {
@@ -530,7 +534,12 @@ export class NotificationsService {
               select: {
                 title: true,
                 organizer: {
-                  select: { id: true, name: true, email: true, ministryId: true },
+                  select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    ministryId: true,
+                  },
                 },
               },
             },
@@ -555,7 +564,15 @@ export class NotificationsService {
 
     // An owner with no account still needs telling; they have no id to
     // deduplicate on, so they are added by address.
-    const byKey = new Map<string, { id: string | null; name: string; email: string; ministryId: string | null }>();
+    const byKey = new Map<
+      string,
+      {
+        id: string | null;
+        name: string;
+        email: string;
+        ministryId: string | null;
+      }
+    >();
     for (const p of people) {
       if (p.id === actorId) continue;
       if (!p.email) continue;
@@ -599,7 +616,12 @@ export class NotificationsService {
   /** Told to the person a task was taken from; the new owner gets the assignment mail. */
   async notifyActionItemUnassigned(
     actionItemId: string,
-    previous: { id: string | null; name: string; email: string; ministryId?: string | null },
+    previous: {
+      id: string | null;
+      name: string;
+      email: string;
+      ministryId?: string | null;
+    },
     newOwnerName: string | null,
   ) {
     if (!previous.email) return;

@@ -231,7 +231,12 @@ describe('CheckinService — geofence enforcement', () => {
     it('verifies someone plainly inside', async () => {
       const near = metresNorth(20);
 
-      await service.checkIn('tok', dto({ ...near, gpsAccuracy: 10 }), staff, {});
+      await service.checkIn(
+        'tok',
+        dto({ ...near, gpsAccuracy: 10 }),
+        staff,
+        {},
+      );
 
       expect(created().withinGeofence).toBe(true);
     });

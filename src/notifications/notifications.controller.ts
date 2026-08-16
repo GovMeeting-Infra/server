@@ -39,7 +39,8 @@ export class NotificationsController {
         : 20;
 
     const parsedSkip = skip ? parseInt(skip, 10) : 0;
-    const skipNum = Number.isFinite(parsedSkip) && parsedSkip > 0 ? parsedSkip : 0;
+    const skipNum =
+      Number.isFinite(parsedSkip) && parsedSkip > 0 ? parsedSkip : 0;
 
     return this.notificationsService.getUserNotifications(
       user.id,

@@ -1,4 +1,10 @@
-import { IsArray, IsOptional, IsString, ArrayMaxSize, Length } from 'class-validator';
+import {
+  IsArray,
+  IsOptional,
+  IsString,
+  ArrayMaxSize,
+  Length,
+} from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
 /** Longest a single decision or next step may be. */
@@ -19,7 +25,10 @@ export const MAX_POINTS = 50;
  * paragraph. Raising it far is how this feature reverts to what it replaced.
  */
 export class CreateMinutesDto {
-  @ApiPropertyOptional({ type: [String], description: 'What the meeting settled, one line each.' })
+  @ApiPropertyOptional({
+    type: [String],
+    description: 'What the meeting settled, one line each.',
+  })
   @IsOptional()
   @IsArray()
   @ArrayMaxSize(MAX_POINTS)
@@ -29,7 +38,8 @@ export class CreateMinutesDto {
 
   @ApiPropertyOptional({
     type: [String],
-    description: 'What happens next, with nobody assigned. Anything with an owner is an action item.',
+    description:
+      'What happens next, with nobody assigned. Anything with an owner is an action item.',
   })
   @IsOptional()
   @IsArray()

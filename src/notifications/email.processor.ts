@@ -51,7 +51,11 @@ interface ActionItemDigestPayload {
     assisting?: boolean;
   }[];
   /** Completed last week on meetings this person was invited to. */
-  closed?: { title: string; ownerName: string | null; eventTitle: string | null }[];
+  closed?: {
+    title: string;
+    ownerName: string | null;
+    eventTitle: string | null;
+  }[];
 }
 
 interface MeetingReminderPayload {
@@ -354,8 +358,14 @@ export class EmailProcessor extends WorkerHost {
 
   /** A meeting was called off or moved. */
   private async sendMeetingChanged(job: Job<MeetingChangedPayload>) {
-    const { eventId, email, name, cancelled, previousStartAt, previousVenueName } =
-      job.data;
+    const {
+      eventId,
+      email,
+      name,
+      cancelled,
+      previousStartAt,
+      previousVenueName,
+    } = job.data;
 
     const event = await (this.prisma as any).event.findUnique({
       where: { id: eventId },

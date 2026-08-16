@@ -245,7 +245,9 @@ export class ActionItemsService {
     if (isAssistant && !isOwner && !isAdmin && !isCreator) {
       const permitted = new Set(['status', 'progressNotes', 'progressLink']);
       const overreach = Object.keys(dto).filter(
-        (key) => dto[key as keyof UpdateActionItemDto] !== undefined && !permitted.has(key),
+        (key) =>
+          dto[key as keyof UpdateActionItemDto] !== undefined &&
+          !permitted.has(key),
       );
 
       if (overreach.length) {

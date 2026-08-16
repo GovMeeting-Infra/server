@@ -61,7 +61,9 @@ export class ReportsController {
       // content was this sentence, and the page showed nothing at all.
       res.removeHeader('Content-Disposition');
       res.removeHeader('Content-Type');
-      res.status(500).json({ message: 'Could not build the events export. Try again in a moment.' });
+      res.status(500).json({
+        message: 'Could not build the events export. Try again in a moment.',
+      });
     }
   }
 
@@ -86,7 +88,10 @@ export class ReportsController {
       // content was this sentence, and the page showed nothing at all.
       res.removeHeader('Content-Disposition');
       res.removeHeader('Content-Type');
-      res.status(500).json({ message: 'Could not build the attendance export. Try again in a moment.' });
+      res.status(500).json({
+        message:
+          'Could not build the attendance export. Try again in a moment.',
+      });
     }
   }
 
@@ -108,9 +113,10 @@ export class ReportsController {
       this.logger.error('Error exporting action items CSV', error);
       res.removeHeader('Content-Disposition');
       res.removeHeader('Content-Type');
-      res
-        .status(500)
-        .json({ message: 'Could not build the action items export. Try again in a moment.' });
+      res.status(500).json({
+        message:
+          'Could not build the action items export. Try again in a moment.',
+      });
     }
   }
 }

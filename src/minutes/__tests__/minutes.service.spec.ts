@@ -120,7 +120,9 @@ describe('MinutesService', () => {
 
       // Only the decisions were submitted, so nothing should have touched the
       // next steps — otherwise saving one list would silently wipe the other.
-      const touched = pointWrites().map((w) => w.where?.type ?? w.data?.[0]?.type);
+      const touched = pointWrites().map(
+        (w) => w.where?.type ?? w.data?.[0]?.type,
+      );
       expect(touched).not.toContain('NEXT_STEP');
     });
 
@@ -177,13 +179,23 @@ describe('MinutesService', () => {
       seedEvent({ isPublic: true });
 
       await expect(
-        service.draftMinutes(EVENT_ID, { decisions: ['x'] }, ORGANIZER, MINISTRY),
+        service.draftMinutes(
+          EVENT_ID,
+          { decisions: ['x'] },
+          ORGANIZER,
+          MINISTRY,
+        ),
       ).rejects.toThrow(BadRequestException);
     });
 
     it('refuses someone who is not an organizer', async () => {
       await expect(
-        service.draftMinutes(EVENT_ID, { decisions: ['x'] }, 'someone', MINISTRY),
+        service.draftMinutes(
+          EVENT_ID,
+          { decisions: ['x'] },
+          'someone',
+          MINISTRY,
+        ),
       ).rejects.toThrow(ForbiddenException);
     });
   });

@@ -659,8 +659,7 @@ export class EventsService {
     // Only when something an attendee would travel on has moved. Renaming a
     // meeting or editing its description is not worth an email to everyone
     // invited; changing when or where it happens is.
-    const startMoved =
-      updated.startAt.getTime() !== event.startAt.getTime();
+    const startMoved = updated.startAt.getTime() !== event.startAt.getTime();
     const venueMoved = updated.venueName !== event.venueName;
 
     if (startMoved || venueMoved) {

@@ -70,7 +70,8 @@ const SPECS: Record<SettingKey, SettingSpec> = {
     // page point at the reader's own ministry administrator, who demonstrably
     // exists, rather than at an address that does not.
     fallback: '',
-    describe: 'Address the help page offers when someone is stuck. Blank sends them to their ministry administrator instead.',
+    describe:
+      'Address the help page offers when someone is stuck. Blank sends them to their ministry administrator instead.',
     parse: (raw) => {
       const value = raw.trim().toLowerCase();
       if (!value) return '';

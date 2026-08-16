@@ -61,9 +61,7 @@ describe('ActionItemsService — permissions', () => {
       } as any,
     );
 
-    jest
-      .spyOn(service, 'getActionItem')
-      .mockResolvedValue({ id: ITEM } as any);
+    jest.spyOn(service, 'getActionItem').mockResolvedValue({ id: ITEM } as any);
   });
 
   /**
@@ -75,7 +73,10 @@ describe('ActionItemsService — permissions', () => {
   describe('what a write hands back', () => {
     it('returns the full record, not the bare update result', async () => {
       seedItem();
-      const full = { id: ITEM, minutes: { event: { id: 'e1', title: 'Budget' } } };
+      const full = {
+        id: ITEM,
+        minutes: { event: { id: 'e1', title: 'Budget' } },
+      };
       (service.getActionItem as jest.Mock).mockResolvedValue(full);
 
       const result = await service.updateStatus(
@@ -96,8 +97,7 @@ describe('ActionItemsService — permissions', () => {
 
       await service.getActionItem(ITEM);
 
-      const include =
-        prisma.actionItem.findUnique.mock.calls.at(-1)[0].include;
+      const include = prisma.actionItem.findUnique.mock.calls.at(-1)[0].include;
       expect(include.minutes.select.event).toBeTruthy();
       expect(include.assistants).toBeTruthy();
       expect(include.assignedBy).toBeTruthy();

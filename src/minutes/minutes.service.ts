@@ -374,7 +374,11 @@ export class MinutesService {
     });
 
     if (!event) {
-      return { canEdit: false, reason: 'NOT_FOUND' as const, editWindowEndsAt: null };
+      return {
+        canEdit: false,
+        reason: 'NOT_FOUND' as const,
+        editWindowEndsAt: null,
+      };
     }
 
     // An archived record is frozen for everyone, including leadership. That is
@@ -386,7 +390,11 @@ export class MinutesService {
     });
 
     if (existing?.status === 'ARCHIVED') {
-      return { canEdit: false, reason: 'ARCHIVED' as const, editWindowEndsAt: null };
+      return {
+        canEdit: false,
+        reason: 'ARCHIVED' as const,
+        editWindowEndsAt: null,
+      };
     }
 
     // Without this a ministry admin could edit another ministry's minutes —
@@ -397,7 +405,11 @@ export class MinutesService {
       actorMinistryId !== undefined &&
       event.ministryId !== actorMinistryId
     ) {
-      return { canEdit: false, reason: 'OTHER_MINISTRY' as const, editWindowEndsAt: null };
+      return {
+        canEdit: false,
+        reason: 'OTHER_MINISTRY' as const,
+        editWindowEndsAt: null,
+      };
     }
 
     const isOrganizerOrCoOrg =

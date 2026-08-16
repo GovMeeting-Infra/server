@@ -1,4 +1,8 @@
-import { haversineDistance, isWithinRadius, classifyFix } from '../geofence.util';
+import {
+  haversineDistance,
+  isWithinRadius,
+  classifyFix,
+} from '../geofence.util';
 import {
   GEOFENCE_RADIUS_METERS,
   CHECKIN_MAX_ACCURACY_METERS,

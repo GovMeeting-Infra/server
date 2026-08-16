@@ -387,7 +387,9 @@ export class ReportsService {
         const published = { ministryId: m.id, status: 'PUBLISHED' };
         const [meetings, checkIns, walkIns, invited] = await Promise.all([
           (this.prisma as any).event.count({ where: published }),
-          (this.prisma as any).attendance.count({ where: { event: published } }),
+          (this.prisma as any).attendance.count({
+            where: { event: published },
+          }),
           (this.prisma as any).attendance.count({
             where: { event: published, isWalkIn: true },
           }),
@@ -403,9 +405,7 @@ export class ReportsService {
           checkIns,
           invited,
           attendanceRate:
-            invited > 0
-              ? parseFloat((invitedWhoCame / invited).toFixed(2))
-              : 0,
+            invited > 0 ? parseFloat((invitedWhoCame / invited).toFixed(2)) : 0,
         };
       }),
     );

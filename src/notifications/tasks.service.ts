@@ -213,7 +213,9 @@ export class TasksService {
 
     try {
       const [startOfToday] = todayBounds();
-      const weekAgo = new Date(startOfToday.getTime() - 7 * 24 * 60 * 60 * 1000);
+      const weekAgo = new Date(
+        startOfToday.getTime() - 7 * 24 * 60 * 60 * 1000,
+      );
 
       const [open, closed] = await Promise.all([
         (this.prisma as any).actionItem.findMany({
@@ -233,7 +235,12 @@ export class TasksService {
             assistants: {
               select: {
                 user: {
-                  select: { id: true, name: true, email: true, ministryId: true },
+                  select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    ministryId: true,
+                  },
                 },
               },
             },
@@ -265,7 +272,10 @@ export class TasksService {
       // through the same union that decides who receives published minutes.
       const closedByRecipient = new Map<
         string,
-        { person: { id: string | null; name: string; email: string }; lines: any[] }
+        {
+          person: { id: string | null; name: string; email: string };
+          lines: any[];
+        }
       >();
       const eventIds = [
         ...new Set(
