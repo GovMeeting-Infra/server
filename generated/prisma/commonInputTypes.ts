@@ -412,6 +412,23 @@ export type EnumMinutesStatusWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedEnumMinutesStatusFilter<$PrismaModel>
 }
 
+export type EnumMinutePointTypeFilter<$PrismaModel = never> = {
+  equals?: $Enums.MinutePointType | Prisma.EnumMinutePointTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.MinutePointType[] | Prisma.ListEnumMinutePointTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.MinutePointType[] | Prisma.ListEnumMinutePointTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumMinutePointTypeFilter<$PrismaModel> | $Enums.MinutePointType
+}
+
+export type EnumMinutePointTypeWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.MinutePointType | Prisma.EnumMinutePointTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.MinutePointType[] | Prisma.ListEnumMinutePointTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.MinutePointType[] | Prisma.ListEnumMinutePointTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumMinutePointTypeWithAggregatesFilter<$PrismaModel> | $Enums.MinutePointType
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumMinutePointTypeFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumMinutePointTypeFilter<$PrismaModel>
+}
+
 export type EnumActionItemStatusFilter<$PrismaModel = never> = {
   equals?: $Enums.ActionItemStatus | Prisma.EnumActionItemStatusFieldRefInput<$PrismaModel>
   in?: $Enums.ActionItemStatus[] | Prisma.ListEnumActionItemStatusFieldRefInput<$PrismaModel>
@@ -912,6 +929,23 @@ export type NestedEnumMinutesStatusWithAggregatesFilter<$PrismaModel = never> = 
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumMinutesStatusFilter<$PrismaModel>
   _max?: Prisma.NestedEnumMinutesStatusFilter<$PrismaModel>
+}
+
+export type NestedEnumMinutePointTypeFilter<$PrismaModel = never> = {
+  equals?: $Enums.MinutePointType | Prisma.EnumMinutePointTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.MinutePointType[] | Prisma.ListEnumMinutePointTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.MinutePointType[] | Prisma.ListEnumMinutePointTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumMinutePointTypeFilter<$PrismaModel> | $Enums.MinutePointType
+}
+
+export type NestedEnumMinutePointTypeWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.MinutePointType | Prisma.EnumMinutePointTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.MinutePointType[] | Prisma.ListEnumMinutePointTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.MinutePointType[] | Prisma.ListEnumMinutePointTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumMinutePointTypeWithAggregatesFilter<$PrismaModel> | $Enums.MinutePointType
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumMinutePointTypeFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumMinutePointTypeFilter<$PrismaModel>
 }
 
 export type NestedEnumActionItemStatusFilter<$PrismaModel = never> = {

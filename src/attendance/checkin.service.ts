@@ -15,11 +15,12 @@ import { CheckInDto } from './dto/check-in.dto';
 import { GuestCheckInDto } from './dto/guest-check-in.dto';
 import { GenerateCheckInCodeDto } from './dto/generate-check-in-code.dto';
 import { ManualCheckInDto } from './dto/manual-check-in.dto';
-import { haversineDistance } from './geofence.util';
+import { haversineDistance, classifyFix } from './geofence.util';
 import {
   GEOFENCE_RADIUS_METERS,
   ANCHOR_MAX_ACCURACY_METERS,
   CHECKIN_MAX_ACCURACY_METERS,
+  GEO_ERROR,
 } from './geofence.constants';
 
 /** Why a token cannot currently be used, or OPEN when it can. */
@@ -362,6 +363,7 @@ export class CheckinService {
         allowGuestCheckIn: true,
         checkInAnchorLat: true,
         checkInAnchorLng: true,
+        requireGeofence: true,
       },
     });
 
@@ -373,8 +375,14 @@ export class CheckinService {
       };
     }
 
+    // Both halves, because they answer different questions: an area has to
+    // have been captured, and the organizer has to have asked for it to gate
+    // entry. An anchored meeting with the requirement off is measured, not
+    // policed, so the client must not block anyone over a refused fix.
     const geofenceRequired =
-      event.checkInAnchorLat !== null && event.checkInAnchorLng !== null;
+      event.requireGeofence === true &&
+      event.checkInAnchorLat !== null &&
+      event.checkInAnchorLng !== null;
 
     if (event.status === 'DRAFT' || event.status === 'CANCELLED') {
       // Rendered identically to INVALID by the client: someone holding a code
@@ -527,6 +535,7 @@ export class CheckinService {
         allowGuestCheckIn: true,
         checkInAnchorLat: true,
         checkInAnchorLng: true,
+        requireGeofence: true,
       },
     });
 
@@ -552,11 +561,20 @@ export class CheckinService {
    * tested truthiness, an exact 0.0 coordinate skipped it too.
    */
   private resolveGeofence(
-    event: { checkInAnchorLat: number | null; checkInAnchorLng: number | null },
+    event: {
+      checkInAnchorLat: number | null;
+      checkInAnchorLng: number | null;
+      requireGeofence?: boolean;
+    },
     dto: { lat?: number; lng?: number; gpsAccuracy?: number },
   ): GeofenceVerdict {
     const anchored =
       event.checkInAnchorLat !== null && event.checkInAnchorLng !== null;
+
+    // Measuring and refusing are different things, and only the organizer
+    // decides the second. An anchored meeting with the requirement off still
+    // records where people were; it just never turns anyone away over it.
+    const gates = anchored && event.requireGeofence === true;
 
     if (!anchored) {
       // No area was captured, so nothing can be verified. null rather than
@@ -576,24 +594,31 @@ export class CheckinService {
       };
     }
 
-    if (dto.lat == null || dto.lng == null) {
-      throw new BadRequestException(
-        'Location is required to check in to this meeting. Enable GPS and try again.',
-      );
-    }
-    if (
-      dto.gpsAccuracy == null ||
-      dto.gpsAccuracy > CHECKIN_MAX_ACCURACY_METERS
-    ) {
-      throw new BadRequestException(
-        'GPS accuracy insufficient for location verification. Move somewhere with a clearer signal and try again.',
-      );
-    }
-
     // An accuracy of exactly 0 is not physically achievable and is the usual
     // signature of a mock-location provider. Recorded, not rejected — it is a
     // heuristic, and heuristics produce false positives.
     const mockLocationFlag = dto.gpsAccuracy === 0;
+
+    // No accuracy means an unbounded error disc, which is the same as having
+    // sent no position at all — and it wants the same advice, not a confusing
+    // complaint about precision.
+    if (dto.lat == null || dto.lng == null || dto.gpsAccuracy == null) {
+      if (!gates) {
+        return {
+          withinGeofence: null,
+          checkInMethod: 'QR',
+          distance: null,
+          mockLocationFlag,
+        };
+      }
+      throw new BadRequestException({
+        statusCode: 400,
+        error: 'Bad Request',
+        code: GEO_ERROR.LOCATION_REQUIRED,
+        message:
+          'This meeting checks you in by location, and your phone did not send one. Turn on location for this browser, then try again.',
+      });
+    }
 
     const distance = haversineDistance(
       dto.lat,
@@ -602,14 +627,61 @@ export class CheckinService {
       event.checkInAnchorLng as number,
     );
 
-    if (distance > GEOFENCE_RADIUS_METERS) {
-      throw new BadRequestException(
-        'You appear to be outside the meeting location.',
-      );
+    const verdict = classifyFix({
+      distance,
+      accuracy: dto.gpsAccuracy,
+      radius: GEOFENCE_RADIUS_METERS,
+      ceiling: CHECKIN_MAX_ACCURACY_METERS,
+    });
+
+    if (verdict === 'VERIFIED') {
+      return {
+        withinGeofence: true,
+        checkInMethod: 'GEO',
+        distance,
+        mockLocationFlag,
+      };
     }
 
+    // Measured but not gated: record the verdict and let them in either way.
+    if (!gates) {
+      return {
+        withinGeofence: verdict === 'OUTSIDE' ? false : null,
+        checkInMethod: 'GEO',
+        distance,
+        mockLocationFlag,
+      };
+    }
+
+    if (verdict === 'TOO_VAGUE') {
+      throw new BadRequestException({
+        statusCode: 400,
+        error: 'Bad Request',
+        code: GEO_ERROR.ACCURACY_TOO_LOW,
+        message: `Your phone could only place you within ${Math.round(
+          dto.gpsAccuracy,
+        )}m, which is too vague to confirm you are at the venue. Turn on precise location, move near a window or step outside, turn off any VPN, then try again.`,
+      });
+    }
+
+    if (verdict === 'OUTSIDE') {
+      // Deliberately no distance in this message. Three attempts with chosen
+      // coordinates would trilaterate the anchor for anyone holding a token.
+      // The accuracy is the attendee's own reading and safe to quote back.
+      throw new BadRequestException({
+        statusCode: 400,
+        error: 'Bad Request',
+        code: GEO_ERROR.OUTSIDE_AREA,
+        message:
+          'You are outside this meeting’s check-in area. Move closer to the venue and try again. If you are already inside the building, turn on precise location and try once more.',
+      });
+    }
+
+    // Plausible: the discs overlap, so they may well be in the room, but the
+    // reading cannot prove it. null, not true — an auditor leans on true, and
+    // this is exactly the "unverified" the column already means elsewhere.
     return {
-      withinGeofence: true,
+      withinGeofence: null,
       checkInMethod: 'GEO',
       distance,
       mockLocationFlag,
@@ -902,8 +974,19 @@ export class CheckinService {
         checkInAt: true,
         checkInMethod: true,
         withinGeofence: true,
+        gpsAccuracy: true,
         mockLocationFlag: true,
-        user: { select: { id: true, name: true, email: true } },
+        // A staff member gives no title or organisation at check-in — their
+        // account is where those live, so the list has to join them.
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            jobTitle: true,
+            ministry: { select: { name: true } },
+          },
+        },
       },
       orderBy: { checkInAt: 'desc' },
     });

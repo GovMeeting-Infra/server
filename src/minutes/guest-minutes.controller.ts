@@ -17,6 +17,13 @@ import { GuestActionItemDto } from './dto/guest-action-item.dto';
 import { RateLimitGuard } from '../common/guards/rate-limit.guard';
 import { RateLimit } from '../common/decorators/rate-limit.decorator';
 
+/** The points of one kind, already ordered by the query, as plain text. */
+function pointsOfType(points: any[], type: string): string[] {
+  return (points ?? [])
+    .filter((p: any) => p.type === type)
+    .map((p: any) => p.text);
+}
+
 /**
  * Published minutes for someone with no account.
  *
@@ -74,8 +81,8 @@ export class GuestMinutesController {
         ministryName: minutes.event.ministry?.name ?? null,
       },
       minutes: {
-        body: minutes.body,
-        summary: minutes.summary,
+        decisions: pointsOfType(minutes.points, 'DECISION'),
+        nextSteps: pointsOfType(minutes.points, 'NEXT_STEP'),
         publishedAt: minutes.publishedAt,
       },
       // Flagged rather than filtered: the guest sees the whole record, and the

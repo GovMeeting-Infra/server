@@ -101,19 +101,31 @@ export type Attendance = Prisma.AttendanceModel
 export type QRToken = Prisma.QRTokenModel
 /**
  * Model Minutes
- * 
+ * *
+ *  * What a meeting settled, not what was said in it.
+ *  * The record carries no prose of its own. It used to be one long body plus a
+ *  * summary, which meant decisions were buried inside a paragraph nobody read
+ *  * twice and nothing could be counted or searched precisely. The content is
+ *  * now three lists: decisions and next steps in MinutePoint, and the action
+ *  * items that already existed.
  */
 export type Minutes = Prisma.MinutesModel
+/**
+ * Model MinutePoint
+ * *
+ *  * One line of a minutes record: something decided, or something happening next.
+ *  * Single-line by design. A decision that can hold a paragraph becomes a
+ *  * paragraph, which is the thing this replaced.
+ */
+export type MinutePoint = Prisma.MinutePointModel
 /**
  * Model MinutesAccessToken
  * *
  *  * Read access to one published minutes record for one person, so an attendee
  *  * with no account can be sent the record.
- *  *
  *  * Keyed by email rather than by attendee row: a walk-in has no EventAttendee at
  *  * all, and reusing rsvpTokenHash would mean fabricating one. Only the sha256 is
  *  * stored, matching InvitesService, so a database read yields no usable link.
- *  *
  *  * There is no expiry column on purpose. A token resolves only while its minutes
  *  * are PUBLISHED, so archiving is what ends access — one lifecycle rather than
  *  * two clocks that can disagree.
@@ -125,10 +137,37 @@ export type MinutesAccessToken = Prisma.MinutesAccessTokenModel
  */
 export type ActionItem = Prisma.ActionItemModel
 /**
+ * Model ActionItemAssistant
+ * *
+ *  * Someone helping with an action item, without being answerable for it.
+ *  * One owner stays accountable — that is the point of keeping this a separate
+ *  * table rather than making ownership a list. An assistant may report progress
+ *  * and move the status, and nothing else; the narrower set is enforced in
+ *  * ActionItemsService.
+ *  * Account holders only. An owner may be an outside participant reachable by
+ *  * email alone, but helping means signing in to change something, so naming a
+ *  * helper with no account would name someone who could never actually help.
+ */
+export type ActionItemAssistant = Prisma.ActionItemAssistantModel
+/**
  * Model Notification
  * 
  */
 export type Notification = Prisma.NotificationModel
+/**
+ * Model EmailSuppression
+ * *
+ *  * Addresses that have opted out of a kind of mail.
+ *  *
+ *  * Keyed on the address rather than an account because the weekly digest goes
+ *  * to people who own action items without having accounts — they are reachable
+ *  * by email alone, and an opt-out they cannot exercise is not an opt-out.
+ *  *
+ *  * Only the digest is suppressible. Everything else this platform sends is
+ *  * operational: you cannot unsubscribe from being told a meeting you are
+ *  * expected at has moved.
+ */
+export type EmailSuppression = Prisma.EmailSuppressionModel
 /**
  * Model AuditLog
  * 

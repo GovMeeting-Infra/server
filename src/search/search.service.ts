@@ -61,12 +61,19 @@ export class SearchService {
           // disclosed in the results without the reader ever following the
           // link that would have refused them.
           status: { not: 'ARCHIVED' },
-          OR: [{ body: like }, { summary: like }],
+          points: { some: { text: like } },
         },
         select: {
           id: true,
-          summary: true,
-          body: true,
+          // The lines that matched, which are the result — a decision reads as
+          // an answer, where a slice of the old prose body was a fragment cut
+          // mid-sentence.
+          points: {
+            where: { text: like },
+            orderBy: [{ type: 'asc' }, { order: 'asc' }],
+            take: 3,
+            select: { text: true },
+          },
           status: true,
           event: { select: { id: true, title: true } },
         },
@@ -91,12 +98,16 @@ export class SearchService {
       query: q,
       tooShort: false,
       events,
-      // Trim the body to a snippet; the full minutes body can be very large.
       minutes: minutes.map((m: any) => ({
         id: m.id,
         status: m.status,
         event: m.event,
-        snippet: (m.summary || m.body || '').slice(0, 200),
+        // Still capped: three matching lines are short, but nothing stops one
+        // of them running to the DTO's limit.
+        snippet: m.points
+          .map((p: any) => p.text)
+          .join(' · ')
+          .slice(0, 200),
       })),
       people,
     };

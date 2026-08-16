@@ -634,6 +634,21 @@ export class EventsService {
     await this.cache.invalidatePattern(`events:*${ministryId}*`);
     await this.cache.invalidateAnalytics();
 
+    // Only when something an attendee would travel on has moved. Renaming a
+    // meeting or editing its description is not worth an email to everyone
+    // invited; changing when or where it happens is.
+    const startMoved =
+      updated.startAt.getTime() !== event.startAt.getTime();
+    const venueMoved = updated.venueName !== event.venueName;
+
+    if (startMoved || venueMoved) {
+      await this.notifications.notifyMeetingChanged(id, {
+        cancelled: false,
+        previousStartAt: startMoved ? event.startAt : null,
+        previousVenueName: venueMoved ? event.venueName : null,
+      });
+    }
+
     return updated;
   }
 
@@ -763,6 +778,9 @@ export class EventsService {
 
     await this.cache.invalidatePattern(`events:*${ministryId}*`);
     await this.cache.invalidateAnalytics();
+
+    // Until now a cancelled meeting told nobody, so people travelled to it.
+    await this.notifications.notifyMeetingChanged(id, { cancelled: true });
 
     return updated;
   }

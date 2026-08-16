@@ -2,10 +2,60 @@ import {
   escapeHtml,
   inviteEmail,
   actionItemReminderEmail,
+  meetingInvitationEmail,
   meetingReminderEmail,
 } from '../templates';
 
 const LINK = 'http://localhost:3000/set-password?token=abc123';
+
+/**
+ * Dates render in the reader's zone, not the server's.
+ *
+ * These pass trivially on a UTC box, which is exactly why they are worth
+ * having: the old formatters passed no timeZone at all and were correct only
+ * because Sierra Leone and the deployment happen to share an offset. Run the
+ * suite under TZ=America/New_York and the old code fails every one of these —
+ * a 09:00 meeting reads 04:00, and a due date stored at midnight UTC reads as
+ * the day before.
+ */
+describe('rendering dates in the reader’s timezone', () => {
+  // 09:00 in Freetown, whatever the machine running this thinks.
+  const NINE_AM_UTC = new Date('2026-09-02T09:00:00Z');
+  // Action item due dates are written as date-only, so they land here.
+  const MIDNIGHT_UTC = new Date('2026-09-02T00:00:00.000Z');
+
+  it('shows a meeting at the hour it starts in Freetown', () => {
+    const body = meetingReminderEmail({
+      name: 'Aminata',
+      eventTitle: 'Cabinet Meeting',
+      startAt: NINE_AM_UTC,
+    });
+    expect(body.text).toContain('09:00');
+    expect(body.text).toContain('2 September 2026');
+  });
+
+  it('keeps a midnight due date on its own day', () => {
+    const body = actionItemReminderEmail({
+      name: 'Aminata',
+      title: 'Circulate the figures',
+      dueDate: MIDNIGHT_UTC,
+    });
+    // West of Greenwich an unzoned render would say 1 September.
+    expect(body.text).toContain('2 September 2026');
+    expect(body.text).not.toContain('1 September 2026');
+  });
+
+  it('renders both ends of a meeting in the same zone', () => {
+    const body = meetingInvitationEmail({
+      name: 'Aminata',
+      eventTitle: 'Cabinet Meeting',
+      startAt: NINE_AM_UTC,
+      endAt: new Date('2026-09-02T11:30:00Z'),
+    });
+    expect(body.text).toContain('09:00');
+    expect(body.text).toContain('11:30');
+  });
+});
 
 describe('escapeHtml', () => {
   it('neutralises the characters that could inject markup', () => {

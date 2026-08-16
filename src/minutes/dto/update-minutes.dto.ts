@@ -1,11 +1,8 @@
-import { IsOptional, IsString } from 'class-validator';
+import { CreateMinutesDto } from './create-minutes.dto';
 
-export class UpdateMinutesDto {
-  @IsOptional()
-  @IsString()
-  body?: string;
-
-  @IsOptional()
-  @IsString()
-  summary?: string;
-}
+/**
+ * Identical to the create shape, and deliberately so: every field there is
+ * already optional, because the two lists are independent and either may be
+ * left alone.
+ */
+export class UpdateMinutesDto extends CreateMinutesDto {}

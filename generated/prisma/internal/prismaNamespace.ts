@@ -410,9 +410,12 @@ export const ModelName = {
   Attendance: 'Attendance',
   QRToken: 'QRToken',
   Minutes: 'Minutes',
+  MinutePoint: 'MinutePoint',
   MinutesAccessToken: 'MinutesAccessToken',
   ActionItem: 'ActionItem',
+  ActionItemAssistant: 'ActionItemAssistant',
   Notification: 'Notification',
+  EmailSuppression: 'EmailSuppression',
   AuditLog: 'AuditLog',
   PlatformSetting: 'PlatformSetting'
 } as const
@@ -430,7 +433,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "session" | "account" | "verification" | "ministry" | "userPreferences" | "event" | "eventSeries" | "eventCoOrganizer" | "eventAttendee" | "attendance" | "qRToken" | "minutes" | "minutesAccessToken" | "actionItem" | "notification" | "auditLog" | "platformSetting"
+    modelProps: "user" | "session" | "account" | "verification" | "ministry" | "userPreferences" | "event" | "eventSeries" | "eventCoOrganizer" | "eventAttendee" | "attendance" | "qRToken" | "minutes" | "minutePoint" | "minutesAccessToken" | "actionItem" | "actionItemAssistant" | "notification" | "emailSuppression" | "auditLog" | "platformSetting"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1396,6 +1399,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    MinutePoint: {
+      payload: Prisma.$MinutePointPayload<ExtArgs>
+      fields: Prisma.MinutePointFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.MinutePointFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MinutePointPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.MinutePointFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MinutePointPayload>
+        }
+        findFirst: {
+          args: Prisma.MinutePointFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MinutePointPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.MinutePointFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MinutePointPayload>
+        }
+        findMany: {
+          args: Prisma.MinutePointFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MinutePointPayload>[]
+        }
+        create: {
+          args: Prisma.MinutePointCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MinutePointPayload>
+        }
+        createMany: {
+          args: Prisma.MinutePointCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.MinutePointCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MinutePointPayload>[]
+        }
+        delete: {
+          args: Prisma.MinutePointDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MinutePointPayload>
+        }
+        update: {
+          args: Prisma.MinutePointUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MinutePointPayload>
+        }
+        deleteMany: {
+          args: Prisma.MinutePointDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.MinutePointUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.MinutePointUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MinutePointPayload>[]
+        }
+        upsert: {
+          args: Prisma.MinutePointUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MinutePointPayload>
+        }
+        aggregate: {
+          args: Prisma.MinutePointAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateMinutePoint>
+        }
+        groupBy: {
+          args: Prisma.MinutePointGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.MinutePointGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.MinutePointCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.MinutePointCountAggregateOutputType> | number
+        }
+      }
+    }
     MinutesAccessToken: {
       payload: Prisma.$MinutesAccessTokenPayload<ExtArgs>
       fields: Prisma.MinutesAccessTokenFieldRefs
@@ -1544,6 +1621,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    ActionItemAssistant: {
+      payload: Prisma.$ActionItemAssistantPayload<ExtArgs>
+      fields: Prisma.ActionItemAssistantFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ActionItemAssistantFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ActionItemAssistantPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ActionItemAssistantFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ActionItemAssistantPayload>
+        }
+        findFirst: {
+          args: Prisma.ActionItemAssistantFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ActionItemAssistantPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ActionItemAssistantFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ActionItemAssistantPayload>
+        }
+        findMany: {
+          args: Prisma.ActionItemAssistantFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ActionItemAssistantPayload>[]
+        }
+        create: {
+          args: Prisma.ActionItemAssistantCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ActionItemAssistantPayload>
+        }
+        createMany: {
+          args: Prisma.ActionItemAssistantCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ActionItemAssistantCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ActionItemAssistantPayload>[]
+        }
+        delete: {
+          args: Prisma.ActionItemAssistantDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ActionItemAssistantPayload>
+        }
+        update: {
+          args: Prisma.ActionItemAssistantUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ActionItemAssistantPayload>
+        }
+        deleteMany: {
+          args: Prisma.ActionItemAssistantDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ActionItemAssistantUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ActionItemAssistantUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ActionItemAssistantPayload>[]
+        }
+        upsert: {
+          args: Prisma.ActionItemAssistantUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ActionItemAssistantPayload>
+        }
+        aggregate: {
+          args: Prisma.ActionItemAssistantAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateActionItemAssistant>
+        }
+        groupBy: {
+          args: Prisma.ActionItemAssistantGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ActionItemAssistantGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ActionItemAssistantCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ActionItemAssistantCountAggregateOutputType> | number
+        }
+      }
+    }
     Notification: {
       payload: Prisma.$NotificationPayload<ExtArgs>
       fields: Prisma.NotificationFieldRefs
@@ -1615,6 +1766,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.NotificationCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.NotificationCountAggregateOutputType> | number
+        }
+      }
+    }
+    EmailSuppression: {
+      payload: Prisma.$EmailSuppressionPayload<ExtArgs>
+      fields: Prisma.EmailSuppressionFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.EmailSuppressionFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailSuppressionPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.EmailSuppressionFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailSuppressionPayload>
+        }
+        findFirst: {
+          args: Prisma.EmailSuppressionFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailSuppressionPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.EmailSuppressionFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailSuppressionPayload>
+        }
+        findMany: {
+          args: Prisma.EmailSuppressionFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailSuppressionPayload>[]
+        }
+        create: {
+          args: Prisma.EmailSuppressionCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailSuppressionPayload>
+        }
+        createMany: {
+          args: Prisma.EmailSuppressionCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.EmailSuppressionCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailSuppressionPayload>[]
+        }
+        delete: {
+          args: Prisma.EmailSuppressionDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailSuppressionPayload>
+        }
+        update: {
+          args: Prisma.EmailSuppressionUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailSuppressionPayload>
+        }
+        deleteMany: {
+          args: Prisma.EmailSuppressionDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.EmailSuppressionUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.EmailSuppressionUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailSuppressionPayload>[]
+        }
+        upsert: {
+          args: Prisma.EmailSuppressionUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailSuppressionPayload>
+        }
+        aggregate: {
+          args: Prisma.EmailSuppressionAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateEmailSuppression>
+        }
+        groupBy: {
+          args: Prisma.EmailSuppressionGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EmailSuppressionGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.EmailSuppressionCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EmailSuppressionCountAggregateOutputType> | number
         }
       }
     }
@@ -2024,8 +2249,6 @@ export type QRTokenScalarFieldEnum = (typeof QRTokenScalarFieldEnum)[keyof typeo
 export const MinutesScalarFieldEnum = {
   id: 'id',
   eventId: 'eventId',
-  body: 'body',
-  summary: 'summary',
   status: 'status',
   draftedById: 'draftedById',
   draftedAt: 'draftedAt',
@@ -2038,6 +2261,19 @@ export const MinutesScalarFieldEnum = {
 } as const
 
 export type MinutesScalarFieldEnum = (typeof MinutesScalarFieldEnum)[keyof typeof MinutesScalarFieldEnum]
+
+
+export const MinutePointScalarFieldEnum = {
+  id: 'id',
+  minutesId: 'minutesId',
+  type: 'type',
+  text: 'text',
+  order: 'order',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type MinutePointScalarFieldEnum = (typeof MinutePointScalarFieldEnum)[keyof typeof MinutePointScalarFieldEnum]
 
 
 export const MinutesAccessTokenScalarFieldEnum = {
@@ -2067,12 +2303,24 @@ export const ActionItemScalarFieldEnum = {
   progressNotes: 'progressNotes',
   progressLink: 'progressLink',
   reminderSentAt: 'reminderSentAt',
+  overdueNotifiedAt: 'overdueNotifiedAt',
   priority: 'priority',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
 
 export type ActionItemScalarFieldEnum = (typeof ActionItemScalarFieldEnum)[keyof typeof ActionItemScalarFieldEnum]
+
+
+export const ActionItemAssistantScalarFieldEnum = {
+  id: 'id',
+  actionItemId: 'actionItemId',
+  userId: 'userId',
+  addedById: 'addedById',
+  createdAt: 'createdAt'
+} as const
+
+export type ActionItemAssistantScalarFieldEnum = (typeof ActionItemAssistantScalarFieldEnum)[keyof typeof ActionItemAssistantScalarFieldEnum]
 
 
 export const NotificationScalarFieldEnum = {
@@ -2092,6 +2340,16 @@ export const NotificationScalarFieldEnum = {
 } as const
 
 export type NotificationScalarFieldEnum = (typeof NotificationScalarFieldEnum)[keyof typeof NotificationScalarFieldEnum]
+
+
+export const EmailSuppressionScalarFieldEnum = {
+  id: 'id',
+  email: 'email',
+  kind: 'kind',
+  createdAt: 'createdAt'
+} as const
+
+export type EmailSuppressionScalarFieldEnum = (typeof EmailSuppressionScalarFieldEnum)[keyof typeof EmailSuppressionScalarFieldEnum]
 
 
 export const AuditLogScalarFieldEnum = {
@@ -2377,6 +2635,20 @@ export type ListEnumMinutesStatusFieldRefInput<$PrismaModel> = FieldRefInputType
 
 
 /**
+ * Reference to a field of type 'MinutePointType'
+ */
+export type EnumMinutePointTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'MinutePointType'>
+    
+
+
+/**
+ * Reference to a field of type 'MinutePointType[]'
+ */
+export type ListEnumMinutePointTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'MinutePointType[]'>
+    
+
+
+/**
  * Reference to a field of type 'ActionItemStatus'
  */
 export type EnumActionItemStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ActionItemStatus'>
@@ -2595,9 +2867,12 @@ export type GlobalOmitConfig = {
   attendance?: Prisma.AttendanceOmit
   qRToken?: Prisma.QRTokenOmit
   minutes?: Prisma.MinutesOmit
+  minutePoint?: Prisma.MinutePointOmit
   minutesAccessToken?: Prisma.MinutesAccessTokenOmit
   actionItem?: Prisma.ActionItemOmit
+  actionItemAssistant?: Prisma.ActionItemAssistantOmit
   notification?: Prisma.NotificationOmit
+  emailSuppression?: Prisma.EmailSuppressionOmit
   auditLog?: Prisma.AuditLogOmit
   platformSetting?: Prisma.PlatformSettingOmit
 }

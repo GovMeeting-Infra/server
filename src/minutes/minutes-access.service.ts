@@ -130,8 +130,7 @@ export class MinutesAccessService {
         minutes: {
           select: {
             id: true,
-            body: true,
-            summary: true,
+            points: { orderBy: [{ type: 'asc' }, { order: 'asc' }] },
             status: true,
             publishedAt: true,
             event: {

@@ -64,9 +64,12 @@ export const ModelName = {
   Attendance: 'Attendance',
   QRToken: 'QRToken',
   Minutes: 'Minutes',
+  MinutePoint: 'MinutePoint',
   MinutesAccessToken: 'MinutesAccessToken',
   ActionItem: 'ActionItem',
+  ActionItemAssistant: 'ActionItemAssistant',
   Notification: 'Notification',
+  EmailSuppression: 'EmailSuppression',
   AuditLog: 'AuditLog',
   PlatformSetting: 'PlatformSetting'
 } as const
@@ -306,8 +309,6 @@ export type QRTokenScalarFieldEnum = (typeof QRTokenScalarFieldEnum)[keyof typeo
 export const MinutesScalarFieldEnum = {
   id: 'id',
   eventId: 'eventId',
-  body: 'body',
-  summary: 'summary',
   status: 'status',
   draftedById: 'draftedById',
   draftedAt: 'draftedAt',
@@ -320,6 +321,19 @@ export const MinutesScalarFieldEnum = {
 } as const
 
 export type MinutesScalarFieldEnum = (typeof MinutesScalarFieldEnum)[keyof typeof MinutesScalarFieldEnum]
+
+
+export const MinutePointScalarFieldEnum = {
+  id: 'id',
+  minutesId: 'minutesId',
+  type: 'type',
+  text: 'text',
+  order: 'order',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type MinutePointScalarFieldEnum = (typeof MinutePointScalarFieldEnum)[keyof typeof MinutePointScalarFieldEnum]
 
 
 export const MinutesAccessTokenScalarFieldEnum = {
@@ -349,12 +363,24 @@ export const ActionItemScalarFieldEnum = {
   progressNotes: 'progressNotes',
   progressLink: 'progressLink',
   reminderSentAt: 'reminderSentAt',
+  overdueNotifiedAt: 'overdueNotifiedAt',
   priority: 'priority',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
 
 export type ActionItemScalarFieldEnum = (typeof ActionItemScalarFieldEnum)[keyof typeof ActionItemScalarFieldEnum]
+
+
+export const ActionItemAssistantScalarFieldEnum = {
+  id: 'id',
+  actionItemId: 'actionItemId',
+  userId: 'userId',
+  addedById: 'addedById',
+  createdAt: 'createdAt'
+} as const
+
+export type ActionItemAssistantScalarFieldEnum = (typeof ActionItemAssistantScalarFieldEnum)[keyof typeof ActionItemAssistantScalarFieldEnum]
 
 
 export const NotificationScalarFieldEnum = {
@@ -374,6 +400,16 @@ export const NotificationScalarFieldEnum = {
 } as const
 
 export type NotificationScalarFieldEnum = (typeof NotificationScalarFieldEnum)[keyof typeof NotificationScalarFieldEnum]
+
+
+export const EmailSuppressionScalarFieldEnum = {
+  id: 'id',
+  email: 'email',
+  kind: 'kind',
+  createdAt: 'createdAt'
+} as const
+
+export type EmailSuppressionScalarFieldEnum = (typeof EmailSuppressionScalarFieldEnum)[keyof typeof EmailSuppressionScalarFieldEnum]
 
 
 export const AuditLogScalarFieldEnum = {

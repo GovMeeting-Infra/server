@@ -202,6 +202,12 @@ export class ActionItemsService {
         minutes: {
           include: { event: true },
         },
+        assistants: { select: { userId: true } },
+        // The outgoing owner, so a reassignment can tell them it is no longer
+        // theirs — the row is overwritten a few lines below.
+        owner: {
+          select: { id: true, name: true, email: true, ministryId: true },
+        },
       },
     });
 
@@ -223,11 +229,30 @@ export class ActionItemsService {
     // item is untouchable by everyone except a ministry admin — including the
     // person who just created it, who cannot even assign an owner to it.
     const isCreator = actionItem.assignedById === userId;
+    const isAssistant = actionItem.assistants?.some(
+      (a: { userId: string }) => a.userId === userId,
+    );
 
-    if (!isOwner && !isAdmin && !isCreator) {
+    if (!isOwner && !isAdmin && !isCreator && !isAssistant) {
       throw new ForbiddenException(
         'Only the assigned owner, the person who raised it, or a ministry admin can change this action item',
       );
+    }
+
+    // An assistant is doing the work and reporting on it; they do not decide
+    // what the work is. Deliberately the same narrow set a guest may write
+    // through their minutes link, because it is the same idea.
+    if (isAssistant && !isOwner && !isAdmin && !isCreator) {
+      const permitted = new Set(['status', 'progressNotes', 'progressLink']);
+      const overreach = Object.keys(dto).filter(
+        (key) => dto[key as keyof UpdateActionItemDto] !== undefined && !permitted.has(key),
+      );
+
+      if (overreach.length) {
+        throw new ForbiddenException(
+          'As an assistant you can update the status and record progress, but not change the task itself. Ask the owner.',
+        );
+      }
     }
 
     const updateData: any = {};
@@ -238,6 +263,7 @@ export class ActionItemsService {
       updateData.progressNotes = dto.progressNotes;
     if (dto.progressLink !== undefined)
       updateData.progressLink = dto.progressLink;
+    if (dto.priority !== undefined) updateData.priority = dto.priority;
 
     if (dto.dueDate !== undefined) {
       const next = new Date(dto.dueDate);
@@ -313,6 +339,27 @@ export class ActionItemsService {
       updated.ownerId !== actionItem.ownerId
     ) {
       await this.notifications.notifyActionItemAssigned(actionItemId);
+
+      // The other half of a reassignment. The new owner has always been told;
+      // the person it was taken from was told nothing at all, so an item
+      // simply disappeared off their board.
+      const previousEmail = actionItem.owner?.email ?? actionItem.ownerEmail;
+      if (previousEmail) {
+        await this.notifications.notifyActionItemUnassigned(
+          actionItemId,
+          {
+            id: actionItem.ownerId ?? null,
+            name: actionItem.owner?.name ?? actionItem.ownerName ?? 'Colleague',
+            email: previousEmail,
+            ministryId: actionItem.owner?.ministryId ?? null,
+          },
+          updated.ownerName ?? null,
+        );
+      }
+    } else if (dto.status === ActionItemStatusEnum.COMPLETED) {
+      // Everyone with a stake in the work: the owner, whoever raised it, the
+      // people helping, and the organizer of the meeting it came from.
+      await this.notifications.notifyActionItemCompleted(actionItemId, userId);
     } else if (
       dto.status &&
       actionItem.ownerId &&
@@ -335,6 +382,13 @@ export class ActionItemsService {
       include: {
         owner: { select: { id: true, name: true, email: true } },
         assignedBy: { select: { id: true, name: true, email: true } },
+        assistants: {
+          select: {
+            id: true,
+            userId: true,
+            user: { select: { id: true, name: true, email: true } },
+          },
+        },
       },
     });
 
@@ -385,6 +439,13 @@ export class ActionItemsService {
       include: {
         owner: { select: { id: true, name: true, email: true } },
         assignedBy: { select: { id: true, name: true, email: true } },
+        assistants: {
+          select: {
+            id: true,
+            userId: true,
+            user: { select: { id: true, name: true, email: true } },
+          },
+        },
         minutes: {
           select: {
             id: true,
@@ -405,6 +466,138 @@ export class ActionItemsService {
       },
       orderBy: [{ status: 'asc' }, { dueDate: 'asc' }],
     });
+  }
+
+  /**
+   * Whoever may already manage the item may recruit help for it.
+   *
+   * Assistants deliberately cannot: a helper who can add helpers is a second
+   * owner by another name, and the point of this table is that exactly one
+   * person stays answerable.
+   */
+  private async assertCanManage(
+    actionItemId: string,
+    userId: string,
+    ministryId: string,
+    systemRole?: string,
+  ) {
+    const item = await (this.prisma as any).actionItem.findUnique({
+      where: { id: actionItemId },
+      include: { minutes: { include: { event: true } } },
+    });
+
+    if (!item) throw new NotFoundException('Action item not found');
+
+    assertSameMinistry(
+      { systemRole: systemRole ?? '', ministryId },
+      item.minutes.event.ministryId,
+    );
+
+    const allowed =
+      item.ownerId === userId ||
+      item.assignedById === userId ||
+      ActionItemsService.ADMIN_ROLES.includes(systemRole ?? '');
+
+    if (!allowed) {
+      throw new ForbiddenException(
+        'Only the owner, the person who raised it, or a ministry admin can change who is helping',
+      );
+    }
+
+    return item;
+  }
+
+  async addAssistant(
+    actionItemId: string,
+    assistantUserId: string,
+    userId: string,
+    ministryId: string,
+    systemRole?: string,
+  ) {
+    const item = await this.assertCanManage(
+      actionItemId,
+      userId,
+      ministryId,
+      systemRole,
+    );
+
+    // Same rule as assigning an owner: help comes from within the ministry
+    // that owns the meeting, and resolveOwner is where that already lives.
+    const assistant = await this.resolveOwner(
+      assistantUserId,
+      item.minutes.event.ministryId,
+    );
+
+    if (assistant.id === item.ownerId) {
+      throw new BadRequestException(
+        'That person already owns this action item',
+      );
+    }
+
+    await (this.prisma as any).actionItemAssistant.upsert({
+      where: {
+        actionItemId_userId: { actionItemId, userId: assistant.id },
+      },
+      update: {},
+      create: { actionItemId, userId: assistant.id, addedById: userId },
+    });
+
+    await this.audit.log({
+      action: 'ACTION_ITEM_ASSISTANT_ADDED',
+      actionCategory: 'ACTION_ITEM_MANAGEMENT',
+      entityType: 'ActionItem',
+      entityId: actionItemId,
+      entityName: item.title,
+      status: 'SUCCESS',
+      ministryId,
+      actorId: userId,
+      description: `Asked ${assistant.name} to help with: ${item.title}`,
+    });
+
+    // Being asked to help is news, and the assignment notification already
+    // says the right thing.
+    try {
+      await this.notifications.notifyActionItemAssigned(actionItemId);
+    } catch (error) {
+      this.logger.error(
+        `Could not notify assistant: ${(error as Error).message}`,
+      );
+    }
+
+    return this.getActionItem(actionItemId);
+  }
+
+  async removeAssistant(
+    actionItemId: string,
+    assistantUserId: string,
+    userId: string,
+    ministryId: string,
+    systemRole?: string,
+  ) {
+    const item = await this.assertCanManage(
+      actionItemId,
+      userId,
+      ministryId,
+      systemRole,
+    );
+
+    await (this.prisma as any).actionItemAssistant.deleteMany({
+      where: { actionItemId, userId: assistantUserId },
+    });
+
+    await this.audit.log({
+      action: 'ACTION_ITEM_ASSISTANT_REMOVED',
+      actionCategory: 'ACTION_ITEM_MANAGEMENT',
+      entityType: 'ActionItem',
+      entityId: actionItemId,
+      entityName: item.title,
+      status: 'SUCCESS',
+      ministryId,
+      actorId: userId,
+      description: `Removed a helper from: ${item.title}`,
+    });
+
+    return this.getActionItem(actionItemId);
   }
 
   async listDueSoon(ministryId: string, hoursAhead = 24) {

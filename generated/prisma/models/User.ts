@@ -307,6 +307,7 @@ export type UserWhereInput = {
   minutesDrafted?: Prisma.MinutesListRelationFilter
   minutesPublished?: Prisma.MinutesListRelationFilter
   assignedActionItems?: Prisma.ActionItemListRelationFilter
+  assistingActionItems?: Prisma.ActionItemAssistantListRelationFilter
   createdActionItems?: Prisma.ActionItemListRelationFilter
   auditLogs?: Prisma.AuditLogListRelationFilter
   notifications?: Prisma.NotificationListRelationFilter
@@ -340,6 +341,7 @@ export type UserOrderByWithRelationInput = {
   minutesDrafted?: Prisma.MinutesOrderByRelationAggregateInput
   minutesPublished?: Prisma.MinutesOrderByRelationAggregateInput
   assignedActionItems?: Prisma.ActionItemOrderByRelationAggregateInput
+  assistingActionItems?: Prisma.ActionItemAssistantOrderByRelationAggregateInput
   createdActionItems?: Prisma.ActionItemOrderByRelationAggregateInput
   auditLogs?: Prisma.AuditLogOrderByRelationAggregateInput
   notifications?: Prisma.NotificationOrderByRelationAggregateInput
@@ -376,6 +378,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   minutesDrafted?: Prisma.MinutesListRelationFilter
   minutesPublished?: Prisma.MinutesListRelationFilter
   assignedActionItems?: Prisma.ActionItemListRelationFilter
+  assistingActionItems?: Prisma.ActionItemAssistantListRelationFilter
   createdActionItems?: Prisma.ActionItemListRelationFilter
   auditLogs?: Prisma.AuditLogListRelationFilter
   notifications?: Prisma.NotificationListRelationFilter
@@ -452,6 +455,7 @@ export type UserCreateInput = {
   minutesDrafted?: Prisma.MinutesCreateNestedManyWithoutDraftedByInput
   minutesPublished?: Prisma.MinutesCreateNestedManyWithoutPublishedByInput
   assignedActionItems?: Prisma.ActionItemCreateNestedManyWithoutOwnerInput
+  assistingActionItems?: Prisma.ActionItemAssistantCreateNestedManyWithoutUserInput
   createdActionItems?: Prisma.ActionItemCreateNestedManyWithoutAssignedByInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
@@ -484,6 +488,7 @@ export type UserUncheckedCreateInput = {
   minutesDrafted?: Prisma.MinutesUncheckedCreateNestedManyWithoutDraftedByInput
   minutesPublished?: Prisma.MinutesUncheckedCreateNestedManyWithoutPublishedByInput
   assignedActionItems?: Prisma.ActionItemUncheckedCreateNestedManyWithoutOwnerInput
+  assistingActionItems?: Prisma.ActionItemAssistantUncheckedCreateNestedManyWithoutUserInput
   createdActionItems?: Prisma.ActionItemUncheckedCreateNestedManyWithoutAssignedByInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
@@ -516,6 +521,7 @@ export type UserUpdateInput = {
   minutesDrafted?: Prisma.MinutesUpdateManyWithoutDraftedByNestedInput
   minutesPublished?: Prisma.MinutesUpdateManyWithoutPublishedByNestedInput
   assignedActionItems?: Prisma.ActionItemUpdateManyWithoutOwnerNestedInput
+  assistingActionItems?: Prisma.ActionItemAssistantUpdateManyWithoutUserNestedInput
   createdActionItems?: Prisma.ActionItemUpdateManyWithoutAssignedByNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
@@ -548,6 +554,7 @@ export type UserUncheckedUpdateInput = {
   minutesDrafted?: Prisma.MinutesUncheckedUpdateManyWithoutDraftedByNestedInput
   minutesPublished?: Prisma.MinutesUncheckedUpdateManyWithoutPublishedByNestedInput
   assignedActionItems?: Prisma.ActionItemUncheckedUpdateManyWithoutOwnerNestedInput
+  assistingActionItems?: Prisma.ActionItemAssistantUncheckedUpdateManyWithoutUserNestedInput
   createdActionItems?: Prisma.ActionItemUncheckedUpdateManyWithoutAssignedByNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
@@ -931,6 +938,20 @@ export type UserUpdateOneWithoutCreatedActionItemsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutCreatedActionItemsInput, Prisma.UserUpdateWithoutCreatedActionItemsInput>, Prisma.UserUncheckedUpdateWithoutCreatedActionItemsInput>
 }
 
+export type UserCreateNestedOneWithoutAssistingActionItemsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutAssistingActionItemsInput, Prisma.UserUncheckedCreateWithoutAssistingActionItemsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutAssistingActionItemsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutAssistingActionItemsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutAssistingActionItemsInput, Prisma.UserUncheckedCreateWithoutAssistingActionItemsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutAssistingActionItemsInput
+  upsert?: Prisma.UserUpsertWithoutAssistingActionItemsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutAssistingActionItemsInput, Prisma.UserUpdateWithoutAssistingActionItemsInput>, Prisma.UserUncheckedUpdateWithoutAssistingActionItemsInput>
+}
+
 export type UserCreateNestedOneWithoutNotificationsInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutNotificationsInput, Prisma.UserUncheckedCreateWithoutNotificationsInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutNotificationsInput
@@ -1002,6 +1023,7 @@ export type UserCreateWithoutSessionsInput = {
   minutesDrafted?: Prisma.MinutesCreateNestedManyWithoutDraftedByInput
   minutesPublished?: Prisma.MinutesCreateNestedManyWithoutPublishedByInput
   assignedActionItems?: Prisma.ActionItemCreateNestedManyWithoutOwnerInput
+  assistingActionItems?: Prisma.ActionItemAssistantCreateNestedManyWithoutUserInput
   createdActionItems?: Prisma.ActionItemCreateNestedManyWithoutAssignedByInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
@@ -1033,6 +1055,7 @@ export type UserUncheckedCreateWithoutSessionsInput = {
   minutesDrafted?: Prisma.MinutesUncheckedCreateNestedManyWithoutDraftedByInput
   minutesPublished?: Prisma.MinutesUncheckedCreateNestedManyWithoutPublishedByInput
   assignedActionItems?: Prisma.ActionItemUncheckedCreateNestedManyWithoutOwnerInput
+  assistingActionItems?: Prisma.ActionItemAssistantUncheckedCreateNestedManyWithoutUserInput
   createdActionItems?: Prisma.ActionItemUncheckedCreateNestedManyWithoutAssignedByInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
@@ -1080,6 +1103,7 @@ export type UserUpdateWithoutSessionsInput = {
   minutesDrafted?: Prisma.MinutesUpdateManyWithoutDraftedByNestedInput
   minutesPublished?: Prisma.MinutesUpdateManyWithoutPublishedByNestedInput
   assignedActionItems?: Prisma.ActionItemUpdateManyWithoutOwnerNestedInput
+  assistingActionItems?: Prisma.ActionItemAssistantUpdateManyWithoutUserNestedInput
   createdActionItems?: Prisma.ActionItemUpdateManyWithoutAssignedByNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
@@ -1111,6 +1135,7 @@ export type UserUncheckedUpdateWithoutSessionsInput = {
   minutesDrafted?: Prisma.MinutesUncheckedUpdateManyWithoutDraftedByNestedInput
   minutesPublished?: Prisma.MinutesUncheckedUpdateManyWithoutPublishedByNestedInput
   assignedActionItems?: Prisma.ActionItemUncheckedUpdateManyWithoutOwnerNestedInput
+  assistingActionItems?: Prisma.ActionItemAssistantUncheckedUpdateManyWithoutUserNestedInput
   createdActionItems?: Prisma.ActionItemUncheckedUpdateManyWithoutAssignedByNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
@@ -1142,6 +1167,7 @@ export type UserCreateWithoutAccountsInput = {
   minutesDrafted?: Prisma.MinutesCreateNestedManyWithoutDraftedByInput
   minutesPublished?: Prisma.MinutesCreateNestedManyWithoutPublishedByInput
   assignedActionItems?: Prisma.ActionItemCreateNestedManyWithoutOwnerInput
+  assistingActionItems?: Prisma.ActionItemAssistantCreateNestedManyWithoutUserInput
   createdActionItems?: Prisma.ActionItemCreateNestedManyWithoutAssignedByInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
@@ -1173,6 +1199,7 @@ export type UserUncheckedCreateWithoutAccountsInput = {
   minutesDrafted?: Prisma.MinutesUncheckedCreateNestedManyWithoutDraftedByInput
   minutesPublished?: Prisma.MinutesUncheckedCreateNestedManyWithoutPublishedByInput
   assignedActionItems?: Prisma.ActionItemUncheckedCreateNestedManyWithoutOwnerInput
+  assistingActionItems?: Prisma.ActionItemAssistantUncheckedCreateNestedManyWithoutUserInput
   createdActionItems?: Prisma.ActionItemUncheckedCreateNestedManyWithoutAssignedByInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
@@ -1220,6 +1247,7 @@ export type UserUpdateWithoutAccountsInput = {
   minutesDrafted?: Prisma.MinutesUpdateManyWithoutDraftedByNestedInput
   minutesPublished?: Prisma.MinutesUpdateManyWithoutPublishedByNestedInput
   assignedActionItems?: Prisma.ActionItemUpdateManyWithoutOwnerNestedInput
+  assistingActionItems?: Prisma.ActionItemAssistantUpdateManyWithoutUserNestedInput
   createdActionItems?: Prisma.ActionItemUpdateManyWithoutAssignedByNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
@@ -1251,6 +1279,7 @@ export type UserUncheckedUpdateWithoutAccountsInput = {
   minutesDrafted?: Prisma.MinutesUncheckedUpdateManyWithoutDraftedByNestedInput
   minutesPublished?: Prisma.MinutesUncheckedUpdateManyWithoutPublishedByNestedInput
   assignedActionItems?: Prisma.ActionItemUncheckedUpdateManyWithoutOwnerNestedInput
+  assistingActionItems?: Prisma.ActionItemAssistantUncheckedUpdateManyWithoutUserNestedInput
   createdActionItems?: Prisma.ActionItemUncheckedUpdateManyWithoutAssignedByNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
@@ -1282,6 +1311,7 @@ export type UserCreateWithoutMinistryInput = {
   minutesDrafted?: Prisma.MinutesCreateNestedManyWithoutDraftedByInput
   minutesPublished?: Prisma.MinutesCreateNestedManyWithoutPublishedByInput
   assignedActionItems?: Prisma.ActionItemCreateNestedManyWithoutOwnerInput
+  assistingActionItems?: Prisma.ActionItemAssistantCreateNestedManyWithoutUserInput
   createdActionItems?: Prisma.ActionItemCreateNestedManyWithoutAssignedByInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
@@ -1313,6 +1343,7 @@ export type UserUncheckedCreateWithoutMinistryInput = {
   minutesDrafted?: Prisma.MinutesUncheckedCreateNestedManyWithoutDraftedByInput
   minutesPublished?: Prisma.MinutesUncheckedCreateNestedManyWithoutPublishedByInput
   assignedActionItems?: Prisma.ActionItemUncheckedCreateNestedManyWithoutOwnerInput
+  assistingActionItems?: Prisma.ActionItemAssistantUncheckedCreateNestedManyWithoutUserInput
   createdActionItems?: Prisma.ActionItemUncheckedCreateNestedManyWithoutAssignedByInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
@@ -1391,6 +1422,7 @@ export type UserCreateWithoutPreferencesInput = {
   minutesDrafted?: Prisma.MinutesCreateNestedManyWithoutDraftedByInput
   minutesPublished?: Prisma.MinutesCreateNestedManyWithoutPublishedByInput
   assignedActionItems?: Prisma.ActionItemCreateNestedManyWithoutOwnerInput
+  assistingActionItems?: Prisma.ActionItemAssistantCreateNestedManyWithoutUserInput
   createdActionItems?: Prisma.ActionItemCreateNestedManyWithoutAssignedByInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
@@ -1422,6 +1454,7 @@ export type UserUncheckedCreateWithoutPreferencesInput = {
   minutesDrafted?: Prisma.MinutesUncheckedCreateNestedManyWithoutDraftedByInput
   minutesPublished?: Prisma.MinutesUncheckedCreateNestedManyWithoutPublishedByInput
   assignedActionItems?: Prisma.ActionItemUncheckedCreateNestedManyWithoutOwnerInput
+  assistingActionItems?: Prisma.ActionItemAssistantUncheckedCreateNestedManyWithoutUserInput
   createdActionItems?: Prisma.ActionItemUncheckedCreateNestedManyWithoutAssignedByInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
@@ -1469,6 +1502,7 @@ export type UserUpdateWithoutPreferencesInput = {
   minutesDrafted?: Prisma.MinutesUpdateManyWithoutDraftedByNestedInput
   minutesPublished?: Prisma.MinutesUpdateManyWithoutPublishedByNestedInput
   assignedActionItems?: Prisma.ActionItemUpdateManyWithoutOwnerNestedInput
+  assistingActionItems?: Prisma.ActionItemAssistantUpdateManyWithoutUserNestedInput
   createdActionItems?: Prisma.ActionItemUpdateManyWithoutAssignedByNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
@@ -1500,6 +1534,7 @@ export type UserUncheckedUpdateWithoutPreferencesInput = {
   minutesDrafted?: Prisma.MinutesUncheckedUpdateManyWithoutDraftedByNestedInput
   minutesPublished?: Prisma.MinutesUncheckedUpdateManyWithoutPublishedByNestedInput
   assignedActionItems?: Prisma.ActionItemUncheckedUpdateManyWithoutOwnerNestedInput
+  assistingActionItems?: Prisma.ActionItemAssistantUncheckedUpdateManyWithoutUserNestedInput
   createdActionItems?: Prisma.ActionItemUncheckedUpdateManyWithoutAssignedByNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
@@ -1531,6 +1566,7 @@ export type UserCreateWithoutOrganizedEventsInput = {
   minutesDrafted?: Prisma.MinutesCreateNestedManyWithoutDraftedByInput
   minutesPublished?: Prisma.MinutesCreateNestedManyWithoutPublishedByInput
   assignedActionItems?: Prisma.ActionItemCreateNestedManyWithoutOwnerInput
+  assistingActionItems?: Prisma.ActionItemAssistantCreateNestedManyWithoutUserInput
   createdActionItems?: Prisma.ActionItemCreateNestedManyWithoutAssignedByInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
@@ -1562,6 +1598,7 @@ export type UserUncheckedCreateWithoutOrganizedEventsInput = {
   minutesDrafted?: Prisma.MinutesUncheckedCreateNestedManyWithoutDraftedByInput
   minutesPublished?: Prisma.MinutesUncheckedCreateNestedManyWithoutPublishedByInput
   assignedActionItems?: Prisma.ActionItemUncheckedCreateNestedManyWithoutOwnerInput
+  assistingActionItems?: Prisma.ActionItemAssistantUncheckedCreateNestedManyWithoutUserInput
   createdActionItems?: Prisma.ActionItemUncheckedCreateNestedManyWithoutAssignedByInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
@@ -1609,6 +1646,7 @@ export type UserUpdateWithoutOrganizedEventsInput = {
   minutesDrafted?: Prisma.MinutesUpdateManyWithoutDraftedByNestedInput
   minutesPublished?: Prisma.MinutesUpdateManyWithoutPublishedByNestedInput
   assignedActionItems?: Prisma.ActionItemUpdateManyWithoutOwnerNestedInput
+  assistingActionItems?: Prisma.ActionItemAssistantUpdateManyWithoutUserNestedInput
   createdActionItems?: Prisma.ActionItemUpdateManyWithoutAssignedByNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
@@ -1640,6 +1678,7 @@ export type UserUncheckedUpdateWithoutOrganizedEventsInput = {
   minutesDrafted?: Prisma.MinutesUncheckedUpdateManyWithoutDraftedByNestedInput
   minutesPublished?: Prisma.MinutesUncheckedUpdateManyWithoutPublishedByNestedInput
   assignedActionItems?: Prisma.ActionItemUncheckedUpdateManyWithoutOwnerNestedInput
+  assistingActionItems?: Prisma.ActionItemAssistantUncheckedUpdateManyWithoutUserNestedInput
   createdActionItems?: Prisma.ActionItemUncheckedUpdateManyWithoutAssignedByNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
@@ -1671,6 +1710,7 @@ export type UserCreateWithoutCoOrganizedEventsInput = {
   minutesDrafted?: Prisma.MinutesCreateNestedManyWithoutDraftedByInput
   minutesPublished?: Prisma.MinutesCreateNestedManyWithoutPublishedByInput
   assignedActionItems?: Prisma.ActionItemCreateNestedManyWithoutOwnerInput
+  assistingActionItems?: Prisma.ActionItemAssistantCreateNestedManyWithoutUserInput
   createdActionItems?: Prisma.ActionItemCreateNestedManyWithoutAssignedByInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
@@ -1702,6 +1742,7 @@ export type UserUncheckedCreateWithoutCoOrganizedEventsInput = {
   minutesDrafted?: Prisma.MinutesUncheckedCreateNestedManyWithoutDraftedByInput
   minutesPublished?: Prisma.MinutesUncheckedCreateNestedManyWithoutPublishedByInput
   assignedActionItems?: Prisma.ActionItemUncheckedCreateNestedManyWithoutOwnerInput
+  assistingActionItems?: Prisma.ActionItemAssistantUncheckedCreateNestedManyWithoutUserInput
   createdActionItems?: Prisma.ActionItemUncheckedCreateNestedManyWithoutAssignedByInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
@@ -1749,6 +1790,7 @@ export type UserUpdateWithoutCoOrganizedEventsInput = {
   minutesDrafted?: Prisma.MinutesUpdateManyWithoutDraftedByNestedInput
   minutesPublished?: Prisma.MinutesUpdateManyWithoutPublishedByNestedInput
   assignedActionItems?: Prisma.ActionItemUpdateManyWithoutOwnerNestedInput
+  assistingActionItems?: Prisma.ActionItemAssistantUpdateManyWithoutUserNestedInput
   createdActionItems?: Prisma.ActionItemUpdateManyWithoutAssignedByNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
@@ -1780,6 +1822,7 @@ export type UserUncheckedUpdateWithoutCoOrganizedEventsInput = {
   minutesDrafted?: Prisma.MinutesUncheckedUpdateManyWithoutDraftedByNestedInput
   minutesPublished?: Prisma.MinutesUncheckedUpdateManyWithoutPublishedByNestedInput
   assignedActionItems?: Prisma.ActionItemUncheckedUpdateManyWithoutOwnerNestedInput
+  assistingActionItems?: Prisma.ActionItemAssistantUncheckedUpdateManyWithoutUserNestedInput
   createdActionItems?: Prisma.ActionItemUncheckedUpdateManyWithoutAssignedByNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
@@ -1811,6 +1854,7 @@ export type UserCreateWithoutEventAttendeesInput = {
   minutesDrafted?: Prisma.MinutesCreateNestedManyWithoutDraftedByInput
   minutesPublished?: Prisma.MinutesCreateNestedManyWithoutPublishedByInput
   assignedActionItems?: Prisma.ActionItemCreateNestedManyWithoutOwnerInput
+  assistingActionItems?: Prisma.ActionItemAssistantCreateNestedManyWithoutUserInput
   createdActionItems?: Prisma.ActionItemCreateNestedManyWithoutAssignedByInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
@@ -1842,6 +1886,7 @@ export type UserUncheckedCreateWithoutEventAttendeesInput = {
   minutesDrafted?: Prisma.MinutesUncheckedCreateNestedManyWithoutDraftedByInput
   minutesPublished?: Prisma.MinutesUncheckedCreateNestedManyWithoutPublishedByInput
   assignedActionItems?: Prisma.ActionItemUncheckedCreateNestedManyWithoutOwnerInput
+  assistingActionItems?: Prisma.ActionItemAssistantUncheckedCreateNestedManyWithoutUserInput
   createdActionItems?: Prisma.ActionItemUncheckedCreateNestedManyWithoutAssignedByInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
@@ -1889,6 +1934,7 @@ export type UserUpdateWithoutEventAttendeesInput = {
   minutesDrafted?: Prisma.MinutesUpdateManyWithoutDraftedByNestedInput
   minutesPublished?: Prisma.MinutesUpdateManyWithoutPublishedByNestedInput
   assignedActionItems?: Prisma.ActionItemUpdateManyWithoutOwnerNestedInput
+  assistingActionItems?: Prisma.ActionItemAssistantUpdateManyWithoutUserNestedInput
   createdActionItems?: Prisma.ActionItemUpdateManyWithoutAssignedByNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
@@ -1920,6 +1966,7 @@ export type UserUncheckedUpdateWithoutEventAttendeesInput = {
   minutesDrafted?: Prisma.MinutesUncheckedUpdateManyWithoutDraftedByNestedInput
   minutesPublished?: Prisma.MinutesUncheckedUpdateManyWithoutPublishedByNestedInput
   assignedActionItems?: Prisma.ActionItemUncheckedUpdateManyWithoutOwnerNestedInput
+  assistingActionItems?: Prisma.ActionItemAssistantUncheckedUpdateManyWithoutUserNestedInput
   createdActionItems?: Prisma.ActionItemUncheckedUpdateManyWithoutAssignedByNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
@@ -1951,6 +1998,7 @@ export type UserCreateWithoutAttendancesInput = {
   minutesDrafted?: Prisma.MinutesCreateNestedManyWithoutDraftedByInput
   minutesPublished?: Prisma.MinutesCreateNestedManyWithoutPublishedByInput
   assignedActionItems?: Prisma.ActionItemCreateNestedManyWithoutOwnerInput
+  assistingActionItems?: Prisma.ActionItemAssistantCreateNestedManyWithoutUserInput
   createdActionItems?: Prisma.ActionItemCreateNestedManyWithoutAssignedByInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
@@ -1982,6 +2030,7 @@ export type UserUncheckedCreateWithoutAttendancesInput = {
   minutesDrafted?: Prisma.MinutesUncheckedCreateNestedManyWithoutDraftedByInput
   minutesPublished?: Prisma.MinutesUncheckedCreateNestedManyWithoutPublishedByInput
   assignedActionItems?: Prisma.ActionItemUncheckedCreateNestedManyWithoutOwnerInput
+  assistingActionItems?: Prisma.ActionItemAssistantUncheckedCreateNestedManyWithoutUserInput
   createdActionItems?: Prisma.ActionItemUncheckedCreateNestedManyWithoutAssignedByInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
@@ -2029,6 +2078,7 @@ export type UserUpdateWithoutAttendancesInput = {
   minutesDrafted?: Prisma.MinutesUpdateManyWithoutDraftedByNestedInput
   minutesPublished?: Prisma.MinutesUpdateManyWithoutPublishedByNestedInput
   assignedActionItems?: Prisma.ActionItemUpdateManyWithoutOwnerNestedInput
+  assistingActionItems?: Prisma.ActionItemAssistantUpdateManyWithoutUserNestedInput
   createdActionItems?: Prisma.ActionItemUpdateManyWithoutAssignedByNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
@@ -2060,6 +2110,7 @@ export type UserUncheckedUpdateWithoutAttendancesInput = {
   minutesDrafted?: Prisma.MinutesUncheckedUpdateManyWithoutDraftedByNestedInput
   minutesPublished?: Prisma.MinutesUncheckedUpdateManyWithoutPublishedByNestedInput
   assignedActionItems?: Prisma.ActionItemUncheckedUpdateManyWithoutOwnerNestedInput
+  assistingActionItems?: Prisma.ActionItemAssistantUncheckedUpdateManyWithoutUserNestedInput
   createdActionItems?: Prisma.ActionItemUncheckedUpdateManyWithoutAssignedByNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
@@ -2091,6 +2142,7 @@ export type UserCreateWithoutMinutesDraftedInput = {
   eventAttendees?: Prisma.EventAttendeeCreateNestedManyWithoutUserInput
   minutesPublished?: Prisma.MinutesCreateNestedManyWithoutPublishedByInput
   assignedActionItems?: Prisma.ActionItemCreateNestedManyWithoutOwnerInput
+  assistingActionItems?: Prisma.ActionItemAssistantCreateNestedManyWithoutUserInput
   createdActionItems?: Prisma.ActionItemCreateNestedManyWithoutAssignedByInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
@@ -2122,6 +2174,7 @@ export type UserUncheckedCreateWithoutMinutesDraftedInput = {
   eventAttendees?: Prisma.EventAttendeeUncheckedCreateNestedManyWithoutUserInput
   minutesPublished?: Prisma.MinutesUncheckedCreateNestedManyWithoutPublishedByInput
   assignedActionItems?: Prisma.ActionItemUncheckedCreateNestedManyWithoutOwnerInput
+  assistingActionItems?: Prisma.ActionItemAssistantUncheckedCreateNestedManyWithoutUserInput
   createdActionItems?: Prisma.ActionItemUncheckedCreateNestedManyWithoutAssignedByInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
@@ -2158,6 +2211,7 @@ export type UserCreateWithoutMinutesPublishedInput = {
   eventAttendees?: Prisma.EventAttendeeCreateNestedManyWithoutUserInput
   minutesDrafted?: Prisma.MinutesCreateNestedManyWithoutDraftedByInput
   assignedActionItems?: Prisma.ActionItemCreateNestedManyWithoutOwnerInput
+  assistingActionItems?: Prisma.ActionItemAssistantCreateNestedManyWithoutUserInput
   createdActionItems?: Prisma.ActionItemCreateNestedManyWithoutAssignedByInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
@@ -2189,6 +2243,7 @@ export type UserUncheckedCreateWithoutMinutesPublishedInput = {
   eventAttendees?: Prisma.EventAttendeeUncheckedCreateNestedManyWithoutUserInput
   minutesDrafted?: Prisma.MinutesUncheckedCreateNestedManyWithoutDraftedByInput
   assignedActionItems?: Prisma.ActionItemUncheckedCreateNestedManyWithoutOwnerInput
+  assistingActionItems?: Prisma.ActionItemAssistantUncheckedCreateNestedManyWithoutUserInput
   createdActionItems?: Prisma.ActionItemUncheckedCreateNestedManyWithoutAssignedByInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
@@ -2236,6 +2291,7 @@ export type UserUpdateWithoutMinutesDraftedInput = {
   eventAttendees?: Prisma.EventAttendeeUpdateManyWithoutUserNestedInput
   minutesPublished?: Prisma.MinutesUpdateManyWithoutPublishedByNestedInput
   assignedActionItems?: Prisma.ActionItemUpdateManyWithoutOwnerNestedInput
+  assistingActionItems?: Prisma.ActionItemAssistantUpdateManyWithoutUserNestedInput
   createdActionItems?: Prisma.ActionItemUpdateManyWithoutAssignedByNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
@@ -2267,6 +2323,7 @@ export type UserUncheckedUpdateWithoutMinutesDraftedInput = {
   eventAttendees?: Prisma.EventAttendeeUncheckedUpdateManyWithoutUserNestedInput
   minutesPublished?: Prisma.MinutesUncheckedUpdateManyWithoutPublishedByNestedInput
   assignedActionItems?: Prisma.ActionItemUncheckedUpdateManyWithoutOwnerNestedInput
+  assistingActionItems?: Prisma.ActionItemAssistantUncheckedUpdateManyWithoutUserNestedInput
   createdActionItems?: Prisma.ActionItemUncheckedUpdateManyWithoutAssignedByNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
@@ -2309,6 +2366,7 @@ export type UserUpdateWithoutMinutesPublishedInput = {
   eventAttendees?: Prisma.EventAttendeeUpdateManyWithoutUserNestedInput
   minutesDrafted?: Prisma.MinutesUpdateManyWithoutDraftedByNestedInput
   assignedActionItems?: Prisma.ActionItemUpdateManyWithoutOwnerNestedInput
+  assistingActionItems?: Prisma.ActionItemAssistantUpdateManyWithoutUserNestedInput
   createdActionItems?: Prisma.ActionItemUpdateManyWithoutAssignedByNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
@@ -2340,6 +2398,7 @@ export type UserUncheckedUpdateWithoutMinutesPublishedInput = {
   eventAttendees?: Prisma.EventAttendeeUncheckedUpdateManyWithoutUserNestedInput
   minutesDrafted?: Prisma.MinutesUncheckedUpdateManyWithoutDraftedByNestedInput
   assignedActionItems?: Prisma.ActionItemUncheckedUpdateManyWithoutOwnerNestedInput
+  assistingActionItems?: Prisma.ActionItemAssistantUncheckedUpdateManyWithoutUserNestedInput
   createdActionItems?: Prisma.ActionItemUncheckedUpdateManyWithoutAssignedByNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
@@ -2371,6 +2430,7 @@ export type UserCreateWithoutAssignedActionItemsInput = {
   eventAttendees?: Prisma.EventAttendeeCreateNestedManyWithoutUserInput
   minutesDrafted?: Prisma.MinutesCreateNestedManyWithoutDraftedByInput
   minutesPublished?: Prisma.MinutesCreateNestedManyWithoutPublishedByInput
+  assistingActionItems?: Prisma.ActionItemAssistantCreateNestedManyWithoutUserInput
   createdActionItems?: Prisma.ActionItemCreateNestedManyWithoutAssignedByInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
@@ -2402,6 +2462,7 @@ export type UserUncheckedCreateWithoutAssignedActionItemsInput = {
   eventAttendees?: Prisma.EventAttendeeUncheckedCreateNestedManyWithoutUserInput
   minutesDrafted?: Prisma.MinutesUncheckedCreateNestedManyWithoutDraftedByInput
   minutesPublished?: Prisma.MinutesUncheckedCreateNestedManyWithoutPublishedByInput
+  assistingActionItems?: Prisma.ActionItemAssistantUncheckedCreateNestedManyWithoutUserInput
   createdActionItems?: Prisma.ActionItemUncheckedCreateNestedManyWithoutAssignedByInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
@@ -2439,6 +2500,7 @@ export type UserCreateWithoutCreatedActionItemsInput = {
   minutesDrafted?: Prisma.MinutesCreateNestedManyWithoutDraftedByInput
   minutesPublished?: Prisma.MinutesCreateNestedManyWithoutPublishedByInput
   assignedActionItems?: Prisma.ActionItemCreateNestedManyWithoutOwnerInput
+  assistingActionItems?: Prisma.ActionItemAssistantCreateNestedManyWithoutUserInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   settingsChanged?: Prisma.PlatformSettingCreateNestedManyWithoutUpdatedByInput
@@ -2470,6 +2532,7 @@ export type UserUncheckedCreateWithoutCreatedActionItemsInput = {
   minutesDrafted?: Prisma.MinutesUncheckedCreateNestedManyWithoutDraftedByInput
   minutesPublished?: Prisma.MinutesUncheckedCreateNestedManyWithoutPublishedByInput
   assignedActionItems?: Prisma.ActionItemUncheckedCreateNestedManyWithoutOwnerInput
+  assistingActionItems?: Prisma.ActionItemAssistantUncheckedCreateNestedManyWithoutUserInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   settingsChanged?: Prisma.PlatformSettingUncheckedCreateNestedManyWithoutUpdatedByInput
@@ -2516,6 +2579,7 @@ export type UserUpdateWithoutAssignedActionItemsInput = {
   eventAttendees?: Prisma.EventAttendeeUpdateManyWithoutUserNestedInput
   minutesDrafted?: Prisma.MinutesUpdateManyWithoutDraftedByNestedInput
   minutesPublished?: Prisma.MinutesUpdateManyWithoutPublishedByNestedInput
+  assistingActionItems?: Prisma.ActionItemAssistantUpdateManyWithoutUserNestedInput
   createdActionItems?: Prisma.ActionItemUpdateManyWithoutAssignedByNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
@@ -2547,6 +2611,7 @@ export type UserUncheckedUpdateWithoutAssignedActionItemsInput = {
   eventAttendees?: Prisma.EventAttendeeUncheckedUpdateManyWithoutUserNestedInput
   minutesDrafted?: Prisma.MinutesUncheckedUpdateManyWithoutDraftedByNestedInput
   minutesPublished?: Prisma.MinutesUncheckedUpdateManyWithoutPublishedByNestedInput
+  assistingActionItems?: Prisma.ActionItemAssistantUncheckedUpdateManyWithoutUserNestedInput
   createdActionItems?: Prisma.ActionItemUncheckedUpdateManyWithoutAssignedByNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
@@ -2590,6 +2655,7 @@ export type UserUpdateWithoutCreatedActionItemsInput = {
   minutesDrafted?: Prisma.MinutesUpdateManyWithoutDraftedByNestedInput
   minutesPublished?: Prisma.MinutesUpdateManyWithoutPublishedByNestedInput
   assignedActionItems?: Prisma.ActionItemUpdateManyWithoutOwnerNestedInput
+  assistingActionItems?: Prisma.ActionItemAssistantUpdateManyWithoutUserNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   settingsChanged?: Prisma.PlatformSettingUpdateManyWithoutUpdatedByNestedInput
@@ -2621,6 +2687,151 @@ export type UserUncheckedUpdateWithoutCreatedActionItemsInput = {
   minutesDrafted?: Prisma.MinutesUncheckedUpdateManyWithoutDraftedByNestedInput
   minutesPublished?: Prisma.MinutesUncheckedUpdateManyWithoutPublishedByNestedInput
   assignedActionItems?: Prisma.ActionItemUncheckedUpdateManyWithoutOwnerNestedInput
+  assistingActionItems?: Prisma.ActionItemAssistantUncheckedUpdateManyWithoutUserNestedInput
+  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
+  settingsChanged?: Prisma.PlatformSettingUncheckedUpdateManyWithoutUpdatedByNestedInput
+}
+
+export type UserCreateWithoutAssistingActionItemsInput = {
+  id?: string
+  email: string
+  emailVerified?: boolean
+  name: string
+  image?: string | null
+  jobTitle?: string | null
+  systemRole?: $Enums.SystemRole
+  active?: boolean
+  loginAttempts?: number
+  lockedUntil?: Date | string | null
+  lastLoginAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  ministry?: Prisma.MinistryCreateNestedOneWithoutUsersInput
+  sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  preferences?: Prisma.UserPreferencesCreateNestedOneWithoutUserInput
+  organizedEvents?: Prisma.EventCreateNestedManyWithoutOrganizerInput
+  coOrganizedEvents?: Prisma.EventCoOrganizerCreateNestedManyWithoutUserInput
+  attendances?: Prisma.AttendanceCreateNestedManyWithoutUserInput
+  eventAttendees?: Prisma.EventAttendeeCreateNestedManyWithoutUserInput
+  minutesDrafted?: Prisma.MinutesCreateNestedManyWithoutDraftedByInput
+  minutesPublished?: Prisma.MinutesCreateNestedManyWithoutPublishedByInput
+  assignedActionItems?: Prisma.ActionItemCreateNestedManyWithoutOwnerInput
+  createdActionItems?: Prisma.ActionItemCreateNestedManyWithoutAssignedByInput
+  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
+  settingsChanged?: Prisma.PlatformSettingCreateNestedManyWithoutUpdatedByInput
+}
+
+export type UserUncheckedCreateWithoutAssistingActionItemsInput = {
+  id?: string
+  email: string
+  emailVerified?: boolean
+  name: string
+  image?: string | null
+  jobTitle?: string | null
+  systemRole?: $Enums.SystemRole
+  ministryId?: string | null
+  active?: boolean
+  loginAttempts?: number
+  lockedUntil?: Date | string | null
+  lastLoginAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  preferences?: Prisma.UserPreferencesUncheckedCreateNestedOneWithoutUserInput
+  organizedEvents?: Prisma.EventUncheckedCreateNestedManyWithoutOrganizerInput
+  coOrganizedEvents?: Prisma.EventCoOrganizerUncheckedCreateNestedManyWithoutUserInput
+  attendances?: Prisma.AttendanceUncheckedCreateNestedManyWithoutUserInput
+  eventAttendees?: Prisma.EventAttendeeUncheckedCreateNestedManyWithoutUserInput
+  minutesDrafted?: Prisma.MinutesUncheckedCreateNestedManyWithoutDraftedByInput
+  minutesPublished?: Prisma.MinutesUncheckedCreateNestedManyWithoutPublishedByInput
+  assignedActionItems?: Prisma.ActionItemUncheckedCreateNestedManyWithoutOwnerInput
+  createdActionItems?: Prisma.ActionItemUncheckedCreateNestedManyWithoutAssignedByInput
+  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
+  settingsChanged?: Prisma.PlatformSettingUncheckedCreateNestedManyWithoutUpdatedByInput
+}
+
+export type UserCreateOrConnectWithoutAssistingActionItemsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutAssistingActionItemsInput, Prisma.UserUncheckedCreateWithoutAssistingActionItemsInput>
+}
+
+export type UserUpsertWithoutAssistingActionItemsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutAssistingActionItemsInput, Prisma.UserUncheckedUpdateWithoutAssistingActionItemsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutAssistingActionItemsInput, Prisma.UserUncheckedCreateWithoutAssistingActionItemsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutAssistingActionItemsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutAssistingActionItemsInput, Prisma.UserUncheckedUpdateWithoutAssistingActionItemsInput>
+}
+
+export type UserUpdateWithoutAssistingActionItemsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  jobTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
+  lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  ministry?: Prisma.MinistryUpdateOneWithoutUsersNestedInput
+  sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  preferences?: Prisma.UserPreferencesUpdateOneWithoutUserNestedInput
+  organizedEvents?: Prisma.EventUpdateManyWithoutOrganizerNestedInput
+  coOrganizedEvents?: Prisma.EventCoOrganizerUpdateManyWithoutUserNestedInput
+  attendances?: Prisma.AttendanceUpdateManyWithoutUserNestedInput
+  eventAttendees?: Prisma.EventAttendeeUpdateManyWithoutUserNestedInput
+  minutesDrafted?: Prisma.MinutesUpdateManyWithoutDraftedByNestedInput
+  minutesPublished?: Prisma.MinutesUpdateManyWithoutPublishedByNestedInput
+  assignedActionItems?: Prisma.ActionItemUpdateManyWithoutOwnerNestedInput
+  createdActionItems?: Prisma.ActionItemUpdateManyWithoutAssignedByNestedInput
+  auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
+  settingsChanged?: Prisma.PlatformSettingUpdateManyWithoutUpdatedByNestedInput
+}
+
+export type UserUncheckedUpdateWithoutAssistingActionItemsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  jobTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
+  ministryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
+  lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  preferences?: Prisma.UserPreferencesUncheckedUpdateOneWithoutUserNestedInput
+  organizedEvents?: Prisma.EventUncheckedUpdateManyWithoutOrganizerNestedInput
+  coOrganizedEvents?: Prisma.EventCoOrganizerUncheckedUpdateManyWithoutUserNestedInput
+  attendances?: Prisma.AttendanceUncheckedUpdateManyWithoutUserNestedInput
+  eventAttendees?: Prisma.EventAttendeeUncheckedUpdateManyWithoutUserNestedInput
+  minutesDrafted?: Prisma.MinutesUncheckedUpdateManyWithoutDraftedByNestedInput
+  minutesPublished?: Prisma.MinutesUncheckedUpdateManyWithoutPublishedByNestedInput
+  assignedActionItems?: Prisma.ActionItemUncheckedUpdateManyWithoutOwnerNestedInput
+  createdActionItems?: Prisma.ActionItemUncheckedUpdateManyWithoutAssignedByNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   settingsChanged?: Prisma.PlatformSettingUncheckedUpdateManyWithoutUpdatedByNestedInput
@@ -2652,6 +2863,7 @@ export type UserCreateWithoutNotificationsInput = {
   minutesDrafted?: Prisma.MinutesCreateNestedManyWithoutDraftedByInput
   minutesPublished?: Prisma.MinutesCreateNestedManyWithoutPublishedByInput
   assignedActionItems?: Prisma.ActionItemCreateNestedManyWithoutOwnerInput
+  assistingActionItems?: Prisma.ActionItemAssistantCreateNestedManyWithoutUserInput
   createdActionItems?: Prisma.ActionItemCreateNestedManyWithoutAssignedByInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
   settingsChanged?: Prisma.PlatformSettingCreateNestedManyWithoutUpdatedByInput
@@ -2683,6 +2895,7 @@ export type UserUncheckedCreateWithoutNotificationsInput = {
   minutesDrafted?: Prisma.MinutesUncheckedCreateNestedManyWithoutDraftedByInput
   minutesPublished?: Prisma.MinutesUncheckedCreateNestedManyWithoutPublishedByInput
   assignedActionItems?: Prisma.ActionItemUncheckedCreateNestedManyWithoutOwnerInput
+  assistingActionItems?: Prisma.ActionItemAssistantUncheckedCreateNestedManyWithoutUserInput
   createdActionItems?: Prisma.ActionItemUncheckedCreateNestedManyWithoutAssignedByInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
   settingsChanged?: Prisma.PlatformSettingUncheckedCreateNestedManyWithoutUpdatedByInput
@@ -2730,6 +2943,7 @@ export type UserUpdateWithoutNotificationsInput = {
   minutesDrafted?: Prisma.MinutesUpdateManyWithoutDraftedByNestedInput
   minutesPublished?: Prisma.MinutesUpdateManyWithoutPublishedByNestedInput
   assignedActionItems?: Prisma.ActionItemUpdateManyWithoutOwnerNestedInput
+  assistingActionItems?: Prisma.ActionItemAssistantUpdateManyWithoutUserNestedInput
   createdActionItems?: Prisma.ActionItemUpdateManyWithoutAssignedByNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
   settingsChanged?: Prisma.PlatformSettingUpdateManyWithoutUpdatedByNestedInput
@@ -2761,6 +2975,7 @@ export type UserUncheckedUpdateWithoutNotificationsInput = {
   minutesDrafted?: Prisma.MinutesUncheckedUpdateManyWithoutDraftedByNestedInput
   minutesPublished?: Prisma.MinutesUncheckedUpdateManyWithoutPublishedByNestedInput
   assignedActionItems?: Prisma.ActionItemUncheckedUpdateManyWithoutOwnerNestedInput
+  assistingActionItems?: Prisma.ActionItemAssistantUncheckedUpdateManyWithoutUserNestedInput
   createdActionItems?: Prisma.ActionItemUncheckedUpdateManyWithoutAssignedByNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
   settingsChanged?: Prisma.PlatformSettingUncheckedUpdateManyWithoutUpdatedByNestedInput
@@ -2792,6 +3007,7 @@ export type UserCreateWithoutAuditLogsInput = {
   minutesDrafted?: Prisma.MinutesCreateNestedManyWithoutDraftedByInput
   minutesPublished?: Prisma.MinutesCreateNestedManyWithoutPublishedByInput
   assignedActionItems?: Prisma.ActionItemCreateNestedManyWithoutOwnerInput
+  assistingActionItems?: Prisma.ActionItemAssistantCreateNestedManyWithoutUserInput
   createdActionItems?: Prisma.ActionItemCreateNestedManyWithoutAssignedByInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   settingsChanged?: Prisma.PlatformSettingCreateNestedManyWithoutUpdatedByInput
@@ -2823,6 +3039,7 @@ export type UserUncheckedCreateWithoutAuditLogsInput = {
   minutesDrafted?: Prisma.MinutesUncheckedCreateNestedManyWithoutDraftedByInput
   minutesPublished?: Prisma.MinutesUncheckedCreateNestedManyWithoutPublishedByInput
   assignedActionItems?: Prisma.ActionItemUncheckedCreateNestedManyWithoutOwnerInput
+  assistingActionItems?: Prisma.ActionItemAssistantUncheckedCreateNestedManyWithoutUserInput
   createdActionItems?: Prisma.ActionItemUncheckedCreateNestedManyWithoutAssignedByInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   settingsChanged?: Prisma.PlatformSettingUncheckedCreateNestedManyWithoutUpdatedByInput
@@ -2870,6 +3087,7 @@ export type UserUpdateWithoutAuditLogsInput = {
   minutesDrafted?: Prisma.MinutesUpdateManyWithoutDraftedByNestedInput
   minutesPublished?: Prisma.MinutesUpdateManyWithoutPublishedByNestedInput
   assignedActionItems?: Prisma.ActionItemUpdateManyWithoutOwnerNestedInput
+  assistingActionItems?: Prisma.ActionItemAssistantUpdateManyWithoutUserNestedInput
   createdActionItems?: Prisma.ActionItemUpdateManyWithoutAssignedByNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   settingsChanged?: Prisma.PlatformSettingUpdateManyWithoutUpdatedByNestedInput
@@ -2901,6 +3119,7 @@ export type UserUncheckedUpdateWithoutAuditLogsInput = {
   minutesDrafted?: Prisma.MinutesUncheckedUpdateManyWithoutDraftedByNestedInput
   minutesPublished?: Prisma.MinutesUncheckedUpdateManyWithoutPublishedByNestedInput
   assignedActionItems?: Prisma.ActionItemUncheckedUpdateManyWithoutOwnerNestedInput
+  assistingActionItems?: Prisma.ActionItemAssistantUncheckedUpdateManyWithoutUserNestedInput
   createdActionItems?: Prisma.ActionItemUncheckedUpdateManyWithoutAssignedByNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   settingsChanged?: Prisma.PlatformSettingUncheckedUpdateManyWithoutUpdatedByNestedInput
@@ -2932,6 +3151,7 @@ export type UserCreateWithoutSettingsChangedInput = {
   minutesDrafted?: Prisma.MinutesCreateNestedManyWithoutDraftedByInput
   minutesPublished?: Prisma.MinutesCreateNestedManyWithoutPublishedByInput
   assignedActionItems?: Prisma.ActionItemCreateNestedManyWithoutOwnerInput
+  assistingActionItems?: Prisma.ActionItemAssistantCreateNestedManyWithoutUserInput
   createdActionItems?: Prisma.ActionItemCreateNestedManyWithoutAssignedByInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
@@ -2963,6 +3183,7 @@ export type UserUncheckedCreateWithoutSettingsChangedInput = {
   minutesDrafted?: Prisma.MinutesUncheckedCreateNestedManyWithoutDraftedByInput
   minutesPublished?: Prisma.MinutesUncheckedCreateNestedManyWithoutPublishedByInput
   assignedActionItems?: Prisma.ActionItemUncheckedCreateNestedManyWithoutOwnerInput
+  assistingActionItems?: Prisma.ActionItemAssistantUncheckedCreateNestedManyWithoutUserInput
   createdActionItems?: Prisma.ActionItemUncheckedCreateNestedManyWithoutAssignedByInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
@@ -3010,6 +3231,7 @@ export type UserUpdateWithoutSettingsChangedInput = {
   minutesDrafted?: Prisma.MinutesUpdateManyWithoutDraftedByNestedInput
   minutesPublished?: Prisma.MinutesUpdateManyWithoutPublishedByNestedInput
   assignedActionItems?: Prisma.ActionItemUpdateManyWithoutOwnerNestedInput
+  assistingActionItems?: Prisma.ActionItemAssistantUpdateManyWithoutUserNestedInput
   createdActionItems?: Prisma.ActionItemUpdateManyWithoutAssignedByNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
@@ -3041,6 +3263,7 @@ export type UserUncheckedUpdateWithoutSettingsChangedInput = {
   minutesDrafted?: Prisma.MinutesUncheckedUpdateManyWithoutDraftedByNestedInput
   minutesPublished?: Prisma.MinutesUncheckedUpdateManyWithoutPublishedByNestedInput
   assignedActionItems?: Prisma.ActionItemUncheckedUpdateManyWithoutOwnerNestedInput
+  assistingActionItems?: Prisma.ActionItemAssistantUncheckedUpdateManyWithoutUserNestedInput
   createdActionItems?: Prisma.ActionItemUncheckedUpdateManyWithoutAssignedByNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
@@ -3088,6 +3311,7 @@ export type UserUpdateWithoutMinistryInput = {
   minutesDrafted?: Prisma.MinutesUpdateManyWithoutDraftedByNestedInput
   minutesPublished?: Prisma.MinutesUpdateManyWithoutPublishedByNestedInput
   assignedActionItems?: Prisma.ActionItemUpdateManyWithoutOwnerNestedInput
+  assistingActionItems?: Prisma.ActionItemAssistantUpdateManyWithoutUserNestedInput
   createdActionItems?: Prisma.ActionItemUpdateManyWithoutAssignedByNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
@@ -3119,6 +3343,7 @@ export type UserUncheckedUpdateWithoutMinistryInput = {
   minutesDrafted?: Prisma.MinutesUncheckedUpdateManyWithoutDraftedByNestedInput
   minutesPublished?: Prisma.MinutesUncheckedUpdateManyWithoutPublishedByNestedInput
   assignedActionItems?: Prisma.ActionItemUncheckedUpdateManyWithoutOwnerNestedInput
+  assistingActionItems?: Prisma.ActionItemAssistantUncheckedUpdateManyWithoutUserNestedInput
   createdActionItems?: Prisma.ActionItemUncheckedUpdateManyWithoutAssignedByNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
@@ -3157,6 +3382,7 @@ export type UserCountOutputType = {
   minutesDrafted: number
   minutesPublished: number
   assignedActionItems: number
+  assistingActionItems: number
   createdActionItems: number
   auditLogs: number
   notifications: number
@@ -3173,6 +3399,7 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   minutesDrafted?: boolean | UserCountOutputTypeCountMinutesDraftedArgs
   minutesPublished?: boolean | UserCountOutputTypeCountMinutesPublishedArgs
   assignedActionItems?: boolean | UserCountOutputTypeCountAssignedActionItemsArgs
+  assistingActionItems?: boolean | UserCountOutputTypeCountAssistingActionItemsArgs
   createdActionItems?: boolean | UserCountOutputTypeCountCreatedActionItemsArgs
   auditLogs?: boolean | UserCountOutputTypeCountAuditLogsArgs
   notifications?: boolean | UserCountOutputTypeCountNotificationsArgs
@@ -3255,6 +3482,13 @@ export type UserCountOutputTypeCountAssignedActionItemsArgs<ExtArgs extends runt
 /**
  * UserCountOutputType without action
  */
+export type UserCountOutputTypeCountAssistingActionItemsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ActionItemAssistantWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
 export type UserCountOutputTypeCountCreatedActionItemsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.ActionItemWhereInput
 }
@@ -3308,6 +3542,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   minutesDrafted?: boolean | Prisma.User$minutesDraftedArgs<ExtArgs>
   minutesPublished?: boolean | Prisma.User$minutesPublishedArgs<ExtArgs>
   assignedActionItems?: boolean | Prisma.User$assignedActionItemsArgs<ExtArgs>
+  assistingActionItems?: boolean | Prisma.User$assistingActionItemsArgs<ExtArgs>
   createdActionItems?: boolean | Prisma.User$createdActionItemsArgs<ExtArgs>
   auditLogs?: boolean | Prisma.User$auditLogsArgs<ExtArgs>
   notifications?: boolean | Prisma.User$notificationsArgs<ExtArgs>
@@ -3384,6 +3619,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   minutesDrafted?: boolean | Prisma.User$minutesDraftedArgs<ExtArgs>
   minutesPublished?: boolean | Prisma.User$minutesPublishedArgs<ExtArgs>
   assignedActionItems?: boolean | Prisma.User$assignedActionItemsArgs<ExtArgs>
+  assistingActionItems?: boolean | Prisma.User$assistingActionItemsArgs<ExtArgs>
   createdActionItems?: boolean | Prisma.User$createdActionItemsArgs<ExtArgs>
   auditLogs?: boolean | Prisma.User$auditLogsArgs<ExtArgs>
   notifications?: boolean | Prisma.User$notificationsArgs<ExtArgs>
@@ -3411,6 +3647,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     minutesDrafted: Prisma.$MinutesPayload<ExtArgs>[]
     minutesPublished: Prisma.$MinutesPayload<ExtArgs>[]
     assignedActionItems: Prisma.$ActionItemPayload<ExtArgs>[]
+    assistingActionItems: Prisma.$ActionItemAssistantPayload<ExtArgs>[]
     createdActionItems: Prisma.$ActionItemPayload<ExtArgs>[]
     auditLogs: Prisma.$AuditLogPayload<ExtArgs>[]
     notifications: Prisma.$NotificationPayload<ExtArgs>[]
@@ -3837,6 +4074,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   minutesDrafted<T extends Prisma.User$minutesDraftedArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$minutesDraftedArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MinutesPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   minutesPublished<T extends Prisma.User$minutesPublishedArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$minutesPublishedArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MinutesPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   assignedActionItems<T extends Prisma.User$assignedActionItemsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$assignedActionItemsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ActionItemPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  assistingActionItems<T extends Prisma.User$assistingActionItemsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$assistingActionItemsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ActionItemAssistantPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   createdActionItems<T extends Prisma.User$createdActionItemsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$createdActionItemsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ActionItemPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   auditLogs<T extends Prisma.User$auditLogsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$auditLogsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AuditLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   notifications<T extends Prisma.User$notificationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$notificationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$NotificationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -4537,6 +4775,30 @@ export type User$assignedActionItemsArgs<ExtArgs extends runtime.Types.Extension
   take?: number
   skip?: number
   distinct?: Prisma.ActionItemScalarFieldEnum | Prisma.ActionItemScalarFieldEnum[]
+}
+
+/**
+ * User.assistingActionItems
+ */
+export type User$assistingActionItemsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ActionItemAssistant
+   */
+  select?: Prisma.ActionItemAssistantSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ActionItemAssistant
+   */
+  omit?: Prisma.ActionItemAssistantOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ActionItemAssistantInclude<ExtArgs> | null
+  where?: Prisma.ActionItemAssistantWhereInput
+  orderBy?: Prisma.ActionItemAssistantOrderByWithRelationInput | Prisma.ActionItemAssistantOrderByWithRelationInput[]
+  cursor?: Prisma.ActionItemAssistantWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ActionItemAssistantScalarFieldEnum | Prisma.ActionItemAssistantScalarFieldEnum[]
 }
 
 /**

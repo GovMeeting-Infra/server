@@ -20,7 +20,10 @@ describe('TasksService.sendMeetingReminders', () => {
 
   beforeEach(() => {
     events = [event()];
-    queue = { add: jest.fn().mockResolvedValue(undefined) };
+    queue = {
+      add: jest.fn().mockResolvedValue(undefined),
+      addBulk: jest.fn().mockResolvedValue([]),
+    };
     prisma = {
       event: { findMany: jest.fn().mockImplementation(() => events) },
     };
@@ -29,17 +32,36 @@ describe('TasksService.sendMeetingReminders', () => {
     const notifications = {
       notifyActionItemWeeklyDigest: jest.fn().mockResolvedValue(undefined),
     };
-    service = new TasksService(prisma, notifications as any, queue as any);
+    // The digest resolves who hears about last week's closures through the
+    // same union that decides who receives published minutes.
+    const minutesAccess = {
+      recipientsFor: jest.fn().mockResolvedValue([]),
+    };
+    service = new TasksService(
+      prisma,
+      notifications as any,
+      minutesAccess as any,
+      queue as any,
+    );
   });
 
-  it('queues one reminder per attendee', async () => {
+  // addBulk rather than add: this cron sweeps every ten minutes across a
+  // one-hour window, so most of what it queues is a dedup no-op that still
+  // cost a Redis command on a per-command bill.
+  const queuedJobs = () => queue.addBulk.mock.calls.flatMap((c: any) => c[0]);
+
+  it('queues one reminder per attendee, in a single round trip', async () => {
     await service.sendMeetingReminders();
-    expect(queue.add).toHaveBeenCalledTimes(1);
-    expect(queue.add).toHaveBeenCalledWith(
-      'send-meeting-reminder',
-      { eventId: 'evt-1', userId: 'usr-1' },
-      expect.objectContaining({ jobId: 'meeting-reminder:evt-1:usr-1' }),
-    );
+    expect(queue.addBulk).toHaveBeenCalledTimes(1);
+    expect(queuedJobs()).toEqual([
+      expect.objectContaining({
+        name: 'send-meeting-reminder',
+        data: { eventId: 'evt-1', userId: 'usr-1' },
+        opts: expect.objectContaining({
+          jobId: 'meeting-reminder:evt-1:usr-1',
+        }),
+      }),
+    ]);
   });
 
   it('uses a stable jobId across runs so repeat sweeps collapse to one email', async () => {
@@ -47,14 +69,15 @@ describe('TasksService.sendMeetingReminders', () => {
     await service.sendMeetingReminders();
     await service.sendMeetingReminders();
 
-    const jobIds = queue.add.mock.calls.map((c) => c[2].jobId);
+    const jobIds = queuedJobs().map((j: any) => j.opts.jobId);
     expect(new Set(jobIds).size).toBe(1);
   });
 
   it('retains the job long enough to outlive the one-hour reminder window', async () => {
     await service.sendMeetingReminders();
-    const opts = queue.add.mock.calls[0][2];
-    expect(opts.removeOnComplete.age).toBeGreaterThanOrEqual(60 * 60);
+    expect(queuedJobs()[0].opts.removeOnComplete.age).toBeGreaterThanOrEqual(
+      60 * 60,
+    );
   });
 
   it('only looks at published events', async () => {

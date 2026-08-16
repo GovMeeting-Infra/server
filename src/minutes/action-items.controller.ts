@@ -1,14 +1,18 @@
 import {
   Controller,
   Get,
+  Post,
   Patch,
+  Delete,
   Body,
   Param,
   Query,
+  HttpCode,
   UseGuards,
 } from '@nestjs/common';
 import { ActionItemsService } from './action-items.service';
 import { UpdateActionItemDto } from './dto/update-action-item.dto';
+import { AddAssistantDto } from './dto/add-assistant.dto';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
@@ -42,6 +46,43 @@ export class ActionItemsController {
     return this.actionItemsService.updateStatus(
       actionItemId,
       dto,
+      user.id,
+      user.ministryId,
+      user.systemRole,
+    );
+  }
+
+  /**
+   * Ask someone to help. They may then report progress and move the status,
+   * but not change what the task is — see updateStatus.
+   */
+  @Post(':actionItemId/assistants')
+  @Roles('SUPER_ADMIN', 'MINISTER', 'MINISTRY_ADMIN', 'STAFF')
+  @HttpCode(200)
+  addAssistant(
+    @Param('actionItemId') actionItemId: string,
+    @Body() dto: AddAssistantDto,
+    @CurrentUser() user: any,
+  ) {
+    return this.actionItemsService.addAssistant(
+      actionItemId,
+      dto.userId,
+      user.id,
+      user.ministryId,
+      user.systemRole,
+    );
+  }
+
+  @Delete(':actionItemId/assistants/:userId')
+  @Roles('SUPER_ADMIN', 'MINISTER', 'MINISTRY_ADMIN', 'STAFF')
+  removeAssistant(
+    @Param('actionItemId') actionItemId: string,
+    @Param('userId') assistantUserId: string,
+    @CurrentUser() user: any,
+  ) {
+    return this.actionItemsService.removeAssistant(
+      actionItemId,
+      assistantUserId,
       user.id,
       user.ministryId,
       user.systemRole,

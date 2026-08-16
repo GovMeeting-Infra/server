@@ -40,6 +40,7 @@ export type ActionItemMinAggregateOutputType = {
   progressNotes: string | null
   progressLink: string | null
   reminderSentAt: Date | null
+  overdueNotifiedAt: Date | null
   priority: string | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -61,6 +62,7 @@ export type ActionItemMaxAggregateOutputType = {
   progressNotes: string | null
   progressLink: string | null
   reminderSentAt: Date | null
+  overdueNotifiedAt: Date | null
   priority: string | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -82,6 +84,7 @@ export type ActionItemCountAggregateOutputType = {
   progressNotes: number
   progressLink: number
   reminderSentAt: number
+  overdueNotifiedAt: number
   priority: number
   createdAt: number
   updatedAt: number
@@ -105,6 +108,7 @@ export type ActionItemMinAggregateInputType = {
   progressNotes?: true
   progressLink?: true
   reminderSentAt?: true
+  overdueNotifiedAt?: true
   priority?: true
   createdAt?: true
   updatedAt?: true
@@ -126,6 +130,7 @@ export type ActionItemMaxAggregateInputType = {
   progressNotes?: true
   progressLink?: true
   reminderSentAt?: true
+  overdueNotifiedAt?: true
   priority?: true
   createdAt?: true
   updatedAt?: true
@@ -147,6 +152,7 @@ export type ActionItemCountAggregateInputType = {
   progressNotes?: true
   progressLink?: true
   reminderSentAt?: true
+  overdueNotifiedAt?: true
   priority?: true
   createdAt?: true
   updatedAt?: true
@@ -241,6 +247,7 @@ export type ActionItemGroupByOutputType = {
   progressNotes: string | null
   progressLink: string | null
   reminderSentAt: Date | null
+  overdueNotifiedAt: Date | null
   priority: string
   createdAt: Date
   updatedAt: Date
@@ -283,12 +290,14 @@ export type ActionItemWhereInput = {
   progressNotes?: Prisma.StringNullableFilter<"ActionItem"> | string | null
   progressLink?: Prisma.StringNullableFilter<"ActionItem"> | string | null
   reminderSentAt?: Prisma.DateTimeNullableFilter<"ActionItem"> | Date | string | null
+  overdueNotifiedAt?: Prisma.DateTimeNullableFilter<"ActionItem"> | Date | string | null
   priority?: Prisma.StringFilter<"ActionItem"> | string
   createdAt?: Prisma.DateTimeFilter<"ActionItem"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"ActionItem"> | Date | string
   minutes?: Prisma.XOR<Prisma.MinutesScalarRelationFilter, Prisma.MinutesWhereInput>
   owner?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
   assignedBy?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
+  assistants?: Prisma.ActionItemAssistantListRelationFilter
 }
 
 export type ActionItemOrderByWithRelationInput = {
@@ -307,12 +316,14 @@ export type ActionItemOrderByWithRelationInput = {
   progressNotes?: Prisma.SortOrderInput | Prisma.SortOrder
   progressLink?: Prisma.SortOrderInput | Prisma.SortOrder
   reminderSentAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  overdueNotifiedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   priority?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   minutes?: Prisma.MinutesOrderByWithRelationInput
   owner?: Prisma.UserOrderByWithRelationInput
   assignedBy?: Prisma.UserOrderByWithRelationInput
+  assistants?: Prisma.ActionItemAssistantOrderByRelationAggregateInput
 }
 
 export type ActionItemWhereUniqueInput = Prisma.AtLeast<{
@@ -334,12 +345,14 @@ export type ActionItemWhereUniqueInput = Prisma.AtLeast<{
   progressNotes?: Prisma.StringNullableFilter<"ActionItem"> | string | null
   progressLink?: Prisma.StringNullableFilter<"ActionItem"> | string | null
   reminderSentAt?: Prisma.DateTimeNullableFilter<"ActionItem"> | Date | string | null
+  overdueNotifiedAt?: Prisma.DateTimeNullableFilter<"ActionItem"> | Date | string | null
   priority?: Prisma.StringFilter<"ActionItem"> | string
   createdAt?: Prisma.DateTimeFilter<"ActionItem"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"ActionItem"> | Date | string
   minutes?: Prisma.XOR<Prisma.MinutesScalarRelationFilter, Prisma.MinutesWhereInput>
   owner?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
   assignedBy?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
+  assistants?: Prisma.ActionItemAssistantListRelationFilter
 }, "id">
 
 export type ActionItemOrderByWithAggregationInput = {
@@ -358,6 +371,7 @@ export type ActionItemOrderByWithAggregationInput = {
   progressNotes?: Prisma.SortOrderInput | Prisma.SortOrder
   progressLink?: Prisma.SortOrderInput | Prisma.SortOrder
   reminderSentAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  overdueNotifiedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   priority?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -385,6 +399,7 @@ export type ActionItemScalarWhereWithAggregatesInput = {
   progressNotes?: Prisma.StringNullableWithAggregatesFilter<"ActionItem"> | string | null
   progressLink?: Prisma.StringNullableWithAggregatesFilter<"ActionItem"> | string | null
   reminderSentAt?: Prisma.DateTimeNullableWithAggregatesFilter<"ActionItem"> | Date | string | null
+  overdueNotifiedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"ActionItem"> | Date | string | null
   priority?: Prisma.StringWithAggregatesFilter<"ActionItem"> | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"ActionItem"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"ActionItem"> | Date | string
@@ -403,12 +418,14 @@ export type ActionItemCreateInput = {
   progressNotes?: string | null
   progressLink?: string | null
   reminderSentAt?: Date | string | null
+  overdueNotifiedAt?: Date | string | null
   priority?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   minutes: Prisma.MinutesCreateNestedOneWithoutActionItemsInput
   owner?: Prisma.UserCreateNestedOneWithoutAssignedActionItemsInput
   assignedBy?: Prisma.UserCreateNestedOneWithoutCreatedActionItemsInput
+  assistants?: Prisma.ActionItemAssistantCreateNestedManyWithoutActionItemInput
 }
 
 export type ActionItemUncheckedCreateInput = {
@@ -427,9 +444,11 @@ export type ActionItemUncheckedCreateInput = {
   progressNotes?: string | null
   progressLink?: string | null
   reminderSentAt?: Date | string | null
+  overdueNotifiedAt?: Date | string | null
   priority?: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  assistants?: Prisma.ActionItemAssistantUncheckedCreateNestedManyWithoutActionItemInput
 }
 
 export type ActionItemUpdateInput = {
@@ -445,12 +464,14 @@ export type ActionItemUpdateInput = {
   progressNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   progressLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reminderSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  overdueNotifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   priority?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   minutes?: Prisma.MinutesUpdateOneRequiredWithoutActionItemsNestedInput
   owner?: Prisma.UserUpdateOneWithoutAssignedActionItemsNestedInput
   assignedBy?: Prisma.UserUpdateOneWithoutCreatedActionItemsNestedInput
+  assistants?: Prisma.ActionItemAssistantUpdateManyWithoutActionItemNestedInput
 }
 
 export type ActionItemUncheckedUpdateInput = {
@@ -469,9 +490,11 @@ export type ActionItemUncheckedUpdateInput = {
   progressNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   progressLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reminderSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  overdueNotifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   priority?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  assistants?: Prisma.ActionItemAssistantUncheckedUpdateManyWithoutActionItemNestedInput
 }
 
 export type ActionItemCreateManyInput = {
@@ -490,6 +513,7 @@ export type ActionItemCreateManyInput = {
   progressNotes?: string | null
   progressLink?: string | null
   reminderSentAt?: Date | string | null
+  overdueNotifiedAt?: Date | string | null
   priority?: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -508,6 +532,7 @@ export type ActionItemUpdateManyMutationInput = {
   progressNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   progressLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reminderSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  overdueNotifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   priority?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -529,6 +554,7 @@ export type ActionItemUncheckedUpdateManyInput = {
   progressNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   progressLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reminderSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  overdueNotifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   priority?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -560,6 +586,7 @@ export type ActionItemCountOrderByAggregateInput = {
   progressNotes?: Prisma.SortOrder
   progressLink?: Prisma.SortOrder
   reminderSentAt?: Prisma.SortOrder
+  overdueNotifiedAt?: Prisma.SortOrder
   priority?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -581,6 +608,7 @@ export type ActionItemMaxOrderByAggregateInput = {
   progressNotes?: Prisma.SortOrder
   progressLink?: Prisma.SortOrder
   reminderSentAt?: Prisma.SortOrder
+  overdueNotifiedAt?: Prisma.SortOrder
   priority?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -602,9 +630,15 @@ export type ActionItemMinOrderByAggregateInput = {
   progressNotes?: Prisma.SortOrder
   progressLink?: Prisma.SortOrder
   reminderSentAt?: Prisma.SortOrder
+  overdueNotifiedAt?: Prisma.SortOrder
   priority?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+}
+
+export type ActionItemScalarRelationFilter = {
+  is?: Prisma.ActionItemWhereInput
+  isNot?: Prisma.ActionItemWhereInput
 }
 
 export type ActionItemCreateNestedManyWithoutOwnerInput = {
@@ -741,6 +775,20 @@ export type EnumPointTypeFieldUpdateOperationsInput = {
   set?: $Enums.PointType
 }
 
+export type ActionItemCreateNestedOneWithoutAssistantsInput = {
+  create?: Prisma.XOR<Prisma.ActionItemCreateWithoutAssistantsInput, Prisma.ActionItemUncheckedCreateWithoutAssistantsInput>
+  connectOrCreate?: Prisma.ActionItemCreateOrConnectWithoutAssistantsInput
+  connect?: Prisma.ActionItemWhereUniqueInput
+}
+
+export type ActionItemUpdateOneRequiredWithoutAssistantsNestedInput = {
+  create?: Prisma.XOR<Prisma.ActionItemCreateWithoutAssistantsInput, Prisma.ActionItemUncheckedCreateWithoutAssistantsInput>
+  connectOrCreate?: Prisma.ActionItemCreateOrConnectWithoutAssistantsInput
+  upsert?: Prisma.ActionItemUpsertWithoutAssistantsInput
+  connect?: Prisma.ActionItemWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ActionItemUpdateToOneWithWhereWithoutAssistantsInput, Prisma.ActionItemUpdateWithoutAssistantsInput>, Prisma.ActionItemUncheckedUpdateWithoutAssistantsInput>
+}
+
 export type ActionItemCreateWithoutOwnerInput = {
   id?: string
   title: string
@@ -754,11 +802,13 @@ export type ActionItemCreateWithoutOwnerInput = {
   progressNotes?: string | null
   progressLink?: string | null
   reminderSentAt?: Date | string | null
+  overdueNotifiedAt?: Date | string | null
   priority?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   minutes: Prisma.MinutesCreateNestedOneWithoutActionItemsInput
   assignedBy?: Prisma.UserCreateNestedOneWithoutCreatedActionItemsInput
+  assistants?: Prisma.ActionItemAssistantCreateNestedManyWithoutActionItemInput
 }
 
 export type ActionItemUncheckedCreateWithoutOwnerInput = {
@@ -776,9 +826,11 @@ export type ActionItemUncheckedCreateWithoutOwnerInput = {
   progressNotes?: string | null
   progressLink?: string | null
   reminderSentAt?: Date | string | null
+  overdueNotifiedAt?: Date | string | null
   priority?: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  assistants?: Prisma.ActionItemAssistantUncheckedCreateNestedManyWithoutActionItemInput
 }
 
 export type ActionItemCreateOrConnectWithoutOwnerInput = {
@@ -804,11 +856,13 @@ export type ActionItemCreateWithoutAssignedByInput = {
   progressNotes?: string | null
   progressLink?: string | null
   reminderSentAt?: Date | string | null
+  overdueNotifiedAt?: Date | string | null
   priority?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   minutes: Prisma.MinutesCreateNestedOneWithoutActionItemsInput
   owner?: Prisma.UserCreateNestedOneWithoutAssignedActionItemsInput
+  assistants?: Prisma.ActionItemAssistantCreateNestedManyWithoutActionItemInput
 }
 
 export type ActionItemUncheckedCreateWithoutAssignedByInput = {
@@ -826,9 +880,11 @@ export type ActionItemUncheckedCreateWithoutAssignedByInput = {
   progressNotes?: string | null
   progressLink?: string | null
   reminderSentAt?: Date | string | null
+  overdueNotifiedAt?: Date | string | null
   priority?: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  assistants?: Prisma.ActionItemAssistantUncheckedCreateNestedManyWithoutActionItemInput
 }
 
 export type ActionItemCreateOrConnectWithoutAssignedByInput = {
@@ -876,6 +932,7 @@ export type ActionItemScalarWhereInput = {
   progressNotes?: Prisma.StringNullableFilter<"ActionItem"> | string | null
   progressLink?: Prisma.StringNullableFilter<"ActionItem"> | string | null
   reminderSentAt?: Prisma.DateTimeNullableFilter<"ActionItem"> | Date | string | null
+  overdueNotifiedAt?: Prisma.DateTimeNullableFilter<"ActionItem"> | Date | string | null
   priority?: Prisma.StringFilter<"ActionItem"> | string
   createdAt?: Prisma.DateTimeFilter<"ActionItem"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"ActionItem"> | Date | string
@@ -910,11 +967,13 @@ export type ActionItemCreateWithoutMinutesInput = {
   progressNotes?: string | null
   progressLink?: string | null
   reminderSentAt?: Date | string | null
+  overdueNotifiedAt?: Date | string | null
   priority?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   owner?: Prisma.UserCreateNestedOneWithoutAssignedActionItemsInput
   assignedBy?: Prisma.UserCreateNestedOneWithoutCreatedActionItemsInput
+  assistants?: Prisma.ActionItemAssistantCreateNestedManyWithoutActionItemInput
 }
 
 export type ActionItemUncheckedCreateWithoutMinutesInput = {
@@ -932,9 +991,11 @@ export type ActionItemUncheckedCreateWithoutMinutesInput = {
   progressNotes?: string | null
   progressLink?: string | null
   reminderSentAt?: Date | string | null
+  overdueNotifiedAt?: Date | string | null
   priority?: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  assistants?: Prisma.ActionItemAssistantUncheckedCreateNestedManyWithoutActionItemInput
 }
 
 export type ActionItemCreateOrConnectWithoutMinutesInput = {
@@ -963,6 +1024,110 @@ export type ActionItemUpdateManyWithWhereWithoutMinutesInput = {
   data: Prisma.XOR<Prisma.ActionItemUpdateManyMutationInput, Prisma.ActionItemUncheckedUpdateManyWithoutMinutesInput>
 }
 
+export type ActionItemCreateWithoutAssistantsInput = {
+  id?: string
+  title: string
+  description?: string | null
+  ownerName?: string | null
+  ownerEmail?: string | null
+  dueDate: Date | string
+  completedAt?: Date | string | null
+  status?: $Enums.ActionItemStatus
+  point?: $Enums.PointType
+  progressNotes?: string | null
+  progressLink?: string | null
+  reminderSentAt?: Date | string | null
+  overdueNotifiedAt?: Date | string | null
+  priority?: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  minutes: Prisma.MinutesCreateNestedOneWithoutActionItemsInput
+  owner?: Prisma.UserCreateNestedOneWithoutAssignedActionItemsInput
+  assignedBy?: Prisma.UserCreateNestedOneWithoutCreatedActionItemsInput
+}
+
+export type ActionItemUncheckedCreateWithoutAssistantsInput = {
+  id?: string
+  minutesId: string
+  title: string
+  description?: string | null
+  ownerId?: string | null
+  ownerName?: string | null
+  ownerEmail?: string | null
+  assignedById?: string | null
+  dueDate: Date | string
+  completedAt?: Date | string | null
+  status?: $Enums.ActionItemStatus
+  point?: $Enums.PointType
+  progressNotes?: string | null
+  progressLink?: string | null
+  reminderSentAt?: Date | string | null
+  overdueNotifiedAt?: Date | string | null
+  priority?: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type ActionItemCreateOrConnectWithoutAssistantsInput = {
+  where: Prisma.ActionItemWhereUniqueInput
+  create: Prisma.XOR<Prisma.ActionItemCreateWithoutAssistantsInput, Prisma.ActionItemUncheckedCreateWithoutAssistantsInput>
+}
+
+export type ActionItemUpsertWithoutAssistantsInput = {
+  update: Prisma.XOR<Prisma.ActionItemUpdateWithoutAssistantsInput, Prisma.ActionItemUncheckedUpdateWithoutAssistantsInput>
+  create: Prisma.XOR<Prisma.ActionItemCreateWithoutAssistantsInput, Prisma.ActionItemUncheckedCreateWithoutAssistantsInput>
+  where?: Prisma.ActionItemWhereInput
+}
+
+export type ActionItemUpdateToOneWithWhereWithoutAssistantsInput = {
+  where?: Prisma.ActionItemWhereInput
+  data: Prisma.XOR<Prisma.ActionItemUpdateWithoutAssistantsInput, Prisma.ActionItemUncheckedUpdateWithoutAssistantsInput>
+}
+
+export type ActionItemUpdateWithoutAssistantsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ownerName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ownerEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dueDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  status?: Prisma.EnumActionItemStatusFieldUpdateOperationsInput | $Enums.ActionItemStatus
+  point?: Prisma.EnumPointTypeFieldUpdateOperationsInput | $Enums.PointType
+  progressNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  progressLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reminderSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  overdueNotifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  priority?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  minutes?: Prisma.MinutesUpdateOneRequiredWithoutActionItemsNestedInput
+  owner?: Prisma.UserUpdateOneWithoutAssignedActionItemsNestedInput
+  assignedBy?: Prisma.UserUpdateOneWithoutCreatedActionItemsNestedInput
+}
+
+export type ActionItemUncheckedUpdateWithoutAssistantsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  minutesId?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ownerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ownerName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ownerEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  assignedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dueDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  status?: Prisma.EnumActionItemStatusFieldUpdateOperationsInput | $Enums.ActionItemStatus
+  point?: Prisma.EnumPointTypeFieldUpdateOperationsInput | $Enums.PointType
+  progressNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  progressLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reminderSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  overdueNotifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  priority?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
 export type ActionItemCreateManyOwnerInput = {
   id?: string
   minutesId: string
@@ -978,6 +1143,7 @@ export type ActionItemCreateManyOwnerInput = {
   progressNotes?: string | null
   progressLink?: string | null
   reminderSentAt?: Date | string | null
+  overdueNotifiedAt?: Date | string | null
   priority?: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -998,6 +1164,7 @@ export type ActionItemCreateManyAssignedByInput = {
   progressNotes?: string | null
   progressLink?: string | null
   reminderSentAt?: Date | string | null
+  overdueNotifiedAt?: Date | string | null
   priority?: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1016,11 +1183,13 @@ export type ActionItemUpdateWithoutOwnerInput = {
   progressNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   progressLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reminderSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  overdueNotifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   priority?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   minutes?: Prisma.MinutesUpdateOneRequiredWithoutActionItemsNestedInput
   assignedBy?: Prisma.UserUpdateOneWithoutCreatedActionItemsNestedInput
+  assistants?: Prisma.ActionItemAssistantUpdateManyWithoutActionItemNestedInput
 }
 
 export type ActionItemUncheckedUpdateWithoutOwnerInput = {
@@ -1038,9 +1207,11 @@ export type ActionItemUncheckedUpdateWithoutOwnerInput = {
   progressNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   progressLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reminderSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  overdueNotifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   priority?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  assistants?: Prisma.ActionItemAssistantUncheckedUpdateManyWithoutActionItemNestedInput
 }
 
 export type ActionItemUncheckedUpdateManyWithoutOwnerInput = {
@@ -1058,6 +1229,7 @@ export type ActionItemUncheckedUpdateManyWithoutOwnerInput = {
   progressNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   progressLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reminderSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  overdueNotifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   priority?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1076,11 +1248,13 @@ export type ActionItemUpdateWithoutAssignedByInput = {
   progressNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   progressLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reminderSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  overdueNotifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   priority?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   minutes?: Prisma.MinutesUpdateOneRequiredWithoutActionItemsNestedInput
   owner?: Prisma.UserUpdateOneWithoutAssignedActionItemsNestedInput
+  assistants?: Prisma.ActionItemAssistantUpdateManyWithoutActionItemNestedInput
 }
 
 export type ActionItemUncheckedUpdateWithoutAssignedByInput = {
@@ -1098,9 +1272,11 @@ export type ActionItemUncheckedUpdateWithoutAssignedByInput = {
   progressNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   progressLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reminderSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  overdueNotifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   priority?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  assistants?: Prisma.ActionItemAssistantUncheckedUpdateManyWithoutActionItemNestedInput
 }
 
 export type ActionItemUncheckedUpdateManyWithoutAssignedByInput = {
@@ -1118,6 +1294,7 @@ export type ActionItemUncheckedUpdateManyWithoutAssignedByInput = {
   progressNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   progressLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reminderSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  overdueNotifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   priority?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1138,6 +1315,7 @@ export type ActionItemCreateManyMinutesInput = {
   progressNotes?: string | null
   progressLink?: string | null
   reminderSentAt?: Date | string | null
+  overdueNotifiedAt?: Date | string | null
   priority?: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1156,11 +1334,13 @@ export type ActionItemUpdateWithoutMinutesInput = {
   progressNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   progressLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reminderSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  overdueNotifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   priority?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   owner?: Prisma.UserUpdateOneWithoutAssignedActionItemsNestedInput
   assignedBy?: Prisma.UserUpdateOneWithoutCreatedActionItemsNestedInput
+  assistants?: Prisma.ActionItemAssistantUpdateManyWithoutActionItemNestedInput
 }
 
 export type ActionItemUncheckedUpdateWithoutMinutesInput = {
@@ -1178,9 +1358,11 @@ export type ActionItemUncheckedUpdateWithoutMinutesInput = {
   progressNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   progressLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reminderSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  overdueNotifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   priority?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  assistants?: Prisma.ActionItemAssistantUncheckedUpdateManyWithoutActionItemNestedInput
 }
 
 export type ActionItemUncheckedUpdateManyWithoutMinutesInput = {
@@ -1198,11 +1380,41 @@ export type ActionItemUncheckedUpdateManyWithoutMinutesInput = {
   progressNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   progressLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reminderSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  overdueNotifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   priority?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
+
+/**
+ * Count Type ActionItemCountOutputType
+ */
+
+export type ActionItemCountOutputType = {
+  assistants: number
+}
+
+export type ActionItemCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  assistants?: boolean | ActionItemCountOutputTypeCountAssistantsArgs
+}
+
+/**
+ * ActionItemCountOutputType without action
+ */
+export type ActionItemCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ActionItemCountOutputType
+   */
+  select?: Prisma.ActionItemCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * ActionItemCountOutputType without action
+ */
+export type ActionItemCountOutputTypeCountAssistantsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ActionItemAssistantWhereInput
+}
 
 
 export type ActionItemSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1221,12 +1433,15 @@ export type ActionItemSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   progressNotes?: boolean
   progressLink?: boolean
   reminderSentAt?: boolean
+  overdueNotifiedAt?: boolean
   priority?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   minutes?: boolean | Prisma.MinutesDefaultArgs<ExtArgs>
   owner?: boolean | Prisma.ActionItem$ownerArgs<ExtArgs>
   assignedBy?: boolean | Prisma.ActionItem$assignedByArgs<ExtArgs>
+  assistants?: boolean | Prisma.ActionItem$assistantsArgs<ExtArgs>
+  _count?: boolean | Prisma.ActionItemCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["actionItem"]>
 
 export type ActionItemSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1245,6 +1460,7 @@ export type ActionItemSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ex
   progressNotes?: boolean
   progressLink?: boolean
   reminderSentAt?: boolean
+  overdueNotifiedAt?: boolean
   priority?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1269,6 +1485,7 @@ export type ActionItemSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ex
   progressNotes?: boolean
   progressLink?: boolean
   reminderSentAt?: boolean
+  overdueNotifiedAt?: boolean
   priority?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1293,16 +1510,19 @@ export type ActionItemSelectScalar = {
   progressNotes?: boolean
   progressLink?: boolean
   reminderSentAt?: boolean
+  overdueNotifiedAt?: boolean
   priority?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type ActionItemOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "minutesId" | "title" | "description" | "ownerId" | "ownerName" | "ownerEmail" | "assignedById" | "dueDate" | "completedAt" | "status" | "point" | "progressNotes" | "progressLink" | "reminderSentAt" | "priority" | "createdAt" | "updatedAt", ExtArgs["result"]["actionItem"]>
+export type ActionItemOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "minutesId" | "title" | "description" | "ownerId" | "ownerName" | "ownerEmail" | "assignedById" | "dueDate" | "completedAt" | "status" | "point" | "progressNotes" | "progressLink" | "reminderSentAt" | "overdueNotifiedAt" | "priority" | "createdAt" | "updatedAt", ExtArgs["result"]["actionItem"]>
 export type ActionItemInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   minutes?: boolean | Prisma.MinutesDefaultArgs<ExtArgs>
   owner?: boolean | Prisma.ActionItem$ownerArgs<ExtArgs>
   assignedBy?: boolean | Prisma.ActionItem$assignedByArgs<ExtArgs>
+  assistants?: boolean | Prisma.ActionItem$assistantsArgs<ExtArgs>
+  _count?: boolean | Prisma.ActionItemCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type ActionItemIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   minutes?: boolean | Prisma.MinutesDefaultArgs<ExtArgs>
@@ -1321,6 +1541,7 @@ export type $ActionItemPayload<ExtArgs extends runtime.Types.Extensions.Internal
     minutes: Prisma.$MinutesPayload<ExtArgs>
     owner: Prisma.$UserPayload<ExtArgs> | null
     assignedBy: Prisma.$UserPayload<ExtArgs> | null
+    assistants: Prisma.$ActionItemAssistantPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1338,6 +1559,12 @@ export type $ActionItemPayload<ExtArgs extends runtime.Types.Extensions.Internal
     progressNotes: string | null
     progressLink: string | null
     reminderSentAt: Date | null
+    /**
+     * Set when the owner was told it had slipped. Once, not every morning —
+     * a daily notice about the same thing stops being read. Cleared with
+     * reminderSentAt when the deadline moves.
+     */
+    overdueNotifiedAt: Date | null
     priority: string
     createdAt: Date
     updatedAt: Date
@@ -1738,6 +1965,7 @@ export interface Prisma__ActionItemClient<T, Null = never, ExtArgs extends runti
   minutes<T extends Prisma.MinutesDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.MinutesDefaultArgs<ExtArgs>>): Prisma.Prisma__MinutesClient<runtime.Types.Result.GetResult<Prisma.$MinutesPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   owner<T extends Prisma.ActionItem$ownerArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ActionItem$ownerArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   assignedBy<T extends Prisma.ActionItem$assignedByArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ActionItem$assignedByArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  assistants<T extends Prisma.ActionItem$assistantsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ActionItem$assistantsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ActionItemAssistantPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1782,6 +2010,7 @@ export interface ActionItemFieldRefs {
   readonly progressNotes: Prisma.FieldRef<"ActionItem", 'String'>
   readonly progressLink: Prisma.FieldRef<"ActionItem", 'String'>
   readonly reminderSentAt: Prisma.FieldRef<"ActionItem", 'DateTime'>
+  readonly overdueNotifiedAt: Prisma.FieldRef<"ActionItem", 'DateTime'>
   readonly priority: Prisma.FieldRef<"ActionItem", 'String'>
   readonly createdAt: Prisma.FieldRef<"ActionItem", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"ActionItem", 'DateTime'>
@@ -2221,6 +2450,30 @@ export type ActionItem$assignedByArgs<ExtArgs extends runtime.Types.Extensions.I
    */
   include?: Prisma.UserInclude<ExtArgs> | null
   where?: Prisma.UserWhereInput
+}
+
+/**
+ * ActionItem.assistants
+ */
+export type ActionItem$assistantsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ActionItemAssistant
+   */
+  select?: Prisma.ActionItemAssistantSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ActionItemAssistant
+   */
+  omit?: Prisma.ActionItemAssistantOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ActionItemAssistantInclude<ExtArgs> | null
+  where?: Prisma.ActionItemAssistantWhereInput
+  orderBy?: Prisma.ActionItemAssistantOrderByWithRelationInput | Prisma.ActionItemAssistantOrderByWithRelationInput[]
+  cursor?: Prisma.ActionItemAssistantWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ActionItemAssistantScalarFieldEnum | Prisma.ActionItemAssistantScalarFieldEnum[]
 }
 
 /**

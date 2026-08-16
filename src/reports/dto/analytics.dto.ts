@@ -24,6 +24,8 @@ export class ActionItemStatsDto {
   todo: number;
   /** Past their due date and not yet completed or cancelled. */
   overdue: number;
+  /** Closed without being done, so excluded from any progress measure. */
+  cancelled: number;
 }
 
 export class CheckInMethodsDto {

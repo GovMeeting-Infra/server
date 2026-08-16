@@ -198,7 +198,7 @@ export type NotificationGroupByArgs<ExtArgs extends runtime.Types.Extensions.Int
 export type NotificationGroupByOutputType = {
   id: string
   userId: string
-  ministryId: string
+  ministryId: string | null
   type: string
   title: string
   body: string
@@ -235,7 +235,7 @@ export type NotificationWhereInput = {
   NOT?: Prisma.NotificationWhereInput | Prisma.NotificationWhereInput[]
   id?: Prisma.StringFilter<"Notification"> | string
   userId?: Prisma.StringFilter<"Notification"> | string
-  ministryId?: Prisma.StringFilter<"Notification"> | string
+  ministryId?: Prisma.StringNullableFilter<"Notification"> | string | null
   type?: Prisma.StringFilter<"Notification"> | string
   title?: Prisma.StringFilter<"Notification"> | string
   body?: Prisma.StringFilter<"Notification"> | string
@@ -247,13 +247,13 @@ export type NotificationWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"Notification"> | Date | string
   expiresAt?: Prisma.DateTimeFilter<"Notification"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
-  ministry?: Prisma.XOR<Prisma.MinistryScalarRelationFilter, Prisma.MinistryWhereInput>
+  ministry?: Prisma.XOR<Prisma.MinistryNullableScalarRelationFilter, Prisma.MinistryWhereInput> | null
 }
 
 export type NotificationOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
-  ministryId?: Prisma.SortOrder
+  ministryId?: Prisma.SortOrderInput | Prisma.SortOrder
   type?: Prisma.SortOrder
   title?: Prisma.SortOrder
   body?: Prisma.SortOrder
@@ -274,7 +274,7 @@ export type NotificationWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.NotificationWhereInput[]
   NOT?: Prisma.NotificationWhereInput | Prisma.NotificationWhereInput[]
   userId?: Prisma.StringFilter<"Notification"> | string
-  ministryId?: Prisma.StringFilter<"Notification"> | string
+  ministryId?: Prisma.StringNullableFilter<"Notification"> | string | null
   type?: Prisma.StringFilter<"Notification"> | string
   title?: Prisma.StringFilter<"Notification"> | string
   body?: Prisma.StringFilter<"Notification"> | string
@@ -286,13 +286,13 @@ export type NotificationWhereUniqueInput = Prisma.AtLeast<{
   createdAt?: Prisma.DateTimeFilter<"Notification"> | Date | string
   expiresAt?: Prisma.DateTimeFilter<"Notification"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
-  ministry?: Prisma.XOR<Prisma.MinistryScalarRelationFilter, Prisma.MinistryWhereInput>
+  ministry?: Prisma.XOR<Prisma.MinistryNullableScalarRelationFilter, Prisma.MinistryWhereInput> | null
 }, "id">
 
 export type NotificationOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
-  ministryId?: Prisma.SortOrder
+  ministryId?: Prisma.SortOrderInput | Prisma.SortOrder
   type?: Prisma.SortOrder
   title?: Prisma.SortOrder
   body?: Prisma.SortOrder
@@ -314,7 +314,7 @@ export type NotificationScalarWhereWithAggregatesInput = {
   NOT?: Prisma.NotificationScalarWhereWithAggregatesInput | Prisma.NotificationScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"Notification"> | string
   userId?: Prisma.StringWithAggregatesFilter<"Notification"> | string
-  ministryId?: Prisma.StringWithAggregatesFilter<"Notification"> | string
+  ministryId?: Prisma.StringNullableWithAggregatesFilter<"Notification"> | string | null
   type?: Prisma.StringWithAggregatesFilter<"Notification"> | string
   title?: Prisma.StringWithAggregatesFilter<"Notification"> | string
   body?: Prisma.StringWithAggregatesFilter<"Notification"> | string
@@ -340,13 +340,13 @@ export type NotificationCreateInput = {
   createdAt?: Date | string
   expiresAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutNotificationsInput
-  ministry: Prisma.MinistryCreateNestedOneWithoutNotificationsInput
+  ministry?: Prisma.MinistryCreateNestedOneWithoutNotificationsInput
 }
 
 export type NotificationUncheckedCreateInput = {
   id?: string
   userId: string
-  ministryId: string
+  ministryId?: string | null
   type: string
   title: string
   body: string
@@ -372,13 +372,13 @@ export type NotificationUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutNotificationsNestedInput
-  ministry?: Prisma.MinistryUpdateOneRequiredWithoutNotificationsNestedInput
+  ministry?: Prisma.MinistryUpdateOneWithoutNotificationsNestedInput
 }
 
 export type NotificationUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
-  ministryId?: Prisma.StringFieldUpdateOperationsInput | string
+  ministryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   body?: Prisma.StringFieldUpdateOperationsInput | string
@@ -394,7 +394,7 @@ export type NotificationUncheckedUpdateInput = {
 export type NotificationCreateManyInput = {
   id?: string
   userId: string
-  ministryId: string
+  ministryId?: string | null
   type: string
   title: string
   body: string
@@ -424,7 +424,7 @@ export type NotificationUpdateManyMutationInput = {
 export type NotificationUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
-  ministryId?: Prisma.StringFieldUpdateOperationsInput | string
+  ministryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   body?: Prisma.StringFieldUpdateOperationsInput | string
@@ -591,12 +591,12 @@ export type NotificationCreateWithoutUserInput = {
   entityId?: string | null
   createdAt?: Date | string
   expiresAt?: Date | string
-  ministry: Prisma.MinistryCreateNestedOneWithoutNotificationsInput
+  ministry?: Prisma.MinistryCreateNestedOneWithoutNotificationsInput
 }
 
 export type NotificationUncheckedCreateWithoutUserInput = {
   id?: string
-  ministryId: string
+  ministryId?: string | null
   type: string
   title: string
   body: string
@@ -641,7 +641,7 @@ export type NotificationScalarWhereInput = {
   NOT?: Prisma.NotificationScalarWhereInput | Prisma.NotificationScalarWhereInput[]
   id?: Prisma.StringFilter<"Notification"> | string
   userId?: Prisma.StringFilter<"Notification"> | string
-  ministryId?: Prisma.StringFilter<"Notification"> | string
+  ministryId?: Prisma.StringNullableFilter<"Notification"> | string | null
   type?: Prisma.StringFilter<"Notification"> | string
   title?: Prisma.StringFilter<"Notification"> | string
   body?: Prisma.StringFilter<"Notification"> | string
@@ -712,7 +712,7 @@ export type NotificationUpdateManyWithWhereWithoutMinistryInput = {
 
 export type NotificationCreateManyUserInput = {
   id?: string
-  ministryId: string
+  ministryId?: string | null
   type: string
   title: string
   body: string
@@ -737,12 +737,12 @@ export type NotificationUpdateWithoutUserInput = {
   entityId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  ministry?: Prisma.MinistryUpdateOneRequiredWithoutNotificationsNestedInput
+  ministry?: Prisma.MinistryUpdateOneWithoutNotificationsNestedInput
 }
 
 export type NotificationUncheckedUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  ministryId?: Prisma.StringFieldUpdateOperationsInput | string
+  ministryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   body?: Prisma.StringFieldUpdateOperationsInput | string
@@ -757,7 +757,7 @@ export type NotificationUncheckedUpdateWithoutUserInput = {
 
 export type NotificationUncheckedUpdateManyWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  ministryId?: Prisma.StringFieldUpdateOperationsInput | string
+  ministryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   body?: Prisma.StringFieldUpdateOperationsInput | string
@@ -847,7 +847,7 @@ export type NotificationSelect<ExtArgs extends runtime.Types.Extensions.Internal
   createdAt?: boolean
   expiresAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  ministry?: boolean | Prisma.MinistryDefaultArgs<ExtArgs>
+  ministry?: boolean | Prisma.Notification$ministryArgs<ExtArgs>
 }, ExtArgs["result"]["notification"]>
 
 export type NotificationSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -865,7 +865,7 @@ export type NotificationSelectCreateManyAndReturn<ExtArgs extends runtime.Types.
   createdAt?: boolean
   expiresAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  ministry?: boolean | Prisma.MinistryDefaultArgs<ExtArgs>
+  ministry?: boolean | Prisma.Notification$ministryArgs<ExtArgs>
 }, ExtArgs["result"]["notification"]>
 
 export type NotificationSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -883,7 +883,7 @@ export type NotificationSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.
   createdAt?: boolean
   expiresAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  ministry?: boolean | Prisma.MinistryDefaultArgs<ExtArgs>
+  ministry?: boolean | Prisma.Notification$ministryArgs<ExtArgs>
 }, ExtArgs["result"]["notification"]>
 
 export type NotificationSelectScalar = {
@@ -905,27 +905,32 @@ export type NotificationSelectScalar = {
 export type NotificationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "ministryId" | "type" | "title" | "body" | "link" | "read" | "readAt" | "entityType" | "entityId" | "createdAt" | "expiresAt", ExtArgs["result"]["notification"]>
 export type NotificationInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  ministry?: boolean | Prisma.MinistryDefaultArgs<ExtArgs>
+  ministry?: boolean | Prisma.Notification$ministryArgs<ExtArgs>
 }
 export type NotificationIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  ministry?: boolean | Prisma.MinistryDefaultArgs<ExtArgs>
+  ministry?: boolean | Prisma.Notification$ministryArgs<ExtArgs>
 }
 export type NotificationIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  ministry?: boolean | Prisma.MinistryDefaultArgs<ExtArgs>
+  ministry?: boolean | Prisma.Notification$ministryArgs<ExtArgs>
 }
 
 export type $NotificationPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Notification"
   objects: {
     user: Prisma.$UserPayload<ExtArgs>
-    ministry: Prisma.$MinistryPayload<ExtArgs>
+    ministry: Prisma.$MinistryPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     userId: string
-    ministryId: string
+    /**
+     * Nullable because a super admin belongs to no ministry. It was required,
+     * and notifyMany silently dropped every recipient without one — so super
+     * admins received no in-app notification of anything, ever.
+     */
+    ministryId: string | null
     type: string
     title: string
     body: string
@@ -1331,7 +1336,7 @@ readonly fields: NotificationFieldRefs;
 export interface Prisma__NotificationClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   user<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
-  ministry<T extends Prisma.MinistryDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.MinistryDefaultArgs<ExtArgs>>): Prisma.Prisma__MinistryClient<runtime.Types.Result.GetResult<Prisma.$MinistryPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  ministry<T extends Prisma.Notification$ministryArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Notification$ministryArgs<ExtArgs>>): Prisma.Prisma__MinistryClient<runtime.Types.Result.GetResult<Prisma.$MinistryPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1772,6 +1777,25 @@ export type NotificationDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.
    * Limit how many Notifications to delete.
    */
   limit?: number
+}
+
+/**
+ * Notification.ministry
+ */
+export type Notification$ministryArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Ministry
+   */
+  select?: Prisma.MinistrySelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Ministry
+   */
+  omit?: Prisma.MinistryOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.MinistryInclude<ExtArgs> | null
+  where?: Prisma.MinistryWhereInput
 }
 
 /**

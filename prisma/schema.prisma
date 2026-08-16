@@ -12,37 +12,38 @@ generator client {
 // ============================================================================
 
 model User {
-  id             String    @id @default(cuid())
-  email          String    @unique
-  emailVerified  Boolean   @default(false)
-  name           String
-  image          String?
-  jobTitle       String?
-  systemRole     SystemRole @default(STAFF)
-  ministryId     String?
-  active         Boolean   @default(true)
-  loginAttempts  Int       @default(0)
-  lockedUntil    DateTime?
-  lastLoginAt    DateTime?
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
-  deletedAt      DateTime?
+  id            String     @id @default(cuid())
+  email         String     @unique
+  emailVerified Boolean    @default(false)
+  name          String
+  image         String?
+  jobTitle      String?
+  systemRole    SystemRole @default(STAFF)
+  ministryId    String?
+  active        Boolean    @default(true)
+  loginAttempts Int        @default(0)
+  lockedUntil   DateTime?
+  lastLoginAt   DateTime?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  deletedAt     DateTime?
 
-  ministry       Ministry? @relation(fields: [ministryId], references: [id], onDelete: SetNull)
-  sessions       Session[]
-  accounts       Account[]
-  preferences    UserPreferences?
-  organizedEvents Event[] @relation("organizer")
-  coOrganizedEvents EventCoOrganizer[]
-  attendances    Attendance[]
-  eventAttendees EventAttendee[] @relation("eventAttendees")
-  minutesDrafted Minutes[] @relation("draftedBy")
-  minutesPublished Minutes[] @relation("publishedBy")
-  assignedActionItems ActionItem[] @relation("actionOwner")
-  createdActionItems ActionItem[] @relation("actionAssignedBy")
-  auditLogs      AuditLog[]
-  notifications  Notification[]
-  settingsChanged PlatformSetting[]
+  ministry             Ministry?             @relation(fields: [ministryId], references: [id], onDelete: SetNull)
+  sessions             Session[]
+  accounts             Account[]
+  preferences          UserPreferences?
+  organizedEvents      Event[]               @relation("organizer")
+  coOrganizedEvents    EventCoOrganizer[]
+  attendances          Attendance[]
+  eventAttendees       EventAttendee[]       @relation("eventAttendees")
+  minutesDrafted       Minutes[]             @relation("draftedBy")
+  minutesPublished     Minutes[]             @relation("publishedBy")
+  assignedActionItems  ActionItem[]          @relation("actionOwner")
+  assistingActionItems ActionItemAssistant[] @relation("actionAssistant")
+  createdActionItems   ActionItem[]          @relation("actionAssignedBy")
+  auditLogs            AuditLog[]
+  notifications        Notification[]
+  settingsChanged      PlatformSetting[]
 
   @@index([ministryId])
   @@index([systemRole])
@@ -67,7 +68,7 @@ model Session {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([expiresAt])
@@ -88,7 +89,7 @@ model Account {
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
 
-  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, providerId, accountId])
   @@index([userId])
@@ -110,21 +111,21 @@ model Verification {
 // ============================================================================
 
 model Ministry {
-  id                    String   @id @default(cuid())
-  name                  String   @unique
-  code                  String   @unique
-  emailDomain           String
-  compoundMaxGpsAccuracy Int     @default(75)
-  active                Boolean  @default(true)
-  logoUrl               String?
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
+  id                     String   @id @default(cuid())
+  name                   String   @unique
+  code                   String   @unique
+  emailDomain            String
+  compoundMaxGpsAccuracy Int      @default(75)
+  active                 Boolean  @default(true)
+  logoUrl                String?
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
 
-  users                 User[]
-  events                Event[]
-  invitedToEvents       Event[]  @relation("EventInvitedMinistries")
-  auditLogs             AuditLog[]
-  notifications         Notification[]
+  users           User[]
+  events          Event[]
+  invitedToEvents Event[]        @relation("EventInvitedMinistries")
+  auditLogs       AuditLog[]
+  notifications   Notification[]
 
   @@index([active])
 }
@@ -148,7 +149,7 @@ model UserPreferences {
   tourCompletedVersion    String?
   updatedAt               DateTime @updatedAt
 
-  user                    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
 }
@@ -158,62 +159,62 @@ model UserPreferences {
 // ============================================================================
 
 model Event {
-  id                      String   @id @default(cuid())
-  title                   String
-  description             String?  @db.Text
-  isPublic                Boolean  @default(false)
-  type                    EventType @default(MEETING)
-  scope                   EventScope?
-  classification          EventClassification?
-  colorCategory           String?
-  startAt                 DateTime
-  endAt                   DateTime
-  venueName               String?
+  id                    String               @id @default(cuid())
+  title                 String
+  description           String?              @db.Text
+  isPublic              Boolean              @default(false)
+  type                  EventType            @default(MEETING)
+  scope                 EventScope?
+  classification        EventClassification?
+  colorCategory         String?
+  startAt               DateTime
+  endAt                 DateTime
+  venueName             String?
   // venueLat/venueLng/geofenceRadius predate organizer-anchored check-in and are
   // vestigial for that flow: in practice they were never filled in, which is why
   // the geofence never engaged. The live fence is checkInAnchor* below, captured
   // from the organizer's device when they generate the QR code.
-  venueLat                Float?
-  venueLng                Float?
-  geofenceRadius          Int      @default(100)
+  venueLat              Float?
+  venueLng              Float?
+  geofenceRadius        Int                  @default(100)
   // Check-in area, anchored once at first QR generation and reused unchanged by
   // every rotating token so the fence cannot drift. Radius is a server constant
   // (GEOFENCE_RADIUS_METERS), not a column.
-  checkInAnchorLat        Float?
-  checkInAnchorLng        Float?
-  checkInAnchorAccuracy   Int?
-  checkInAnchorSetAt      DateTime?
+  checkInAnchorLat      Float?
+  checkInAnchorLng      Float?
+  checkInAnchorAccuracy Int?
+  checkInAnchorSetAt    DateTime?
   // Audit breadcrumb only — deliberately not a relation, which would force a
   // back-relation on User and an FK for something never joined on.
-  checkInAnchorSetById    String?
-  allowGuestCheckIn       Boolean  @default(true)
+  checkInAnchorSetById  String?
+  allowGuestCheckIn     Boolean              @default(true)
   /// Refuse to mint a check-in code unless a geofence can actually be
   /// anchored. Off by default, which is how every event behaved before this
   /// existed: a poor fix at code-generation time silently minted an
   /// ungeofenced code, so whether a meeting was fenced depended on the
   /// organizer's handset rather than on anyone's decision.
-  requireGeofence         Boolean  @default(false)
-  bannerImage             String?
-  contactEmail            String?
-  contactPhone            String?
-  externalUrl             String?
-  status                  EventStatus @default(DRAFT)
-  publishedAt             DateTime?
-  ministryId              String
-  organizerId             String?
-  seriesId                String?
-  createdAt               DateTime @default(now())
-  updatedAt               DateTime @updatedAt
+  requireGeofence       Boolean              @default(false)
+  bannerImage           String?
+  contactEmail          String?
+  contactPhone          String?
+  externalUrl           String?
+  status                EventStatus          @default(DRAFT)
+  publishedAt           DateTime?
+  ministryId            String
+  organizerId           String?
+  seriesId              String?
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime             @updatedAt
 
-  ministry                Ministry @relation(fields: [ministryId], references: [id], onDelete: Cascade)
-  invitedMinistries       Ministry[] @relation("EventInvitedMinistries")
-  organizer               User? @relation("organizer", fields: [organizerId], references: [id])
-  series                  EventSeries? @relation(fields: [seriesId], references: [id])
-  coOrganizers            EventCoOrganizer[]
-  attendees               EventAttendee[]
-  attendances             Attendance[]
-  minutes                 Minutes?
-  qrTokens                QRToken[]
+  ministry          Ministry           @relation(fields: [ministryId], references: [id], onDelete: Cascade)
+  invitedMinistries Ministry[]         @relation("EventInvitedMinistries")
+  organizer         User?              @relation("organizer", fields: [organizerId], references: [id])
+  series            EventSeries?       @relation(fields: [seriesId], references: [id])
+  coOrganizers      EventCoOrganizer[]
+  attendees         EventAttendee[]
+  attendances       Attendance[]
+  minutes           Minutes?
+  qrTokens          QRToken[]
 
   @@index([ministryId])
   @@index([startAt])
@@ -248,15 +249,15 @@ enum EventStatus {
 }
 
 model EventSeries {
-  id              String   @id @default(cuid())
-  frequency       Frequency
-  interval        Int      @default(1)
-  endType         EndType  @default(COUNT)
-  count           Int?
-  until           DateTime?
-  createdAt       DateTime @default(now())
+  id        String    @id @default(cuid())
+  frequency Frequency
+  interval  Int       @default(1)
+  endType   EndType   @default(COUNT)
+  count     Int?
+  until     DateTime?
+  createdAt DateTime  @default(now())
 
-  events          Event[]
+  events Event[]
 }
 
 enum Frequency {
@@ -276,13 +277,13 @@ enum EndType {
 }
 
 model EventCoOrganizer {
-  id        String   @id @default(cuid())
-  eventId   String
-  userId    String
-  addedAt   DateTime @default(now())
+  id      String   @id @default(cuid())
+  eventId String
+  userId  String
+  addedAt DateTime @default(now())
 
-  event     Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  user      User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([eventId, userId])
   @@index([eventId])
@@ -290,7 +291,7 @@ model EventCoOrganizer {
 }
 
 model EventAttendee {
-  id            String   @id @default(cuid())
+  id            String         @id @default(cuid())
   eventId       String
   userId        String?
   externalName  String?
@@ -303,10 +304,10 @@ model EventAttendee {
   /// real idempotency guard, since the BullMQ job id it used to rely on is
   /// evicted after 24 hours. Stamped only on a successful send.
   lastInvitedAt DateTime?
-  createdAt     DateTime @default(now())
+  createdAt     DateTime       @default(now())
 
-  event         Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  user          User?    @relation("eventAttendees", fields: [userId], references: [id])
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user  User? @relation("eventAttendees", fields: [userId], references: [id])
 
   @@unique([eventId, userId])
   @@index([eventId])
@@ -325,7 +326,7 @@ enum AttendeeStatus {
 // ============================================================================
 
 model Attendance {
-  id                String   @id @default(cuid())
+  id                String        @id @default(cuid())
   eventId           String
   // Null for guests, who have no account. Staff rows always carry a userId.
   userId            String?
@@ -339,13 +340,13 @@ model Attendance {
   guestOrganisation String?
   guestPhone        String?
   // A guest with no matching EventAttendee invite for this event.
-  isWalkIn          Boolean  @default(false)
+  isWalkIn          Boolean       @default(false)
   signedName        String
   // Three states, all meaningful: null was never captured (an organizer
   // recorded this walk-in at the desk), '' was captured then erased for GDPR
   // (see UsersService.anonymize), and a value is the attendee's own signature.
-  signature         String?  @db.Text
-  checkInAt         DateTime @default(now())
+  signature         String?       @db.Text
+  checkInAt         DateTime      @default(now())
   checkInMethod     CheckInMethod
   lat               String?
   lng               String?
@@ -353,12 +354,12 @@ model Attendance {
   gpsAccuracy       Int?
   // null means "not verified" (no anchor set), distinct from false.
   withinGeofence    Boolean?
-  mockLocationFlag  Boolean  @default(false)
+  mockLocationFlag  Boolean       @default(false)
   ipAddress         String?
   userAgent         String?
 
-  event             Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  user              User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user  User? @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   // Postgres treats NULLs as distinct in a unique index, so these coexist:
   // guest rows (userId null) never collide on the first, staff rows
@@ -377,14 +378,14 @@ enum CheckInMethod {
 }
 
 model QRToken {
-  id          String   @id @default(cuid())
-  eventId     String
-  token       String   @unique
-  expiresAt   DateTime
-  rotatedAt   DateTime @default(now())
-  createdAt   DateTime @default(now())
+  id        String   @id @default(cuid())
+  eventId   String
+  token     String   @unique
+  expiresAt DateTime
+  rotatedAt DateTime @default(now())
+  createdAt DateTime @default(now())
 
-  event       Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
 
   @@index([eventId])
   @@index([expiresAt])
@@ -394,53 +395,89 @@ model QRToken {
 // MINUTES & ACTION ITEMS
 // ============================================================================
 
+/**
+ * What a meeting settled, not what was said in it.
+ * The record carries no prose of its own. It used to be one long body plus a
+ * summary, which meant decisions were buried inside a paragraph nobody read
+ * twice and nothing could be counted or searched precisely. The content is
+ * now three lists: decisions and next steps in MinutePoint, and the action
+ * items that already existed.
+ */
 model Minutes {
-  id                String   @id @default(cuid())
-  eventId           String   @unique
-  body              String   @db.Text
-  summary           String?
-  status            MinutesStatus @default(DRAFT)
-  draftedById       String?
-  draftedAt         DateTime?
-  publishedById     String?
-  publishedAt       DateTime?
-  archivedAt        DateTime?
+  id            String        @id @default(cuid())
+  eventId       String        @unique
+  status        MinutesStatus @default(DRAFT)
+  draftedById   String?
+  draftedAt     DateTime?
+  publishedById String?
+  publishedAt   DateTime?
+  archivedAt    DateTime?
   // Set when leadership deliberately restores an archived record, so the
   // nightly retention job does not simply archive it again the same night.
-  archiveExempt     Boolean  @default(false)
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  archiveExempt Boolean       @default(false)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
 
-  event             Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  draftedBy         User?    @relation("draftedBy", fields: [draftedById], references: [id])
-  publishedBy       User?    @relation("publishedBy", fields: [publishedById], references: [id])
-  actionItems       ActionItem[]
-  accessTokens      MinutesAccessToken[]
+  event        Event                @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  draftedBy    User?                @relation("draftedBy", fields: [draftedById], references: [id])
+  publishedBy  User?                @relation("publishedBy", fields: [publishedById], references: [id])
+  actionItems  ActionItem[]
+  points       MinutePoint[]
+  accessTokens MinutesAccessToken[]
 
   @@index([eventId])
   @@index([status])
 }
 
 /**
+ * One line of a minutes record: something decided, or something happening next.
+ * Single-line by design. A decision that can hold a paragraph becomes a
+ * paragraph, which is the thing this replaced.
+ */
+model MinutePoint {
+  id        String          @id @default(cuid())
+  minutesId String
+  type      MinutePointType
+  text      String
+  /// Position within its own list, as the drafter arranged it.
+  order     Int
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  minutes Minutes @relation(fields: [minutesId], references: [id], onDelete: Cascade)
+
+  @@index([minutesId, type, order])
+}
+
+/**
+ * Deliberately not PointType, which belongs to ActionItem.
+ * A next step is defined by what it lacks — no owner, no due date, nobody to
+ * chase. Modelling it as an action item with those fields left empty would put
+ * things that are not tasks onto a board whose whole job is tracking tasks.
+ */
+enum MinutePointType {
+  DECISION
+  NEXT_STEP
+}
+
+/**
  * Read access to one published minutes record for one person, so an attendee
  * with no account can be sent the record.
- *
  * Keyed by email rather than by attendee row: a walk-in has no EventAttendee at
  * all, and reusing rsvpTokenHash would mean fabricating one. Only the sha256 is
  * stored, matching InvitesService, so a database read yields no usable link.
- *
  * There is no expiry column on purpose. A token resolves only while its minutes
  * are PUBLISHED, so archiving is what ends access — one lifecycle rather than
  * two clocks that can disagree.
  */
 model MinutesAccessToken {
-  id         String   @id @default(cuid())
-  minutesId  String
-  email      String
-  tokenHash  String   @unique
-  createdAt  DateTime @default(now())
+  id        String   @id @default(cuid())
+  minutesId String
+  email     String
+  tokenHash String   @unique
+  createdAt DateTime @default(now())
 
-  minutes    Minutes  @relation(fields: [minutesId], references: [id], onDelete: Cascade)
+  minutes Minutes @relation(fields: [minutesId], references: [id], onDelete: Cascade)
 
   @@unique([minutesId, email])
   @@index([minutesId])
@@ -453,38 +490,68 @@ enum MinutesStatus {
 }
 
 model ActionItem {
-  id                String   @id @default(cuid())
-  minutesId         String
-  title             String
-  description       String?
-  ownerId           String?
-  ownerName         String?
+  id             String           @id @default(cuid())
+  minutesId      String
+  title          String
+  description    String?
+  ownerId        String?
+  ownerName      String?
   // How to reach an owner who has no account. Without it an item assigned to
   // an outside participant was unreachable by any channel.
-  ownerEmail        String?
-  assignedById      String?
-  dueDate           DateTime
-  completedAt       DateTime?
-  status            ActionItemStatus @default(TODO)
-  point             PointType @default(ACTION_POINT)
+  ownerEmail     String?
+  assignedById   String?
+  dueDate        DateTime
+  completedAt    DateTime?
+  status         ActionItemStatus @default(TODO)
+  point          PointType        @default(ACTION_POINT)
   // What has been done, and a link to it. Overwritten in place rather than
   // appended, so this is the current state of the work, not a history.
-  progressNotes     String?  @db.Text
-  progressLink      String?
+  progressNotes  String?          @db.Text
+  progressLink   String?
   // Cleared when the due date moves, so a rescheduled item is reminded again.
   reminderSentAt    DateTime?
-  priority          String   @default("medium")
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  /// Set when the owner was told it had slipped. Once, not every morning —
+  /// a daily notice about the same thing stops being read. Cleared with
+  /// reminderSentAt when the deadline moves.
+  overdueNotifiedAt DateTime?
+  priority       String           @default("medium")
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
 
-  minutes           Minutes  @relation(fields: [minutesId], references: [id], onDelete: Cascade)
-  owner             User?    @relation("actionOwner", fields: [ownerId], references: [id])
-  assignedBy        User?    @relation("actionAssignedBy", fields: [assignedById], references: [id])
+  minutes    Minutes               @relation(fields: [minutesId], references: [id], onDelete: Cascade)
+  owner      User?                 @relation("actionOwner", fields: [ownerId], references: [id])
+  assignedBy User?                 @relation("actionAssignedBy", fields: [assignedById], references: [id])
+  assistants ActionItemAssistant[]
 
   @@index([minutesId])
   @@index([ownerId])
   @@index([status])
   @@index([dueDate])
+}
+
+/**
+ * Someone helping with an action item, without being answerable for it.
+ * One owner stays accountable — that is the point of keeping this a separate
+ * table rather than making ownership a list. An assistant may report progress
+ * and move the status, and nothing else; the narrower set is enforced in
+ * ActionItemsService.
+ * Account holders only. An owner may be an outside participant reachable by
+ * email alone, but helping means signing in to change something, so naming a
+ * helper with no account would name someone who could never actually help.
+ */
+model ActionItemAssistant {
+  id           String   @id @default(cuid())
+  actionItemId String
+  userId       String
+  /// Who asked them to help. A breadcrumb, not a permission.
+  addedById    String?
+  createdAt    DateTime @default(now())
+
+  actionItem ActionItem @relation(fields: [actionItemId], references: [id], onDelete: Cascade)
+  user       User       @relation("actionAssistant", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([actionItemId, userId])
+  @@index([userId])
 }
 
 enum PointType {
@@ -510,26 +577,51 @@ enum ActionItemStatus {
 // ============================================================================
 
 model Notification {
-  id                String   @id @default(cuid())
-  userId            String
-  ministryId        String
-  type              String
-  title             String
-  body              String   @db.Text
-  link              String?
-  read              Boolean  @default(false)
-  readAt            DateTime?
-  entityType        String?
-  entityId          String?
-  createdAt         DateTime @default(now())
-  expiresAt         DateTime @default(dbgenerated("now() + interval '30 days'"))
+  id     String @id @default(cuid())
+  userId String
+  /// Nullable because a super admin belongs to no ministry. It was required,
+  /// and notifyMany silently dropped every recipient without one — so super
+  /// admins received no in-app notification of anything, ever.
+  ministryId String?
+  type       String
+  title      String
+  body       String    @db.Text
+  link       String?
+  read       Boolean   @default(false)
+  readAt     DateTime?
+  entityType String?
+  entityId   String?
+  createdAt  DateTime  @default(now())
+  expiresAt  DateTime  @default(dbgenerated("now() + interval '30 days'"))
 
-  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  ministry          Ministry @relation(fields: [ministryId], references: [id], onDelete: Cascade)
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ministry Ministry? @relation(fields: [ministryId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([read])
   @@index([createdAt])
+}
+
+/**
+ * Addresses that have opted out of a kind of mail.
+ *
+ * Keyed on the address rather than an account because the weekly digest goes
+ * to people who own action items without having accounts — they are reachable
+ * by email alone, and an opt-out they cannot exercise is not an opt-out.
+ *
+ * Only the digest is suppressible. Everything else this platform sends is
+ * operational: you cannot unsubscribe from being told a meeting you are
+ * expected at has moved.
+ */
+model EmailSuppression {
+  id        String   @id @default(cuid())
+  email     String
+  /// 'WEEKLY_DIGEST' today; a kind rather than a boolean so a second opt-out
+  /// does not need another table.
+  kind      String
+  createdAt DateTime @default(now())
+
+  @@unique([email, kind])
 }
 
 // ============================================================================
@@ -537,30 +629,30 @@ model Notification {
 // ============================================================================
 
 model AuditLog {
-  id                String   @id @default(cuid())
+  id             String      @id @default(cuid())
   // Nullable because some auditable events genuinely belong to no ministry —
   // a failed sign-in for an unknown address, or an invitation accepted before
   // the account is in use. These previously fell back to a literal 'SYSTEM',
   // which is not a real ministry, so the insert violated this foreign key and
   // AuditService swallowed the error: those events were never recorded at all.
-  ministryId        String?
-  actorId           String?
-  action            String
-  actionCategory    String
-  entityType        String
-  entityId          String
-  entityName        String?
-  ipAddress         String?
-  userAgent         String?
-  requestId         String?  @unique
-  status            AuditStatus @default(SUCCESS)
-  description       String?
-  changes           Json?
-  metadata          Json?
-  createdAt         DateTime @default(now())
+  ministryId     String?
+  actorId        String?
+  action         String
+  actionCategory String
+  entityType     String
+  entityId       String
+  entityName     String?
+  ipAddress      String?
+  userAgent      String?
+  requestId      String?     @unique
+  status         AuditStatus @default(SUCCESS)
+  description    String?
+  changes        Json?
+  metadata       Json?
+  createdAt      DateTime    @default(now())
 
-  ministry          Ministry? @relation(fields: [ministryId], references: [id], onDelete: Cascade)
-  actor             User?     @relation(fields: [actorId], references: [id])
+  ministry Ministry? @relation(fields: [ministryId], references: [id], onDelete: Cascade)
+  actor    User?     @relation(fields: [actorId], references: [id])
 
   @@index([ministryId])
   @@index([actorId])
@@ -589,5 +681,5 @@ model PlatformSetting {
   updatedAt   DateTime @updatedAt
   updatedById String?
 
-  updatedBy   User?    @relation(fields: [updatedById], references: [id], onDelete: SetNull)
+  updatedBy User? @relation(fields: [updatedById], references: [id], onDelete: SetNull)
 }

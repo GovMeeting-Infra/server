@@ -22,6 +22,7 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { CanManageEventGuard } from '../events/guards/can-manage-event.guard';
 import { AllowCoOrganizers } from '../events/decorators/allow-co-organizers.decorator';
+import { AllowMinistryOversight } from '../events/decorators/allow-ministry-oversight.decorator';
 import { RateLimitGuard } from '../common/guards/rate-limit.guard';
 import { RateLimit } from '../common/decorators/rate-limit.decorator';
 
@@ -104,7 +105,12 @@ export class CheckinController {
   /** Check-in by a signed-in member of staff. */
   @Post('checkin/:token')
   @UseGuards(RateLimitGuard)
-  @RateLimit({ perIp: 10, perToken: 30, windowSeconds: 60 })
+  // Budgets sized for a room, not a single visitor. Everyone at a venue leaves
+  // through one public IP, so the old perIp of 10 meant the eleventh person to
+  // scan in a minute was refused as if they were attacking us; perToken of 30
+  // capped a meeting at thirty arrivals a minute. Both still bound a leaked or
+  // photographed code, which is what they are for.
+  @RateLimit({ perIp: 60, perToken: 200, windowSeconds: 60 })
   @HttpCode(200)
   async checkIn(
     @Param('token') token: string,
@@ -121,7 +127,12 @@ export class CheckinController {
   /** Check-in by someone without an account. */
   @Post('checkin/:token/guest')
   @UseGuards(RateLimitGuard)
-  @RateLimit({ perIp: 10, perToken: 30, windowSeconds: 60 })
+  // Budgets sized for a room, not a single visitor. Everyone at a venue leaves
+  // through one public IP, so the old perIp of 10 meant the eleventh person to
+  // scan in a minute was refused as if they were attacking us; perToken of 30
+  // capped a meeting at thirty arrivals a minute. Both still bound a leaked or
+  // photographed code, which is what they are for.
+  @RateLimit({ perIp: 60, perToken: 200, windowSeconds: 60 })
   @HttpCode(200)
   async guestCheckIn(
     @Param('token') token: string,
@@ -164,15 +175,25 @@ export class CheckinController {
     return this.rsvpService.respond(tokenHash, dto.status);
   }
 
+  /**
+   * These three lists carry names, emails and phone numbers, so they are
+   * confined to the event's own people. The role list alone let any staff
+   * member of any ministry read the attendance of any event whose id they
+   * had — the same hole CanManageEventGuard already closed on the writes.
+   */
   @Get('events/:eventId/attendees/confirmed')
-  @UseGuards(RolesGuard)
+  @UseGuards(RolesGuard, CanManageEventGuard)
+  @AllowCoOrganizers()
+  @AllowMinistryOversight()
   @Roles(...CODE_ROLES)
   async getConfirmedAttendees(@Param('eventId') eventId: string) {
     return this.rsvpService.getAttendeesByStatus(eventId, 'CONFIRMED');
   }
 
   @Get('events/:eventId/attendees/declined')
-  @UseGuards(RolesGuard)
+  @UseGuards(RolesGuard, CanManageEventGuard)
+  @AllowCoOrganizers()
+  @AllowMinistryOversight()
   @Roles(...CODE_ROLES)
   async getDeclinedAttendees(@Param('eventId') eventId: string) {
     return this.rsvpService.getAttendeesByStatus(eventId, 'DECLINED');
@@ -183,14 +204,21 @@ export class CheckinController {
    * check-ins) and is distinct from the RSVP lists above.
    */
   @Get('events/:eventId/checkins')
-  @UseGuards(RolesGuard)
+  @UseGuards(RolesGuard, CanManageEventGuard)
+  @AllowCoOrganizers()
+  @AllowMinistryOversight()
   @Roles(...CODE_ROLES)
   async getCheckIns(@Param('eventId') eventId: string) {
     return this.checkinService.listCheckIns(eventId);
   }
 
+  /**
+   * Deleting an attendance record is not oversight, so ministers get no
+   * blanket pass here — this stays with the people running the meeting.
+   */
   @Delete('events/:eventId/checkins/:attendanceId')
-  @UseGuards(RolesGuard)
+  @UseGuards(RolesGuard, CanManageEventGuard)
+  @AllowCoOrganizers()
   @Roles('SUPER_ADMIN', 'MINISTRY_ADMIN', 'STAFF')
   @HttpCode(204)
   async removeCheckIn(

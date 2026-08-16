@@ -35,8 +35,13 @@ describe('CheckinService — geofence enforcement', () => {
   let qrToken: any;
   let service: CheckinService;
 
-  /** An open, published event, anchored unless told otherwise. */
-  const seedEvent = (anchored = true) => {
+  /**
+   * An open, published event, anchored and gating unless told otherwise.
+   *
+   * The two are separate now: an anchor makes the position measurable,
+   * requireGeofence decides whether a bad one turns anyone away.
+   */
+  const seedEvent = (anchored = true, requireGeofence = anchored) => {
     qrToken.findToken.mockResolvedValue({
       token: 'tok',
       eventId: 'e1',
@@ -51,6 +56,7 @@ describe('CheckinService — geofence enforcement', () => {
       allowGuestCheckIn: true,
       checkInAnchorLat: anchored ? ANCHOR_LAT : null,
       checkInAnchorLng: anchored ? ANCHOR_LNG : null,
+      requireGeofence,
     });
   };
 
@@ -119,13 +125,79 @@ describe('CheckinService — geofence enforcement', () => {
       expect(prisma.attendance.create).not.toHaveBeenCalled();
     });
 
-    it('refuses a fix too imprecise to trust', async () => {
+    it('refuses a fix too vague to localise anything', async () => {
       const near = metresNorth(10);
 
       await expect(
-        service.checkIn('tok', dto({ ...near, gpsAccuracy: 500 }), staff, {}),
+        service.checkIn('tok', dto({ ...near, gpsAccuracy: 900 }), staff, {}),
       ).rejects.toThrow(BadRequestException);
       expect(prisma.attendance.create).not.toHaveBeenCalled();
+    });
+
+    // The case this whole change exists for. A phone indoors positions itself
+    // from Wi-Fi and reports hundreds of metres; the person is in the room, and
+    // used to be told their signal was insufficient.
+    it('lets in a vague fix that could still be inside, recorded unverified', async () => {
+      const near = metresNorth(120);
+
+      await service.checkIn(
+        'tok',
+        dto({ ...near, gpsAccuracy: 200 }),
+        staff,
+        {},
+      );
+
+      expect(created().withinGeofence).toBeNull();
+      expect(created().checkInMethod).toBe('GEO');
+      expect(created().gpsAccuracy).toBe(200);
+    });
+
+    it('still refuses someone who cannot be inside even at their closest', async () => {
+      const far = metresNorth(400);
+
+      await expect(
+        service.checkIn('tok', dto({ ...far, gpsAccuracy: 100 }), staff, {}),
+      ).rejects.toThrow(BadRequestException);
+      expect(prisma.attendance.create).not.toHaveBeenCalled();
+    });
+
+    it('names the reason in a code, not only in prose', async () => {
+      const far = metresNorth(400);
+
+      // Prose gets rewritten; a client matching on it breaks silently. The
+      // code is the contract.
+      await expect(
+        service.checkIn('tok', dto({ ...far, gpsAccuracy: 20 }), staff, {}),
+      ).rejects.toMatchObject({
+        response: { code: 'OUTSIDE_AREA' },
+      });
+
+      await expect(
+        service.checkIn('tok', dto(), staff, {}),
+      ).rejects.toMatchObject({
+        response: { code: 'LOCATION_REQUIRED' },
+      });
+
+      await expect(
+        service.checkIn(
+          'tok',
+          dto({ ...metresNorth(10), gpsAccuracy: 900 }),
+          staff,
+          {},
+        ),
+      ).rejects.toMatchObject({
+        response: { code: 'ACCURACY_TOO_LOW' },
+      });
+    });
+
+    it('keeps the anchor out of the refusal, so it cannot be trilaterated', async () => {
+      const far = metresNorth(400);
+
+      await expect(
+        service.checkIn('tok', dto({ ...far, gpsAccuracy: 20 }), staff, {}),
+      ).rejects.toMatchObject({
+        response: { message: expect.not.stringMatching(/\d+\s*m\b/) },
+      });
     });
 
     it('flags an accuracy of exactly zero without blocking it', async () => {
@@ -139,6 +211,36 @@ describe('CheckinService — geofence enforcement', () => {
 
       expect(created().mockLocationFlag).toBe(true);
       expect(created().withinGeofence).toBe(true);
+    });
+  });
+
+  describe('anchored event with the requirement switched off', () => {
+    // The organizer captured an area but did not ask for it to gate entry.
+    // Measure, record, refuse nobody.
+    beforeEach(() => seedEvent(true, false));
+
+    it('records how far away someone was without turning them away', async () => {
+      const far = metresNorth(4_000);
+
+      await service.checkIn('tok', dto({ ...far, gpsAccuracy: 15 }), staff, {});
+
+      expect(created().withinGeofence).toBe(false);
+      expect(created().checkInMethod).toBe('GEO');
+    });
+
+    it('still verifies someone who is plainly inside', async () => {
+      const near = metresNorth(20);
+
+      await service.checkIn('tok', dto({ ...near, gpsAccuracy: 10 }), staff, {});
+
+      expect(created().withinGeofence).toBe(true);
+    });
+
+    it('checks in without a location rather than demanding one', async () => {
+      await service.checkIn('tok', dto(), staff, {});
+
+      expect(created().withinGeofence).toBeNull();
+      expect(created().checkInMethod).toBe('QR');
     });
   });
 

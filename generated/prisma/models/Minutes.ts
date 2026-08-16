@@ -14,7 +14,13 @@ import type * as Prisma from "../internal/prismaNamespace"
 
 /**
  * Model Minutes
- * 
+ * *
+ *  * What a meeting settled, not what was said in it.
+ *  * The record carries no prose of its own. It used to be one long body plus a
+ *  * summary, which meant decisions were buried inside a paragraph nobody read
+ *  * twice and nothing could be counted or searched precisely. The content is
+ *  * now three lists: decisions and next steps in MinutePoint, and the action
+ *  * items that already existed.
  */
 export type MinutesModel = runtime.Types.Result.DefaultSelection<Prisma.$MinutesPayload>
 
@@ -27,8 +33,6 @@ export type AggregateMinutes = {
 export type MinutesMinAggregateOutputType = {
   id: string | null
   eventId: string | null
-  body: string | null
-  summary: string | null
   status: $Enums.MinutesStatus | null
   draftedById: string | null
   draftedAt: Date | null
@@ -43,8 +47,6 @@ export type MinutesMinAggregateOutputType = {
 export type MinutesMaxAggregateOutputType = {
   id: string | null
   eventId: string | null
-  body: string | null
-  summary: string | null
   status: $Enums.MinutesStatus | null
   draftedById: string | null
   draftedAt: Date | null
@@ -59,8 +61,6 @@ export type MinutesMaxAggregateOutputType = {
 export type MinutesCountAggregateOutputType = {
   id: number
   eventId: number
-  body: number
-  summary: number
   status: number
   draftedById: number
   draftedAt: number
@@ -77,8 +77,6 @@ export type MinutesCountAggregateOutputType = {
 export type MinutesMinAggregateInputType = {
   id?: true
   eventId?: true
-  body?: true
-  summary?: true
   status?: true
   draftedById?: true
   draftedAt?: true
@@ -93,8 +91,6 @@ export type MinutesMinAggregateInputType = {
 export type MinutesMaxAggregateInputType = {
   id?: true
   eventId?: true
-  body?: true
-  summary?: true
   status?: true
   draftedById?: true
   draftedAt?: true
@@ -109,8 +105,6 @@ export type MinutesMaxAggregateInputType = {
 export type MinutesCountAggregateInputType = {
   id?: true
   eventId?: true
-  body?: true
-  summary?: true
   status?: true
   draftedById?: true
   draftedAt?: true
@@ -198,8 +192,6 @@ export type MinutesGroupByArgs<ExtArgs extends runtime.Types.Extensions.Internal
 export type MinutesGroupByOutputType = {
   id: string
   eventId: string
-  body: string
-  summary: string | null
   status: $Enums.MinutesStatus
   draftedById: string | null
   draftedAt: Date | null
@@ -235,8 +227,6 @@ export type MinutesWhereInput = {
   NOT?: Prisma.MinutesWhereInput | Prisma.MinutesWhereInput[]
   id?: Prisma.StringFilter<"Minutes"> | string
   eventId?: Prisma.StringFilter<"Minutes"> | string
-  body?: Prisma.StringFilter<"Minutes"> | string
-  summary?: Prisma.StringNullableFilter<"Minutes"> | string | null
   status?: Prisma.EnumMinutesStatusFilter<"Minutes"> | $Enums.MinutesStatus
   draftedById?: Prisma.StringNullableFilter<"Minutes"> | string | null
   draftedAt?: Prisma.DateTimeNullableFilter<"Minutes"> | Date | string | null
@@ -250,14 +240,13 @@ export type MinutesWhereInput = {
   draftedBy?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
   publishedBy?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
   actionItems?: Prisma.ActionItemListRelationFilter
+  points?: Prisma.MinutePointListRelationFilter
   accessTokens?: Prisma.MinutesAccessTokenListRelationFilter
 }
 
 export type MinutesOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   eventId?: Prisma.SortOrder
-  body?: Prisma.SortOrder
-  summary?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   draftedById?: Prisma.SortOrderInput | Prisma.SortOrder
   draftedAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -271,6 +260,7 @@ export type MinutesOrderByWithRelationInput = {
   draftedBy?: Prisma.UserOrderByWithRelationInput
   publishedBy?: Prisma.UserOrderByWithRelationInput
   actionItems?: Prisma.ActionItemOrderByRelationAggregateInput
+  points?: Prisma.MinutePointOrderByRelationAggregateInput
   accessTokens?: Prisma.MinutesAccessTokenOrderByRelationAggregateInput
 }
 
@@ -280,8 +270,6 @@ export type MinutesWhereUniqueInput = Prisma.AtLeast<{
   AND?: Prisma.MinutesWhereInput | Prisma.MinutesWhereInput[]
   OR?: Prisma.MinutesWhereInput[]
   NOT?: Prisma.MinutesWhereInput | Prisma.MinutesWhereInput[]
-  body?: Prisma.StringFilter<"Minutes"> | string
-  summary?: Prisma.StringNullableFilter<"Minutes"> | string | null
   status?: Prisma.EnumMinutesStatusFilter<"Minutes"> | $Enums.MinutesStatus
   draftedById?: Prisma.StringNullableFilter<"Minutes"> | string | null
   draftedAt?: Prisma.DateTimeNullableFilter<"Minutes"> | Date | string | null
@@ -295,14 +283,13 @@ export type MinutesWhereUniqueInput = Prisma.AtLeast<{
   draftedBy?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
   publishedBy?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
   actionItems?: Prisma.ActionItemListRelationFilter
+  points?: Prisma.MinutePointListRelationFilter
   accessTokens?: Prisma.MinutesAccessTokenListRelationFilter
 }, "id" | "eventId">
 
 export type MinutesOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   eventId?: Prisma.SortOrder
-  body?: Prisma.SortOrder
-  summary?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   draftedById?: Prisma.SortOrderInput | Prisma.SortOrder
   draftedAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -323,8 +310,6 @@ export type MinutesScalarWhereWithAggregatesInput = {
   NOT?: Prisma.MinutesScalarWhereWithAggregatesInput | Prisma.MinutesScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"Minutes"> | string
   eventId?: Prisma.StringWithAggregatesFilter<"Minutes"> | string
-  body?: Prisma.StringWithAggregatesFilter<"Minutes"> | string
-  summary?: Prisma.StringNullableWithAggregatesFilter<"Minutes"> | string | null
   status?: Prisma.EnumMinutesStatusWithAggregatesFilter<"Minutes"> | $Enums.MinutesStatus
   draftedById?: Prisma.StringNullableWithAggregatesFilter<"Minutes"> | string | null
   draftedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Minutes"> | Date | string | null
@@ -338,8 +323,6 @@ export type MinutesScalarWhereWithAggregatesInput = {
 
 export type MinutesCreateInput = {
   id?: string
-  body: string
-  summary?: string | null
   status?: $Enums.MinutesStatus
   draftedAt?: Date | string | null
   publishedAt?: Date | string | null
@@ -351,14 +334,13 @@ export type MinutesCreateInput = {
   draftedBy?: Prisma.UserCreateNestedOneWithoutMinutesDraftedInput
   publishedBy?: Prisma.UserCreateNestedOneWithoutMinutesPublishedInput
   actionItems?: Prisma.ActionItemCreateNestedManyWithoutMinutesInput
+  points?: Prisma.MinutePointCreateNestedManyWithoutMinutesInput
   accessTokens?: Prisma.MinutesAccessTokenCreateNestedManyWithoutMinutesInput
 }
 
 export type MinutesUncheckedCreateInput = {
   id?: string
   eventId: string
-  body: string
-  summary?: string | null
   status?: $Enums.MinutesStatus
   draftedById?: string | null
   draftedAt?: Date | string | null
@@ -369,13 +351,12 @@ export type MinutesUncheckedCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   actionItems?: Prisma.ActionItemUncheckedCreateNestedManyWithoutMinutesInput
+  points?: Prisma.MinutePointUncheckedCreateNestedManyWithoutMinutesInput
   accessTokens?: Prisma.MinutesAccessTokenUncheckedCreateNestedManyWithoutMinutesInput
 }
 
 export type MinutesUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  body?: Prisma.StringFieldUpdateOperationsInput | string
-  summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumMinutesStatusFieldUpdateOperationsInput | $Enums.MinutesStatus
   draftedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -387,14 +368,13 @@ export type MinutesUpdateInput = {
   draftedBy?: Prisma.UserUpdateOneWithoutMinutesDraftedNestedInput
   publishedBy?: Prisma.UserUpdateOneWithoutMinutesPublishedNestedInput
   actionItems?: Prisma.ActionItemUpdateManyWithoutMinutesNestedInput
+  points?: Prisma.MinutePointUpdateManyWithoutMinutesNestedInput
   accessTokens?: Prisma.MinutesAccessTokenUpdateManyWithoutMinutesNestedInput
 }
 
 export type MinutesUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   eventId?: Prisma.StringFieldUpdateOperationsInput | string
-  body?: Prisma.StringFieldUpdateOperationsInput | string
-  summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumMinutesStatusFieldUpdateOperationsInput | $Enums.MinutesStatus
   draftedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   draftedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -405,14 +385,13 @@ export type MinutesUncheckedUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   actionItems?: Prisma.ActionItemUncheckedUpdateManyWithoutMinutesNestedInput
+  points?: Prisma.MinutePointUncheckedUpdateManyWithoutMinutesNestedInput
   accessTokens?: Prisma.MinutesAccessTokenUncheckedUpdateManyWithoutMinutesNestedInput
 }
 
 export type MinutesCreateManyInput = {
   id?: string
   eventId: string
-  body: string
-  summary?: string | null
   status?: $Enums.MinutesStatus
   draftedById?: string | null
   draftedAt?: Date | string | null
@@ -426,8 +405,6 @@ export type MinutesCreateManyInput = {
 
 export type MinutesUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  body?: Prisma.StringFieldUpdateOperationsInput | string
-  summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumMinutesStatusFieldUpdateOperationsInput | $Enums.MinutesStatus
   draftedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -440,8 +417,6 @@ export type MinutesUpdateManyMutationInput = {
 export type MinutesUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   eventId?: Prisma.StringFieldUpdateOperationsInput | string
-  body?: Prisma.StringFieldUpdateOperationsInput | string
-  summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumMinutesStatusFieldUpdateOperationsInput | $Enums.MinutesStatus
   draftedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   draftedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -471,8 +446,6 @@ export type MinutesNullableScalarRelationFilter = {
 export type MinutesCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   eventId?: Prisma.SortOrder
-  body?: Prisma.SortOrder
-  summary?: Prisma.SortOrder
   status?: Prisma.SortOrder
   draftedById?: Prisma.SortOrder
   draftedAt?: Prisma.SortOrder
@@ -487,8 +460,6 @@ export type MinutesCountOrderByAggregateInput = {
 export type MinutesMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   eventId?: Prisma.SortOrder
-  body?: Prisma.SortOrder
-  summary?: Prisma.SortOrder
   status?: Prisma.SortOrder
   draftedById?: Prisma.SortOrder
   draftedAt?: Prisma.SortOrder
@@ -503,8 +474,6 @@ export type MinutesMaxOrderByAggregateInput = {
 export type MinutesMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   eventId?: Prisma.SortOrder
-  body?: Prisma.SortOrder
-  summary?: Prisma.SortOrder
   status?: Prisma.SortOrder
   draftedById?: Prisma.SortOrder
   draftedAt?: Prisma.SortOrder
@@ -641,6 +610,20 @@ export type EnumMinutesStatusFieldUpdateOperationsInput = {
   set?: $Enums.MinutesStatus
 }
 
+export type MinutesCreateNestedOneWithoutPointsInput = {
+  create?: Prisma.XOR<Prisma.MinutesCreateWithoutPointsInput, Prisma.MinutesUncheckedCreateWithoutPointsInput>
+  connectOrCreate?: Prisma.MinutesCreateOrConnectWithoutPointsInput
+  connect?: Prisma.MinutesWhereUniqueInput
+}
+
+export type MinutesUpdateOneRequiredWithoutPointsNestedInput = {
+  create?: Prisma.XOR<Prisma.MinutesCreateWithoutPointsInput, Prisma.MinutesUncheckedCreateWithoutPointsInput>
+  connectOrCreate?: Prisma.MinutesCreateOrConnectWithoutPointsInput
+  upsert?: Prisma.MinutesUpsertWithoutPointsInput
+  connect?: Prisma.MinutesWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.MinutesUpdateToOneWithWhereWithoutPointsInput, Prisma.MinutesUpdateWithoutPointsInput>, Prisma.MinutesUncheckedUpdateWithoutPointsInput>
+}
+
 export type MinutesCreateNestedOneWithoutAccessTokensInput = {
   create?: Prisma.XOR<Prisma.MinutesCreateWithoutAccessTokensInput, Prisma.MinutesUncheckedCreateWithoutAccessTokensInput>
   connectOrCreate?: Prisma.MinutesCreateOrConnectWithoutAccessTokensInput
@@ -671,8 +654,6 @@ export type MinutesUpdateOneRequiredWithoutActionItemsNestedInput = {
 
 export type MinutesCreateWithoutDraftedByInput = {
   id?: string
-  body: string
-  summary?: string | null
   status?: $Enums.MinutesStatus
   draftedAt?: Date | string | null
   publishedAt?: Date | string | null
@@ -683,14 +664,13 @@ export type MinutesCreateWithoutDraftedByInput = {
   event: Prisma.EventCreateNestedOneWithoutMinutesInput
   publishedBy?: Prisma.UserCreateNestedOneWithoutMinutesPublishedInput
   actionItems?: Prisma.ActionItemCreateNestedManyWithoutMinutesInput
+  points?: Prisma.MinutePointCreateNestedManyWithoutMinutesInput
   accessTokens?: Prisma.MinutesAccessTokenCreateNestedManyWithoutMinutesInput
 }
 
 export type MinutesUncheckedCreateWithoutDraftedByInput = {
   id?: string
   eventId: string
-  body: string
-  summary?: string | null
   status?: $Enums.MinutesStatus
   draftedAt?: Date | string | null
   publishedById?: string | null
@@ -700,6 +680,7 @@ export type MinutesUncheckedCreateWithoutDraftedByInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   actionItems?: Prisma.ActionItemUncheckedCreateNestedManyWithoutMinutesInput
+  points?: Prisma.MinutePointUncheckedCreateNestedManyWithoutMinutesInput
   accessTokens?: Prisma.MinutesAccessTokenUncheckedCreateNestedManyWithoutMinutesInput
 }
 
@@ -715,8 +696,6 @@ export type MinutesCreateManyDraftedByInputEnvelope = {
 
 export type MinutesCreateWithoutPublishedByInput = {
   id?: string
-  body: string
-  summary?: string | null
   status?: $Enums.MinutesStatus
   draftedAt?: Date | string | null
   publishedAt?: Date | string | null
@@ -727,14 +706,13 @@ export type MinutesCreateWithoutPublishedByInput = {
   event: Prisma.EventCreateNestedOneWithoutMinutesInput
   draftedBy?: Prisma.UserCreateNestedOneWithoutMinutesDraftedInput
   actionItems?: Prisma.ActionItemCreateNestedManyWithoutMinutesInput
+  points?: Prisma.MinutePointCreateNestedManyWithoutMinutesInput
   accessTokens?: Prisma.MinutesAccessTokenCreateNestedManyWithoutMinutesInput
 }
 
 export type MinutesUncheckedCreateWithoutPublishedByInput = {
   id?: string
   eventId: string
-  body: string
-  summary?: string | null
   status?: $Enums.MinutesStatus
   draftedById?: string | null
   draftedAt?: Date | string | null
@@ -744,6 +722,7 @@ export type MinutesUncheckedCreateWithoutPublishedByInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   actionItems?: Prisma.ActionItemUncheckedCreateNestedManyWithoutMinutesInput
+  points?: Prisma.MinutePointUncheckedCreateNestedManyWithoutMinutesInput
   accessTokens?: Prisma.MinutesAccessTokenUncheckedCreateNestedManyWithoutMinutesInput
 }
 
@@ -779,8 +758,6 @@ export type MinutesScalarWhereInput = {
   NOT?: Prisma.MinutesScalarWhereInput | Prisma.MinutesScalarWhereInput[]
   id?: Prisma.StringFilter<"Minutes"> | string
   eventId?: Prisma.StringFilter<"Minutes"> | string
-  body?: Prisma.StringFilter<"Minutes"> | string
-  summary?: Prisma.StringNullableFilter<"Minutes"> | string | null
   status?: Prisma.EnumMinutesStatusFilter<"Minutes"> | $Enums.MinutesStatus
   draftedById?: Prisma.StringNullableFilter<"Minutes"> | string | null
   draftedAt?: Prisma.DateTimeNullableFilter<"Minutes"> | Date | string | null
@@ -810,8 +787,6 @@ export type MinutesUpdateManyWithWhereWithoutPublishedByInput = {
 
 export type MinutesCreateWithoutEventInput = {
   id?: string
-  body: string
-  summary?: string | null
   status?: $Enums.MinutesStatus
   draftedAt?: Date | string | null
   publishedAt?: Date | string | null
@@ -822,13 +797,12 @@ export type MinutesCreateWithoutEventInput = {
   draftedBy?: Prisma.UserCreateNestedOneWithoutMinutesDraftedInput
   publishedBy?: Prisma.UserCreateNestedOneWithoutMinutesPublishedInput
   actionItems?: Prisma.ActionItemCreateNestedManyWithoutMinutesInput
+  points?: Prisma.MinutePointCreateNestedManyWithoutMinutesInput
   accessTokens?: Prisma.MinutesAccessTokenCreateNestedManyWithoutMinutesInput
 }
 
 export type MinutesUncheckedCreateWithoutEventInput = {
   id?: string
-  body: string
-  summary?: string | null
   status?: $Enums.MinutesStatus
   draftedById?: string | null
   draftedAt?: Date | string | null
@@ -839,6 +813,7 @@ export type MinutesUncheckedCreateWithoutEventInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   actionItems?: Prisma.ActionItemUncheckedCreateNestedManyWithoutMinutesInput
+  points?: Prisma.MinutePointUncheckedCreateNestedManyWithoutMinutesInput
   accessTokens?: Prisma.MinutesAccessTokenUncheckedCreateNestedManyWithoutMinutesInput
 }
 
@@ -860,8 +835,6 @@ export type MinutesUpdateToOneWithWhereWithoutEventInput = {
 
 export type MinutesUpdateWithoutEventInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  body?: Prisma.StringFieldUpdateOperationsInput | string
-  summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumMinutesStatusFieldUpdateOperationsInput | $Enums.MinutesStatus
   draftedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -872,13 +845,93 @@ export type MinutesUpdateWithoutEventInput = {
   draftedBy?: Prisma.UserUpdateOneWithoutMinutesDraftedNestedInput
   publishedBy?: Prisma.UserUpdateOneWithoutMinutesPublishedNestedInput
   actionItems?: Prisma.ActionItemUpdateManyWithoutMinutesNestedInput
+  points?: Prisma.MinutePointUpdateManyWithoutMinutesNestedInput
   accessTokens?: Prisma.MinutesAccessTokenUpdateManyWithoutMinutesNestedInput
 }
 
 export type MinutesUncheckedUpdateWithoutEventInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  body?: Prisma.StringFieldUpdateOperationsInput | string
-  summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumMinutesStatusFieldUpdateOperationsInput | $Enums.MinutesStatus
+  draftedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  draftedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  publishedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archiveExempt?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  actionItems?: Prisma.ActionItemUncheckedUpdateManyWithoutMinutesNestedInput
+  points?: Prisma.MinutePointUncheckedUpdateManyWithoutMinutesNestedInput
+  accessTokens?: Prisma.MinutesAccessTokenUncheckedUpdateManyWithoutMinutesNestedInput
+}
+
+export type MinutesCreateWithoutPointsInput = {
+  id?: string
+  status?: $Enums.MinutesStatus
+  draftedAt?: Date | string | null
+  publishedAt?: Date | string | null
+  archivedAt?: Date | string | null
+  archiveExempt?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  event: Prisma.EventCreateNestedOneWithoutMinutesInput
+  draftedBy?: Prisma.UserCreateNestedOneWithoutMinutesDraftedInput
+  publishedBy?: Prisma.UserCreateNestedOneWithoutMinutesPublishedInput
+  actionItems?: Prisma.ActionItemCreateNestedManyWithoutMinutesInput
+  accessTokens?: Prisma.MinutesAccessTokenCreateNestedManyWithoutMinutesInput
+}
+
+export type MinutesUncheckedCreateWithoutPointsInput = {
+  id?: string
+  eventId: string
+  status?: $Enums.MinutesStatus
+  draftedById?: string | null
+  draftedAt?: Date | string | null
+  publishedById?: string | null
+  publishedAt?: Date | string | null
+  archivedAt?: Date | string | null
+  archiveExempt?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  actionItems?: Prisma.ActionItemUncheckedCreateNestedManyWithoutMinutesInput
+  accessTokens?: Prisma.MinutesAccessTokenUncheckedCreateNestedManyWithoutMinutesInput
+}
+
+export type MinutesCreateOrConnectWithoutPointsInput = {
+  where: Prisma.MinutesWhereUniqueInput
+  create: Prisma.XOR<Prisma.MinutesCreateWithoutPointsInput, Prisma.MinutesUncheckedCreateWithoutPointsInput>
+}
+
+export type MinutesUpsertWithoutPointsInput = {
+  update: Prisma.XOR<Prisma.MinutesUpdateWithoutPointsInput, Prisma.MinutesUncheckedUpdateWithoutPointsInput>
+  create: Prisma.XOR<Prisma.MinutesCreateWithoutPointsInput, Prisma.MinutesUncheckedCreateWithoutPointsInput>
+  where?: Prisma.MinutesWhereInput
+}
+
+export type MinutesUpdateToOneWithWhereWithoutPointsInput = {
+  where?: Prisma.MinutesWhereInput
+  data: Prisma.XOR<Prisma.MinutesUpdateWithoutPointsInput, Prisma.MinutesUncheckedUpdateWithoutPointsInput>
+}
+
+export type MinutesUpdateWithoutPointsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumMinutesStatusFieldUpdateOperationsInput | $Enums.MinutesStatus
+  draftedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archiveExempt?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  event?: Prisma.EventUpdateOneRequiredWithoutMinutesNestedInput
+  draftedBy?: Prisma.UserUpdateOneWithoutMinutesDraftedNestedInput
+  publishedBy?: Prisma.UserUpdateOneWithoutMinutesPublishedNestedInput
+  actionItems?: Prisma.ActionItemUpdateManyWithoutMinutesNestedInput
+  accessTokens?: Prisma.MinutesAccessTokenUpdateManyWithoutMinutesNestedInput
+}
+
+export type MinutesUncheckedUpdateWithoutPointsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  eventId?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumMinutesStatusFieldUpdateOperationsInput | $Enums.MinutesStatus
   draftedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   draftedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -894,8 +947,6 @@ export type MinutesUncheckedUpdateWithoutEventInput = {
 
 export type MinutesCreateWithoutAccessTokensInput = {
   id?: string
-  body: string
-  summary?: string | null
   status?: $Enums.MinutesStatus
   draftedAt?: Date | string | null
   publishedAt?: Date | string | null
@@ -907,13 +958,12 @@ export type MinutesCreateWithoutAccessTokensInput = {
   draftedBy?: Prisma.UserCreateNestedOneWithoutMinutesDraftedInput
   publishedBy?: Prisma.UserCreateNestedOneWithoutMinutesPublishedInput
   actionItems?: Prisma.ActionItemCreateNestedManyWithoutMinutesInput
+  points?: Prisma.MinutePointCreateNestedManyWithoutMinutesInput
 }
 
 export type MinutesUncheckedCreateWithoutAccessTokensInput = {
   id?: string
   eventId: string
-  body: string
-  summary?: string | null
   status?: $Enums.MinutesStatus
   draftedById?: string | null
   draftedAt?: Date | string | null
@@ -924,6 +974,7 @@ export type MinutesUncheckedCreateWithoutAccessTokensInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   actionItems?: Prisma.ActionItemUncheckedCreateNestedManyWithoutMinutesInput
+  points?: Prisma.MinutePointUncheckedCreateNestedManyWithoutMinutesInput
 }
 
 export type MinutesCreateOrConnectWithoutAccessTokensInput = {
@@ -944,8 +995,6 @@ export type MinutesUpdateToOneWithWhereWithoutAccessTokensInput = {
 
 export type MinutesUpdateWithoutAccessTokensInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  body?: Prisma.StringFieldUpdateOperationsInput | string
-  summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumMinutesStatusFieldUpdateOperationsInput | $Enums.MinutesStatus
   draftedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -957,13 +1006,12 @@ export type MinutesUpdateWithoutAccessTokensInput = {
   draftedBy?: Prisma.UserUpdateOneWithoutMinutesDraftedNestedInput
   publishedBy?: Prisma.UserUpdateOneWithoutMinutesPublishedNestedInput
   actionItems?: Prisma.ActionItemUpdateManyWithoutMinutesNestedInput
+  points?: Prisma.MinutePointUpdateManyWithoutMinutesNestedInput
 }
 
 export type MinutesUncheckedUpdateWithoutAccessTokensInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   eventId?: Prisma.StringFieldUpdateOperationsInput | string
-  body?: Prisma.StringFieldUpdateOperationsInput | string
-  summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumMinutesStatusFieldUpdateOperationsInput | $Enums.MinutesStatus
   draftedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   draftedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -974,12 +1022,11 @@ export type MinutesUncheckedUpdateWithoutAccessTokensInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   actionItems?: Prisma.ActionItemUncheckedUpdateManyWithoutMinutesNestedInput
+  points?: Prisma.MinutePointUncheckedUpdateManyWithoutMinutesNestedInput
 }
 
 export type MinutesCreateWithoutActionItemsInput = {
   id?: string
-  body: string
-  summary?: string | null
   status?: $Enums.MinutesStatus
   draftedAt?: Date | string | null
   publishedAt?: Date | string | null
@@ -990,14 +1037,13 @@ export type MinutesCreateWithoutActionItemsInput = {
   event: Prisma.EventCreateNestedOneWithoutMinutesInput
   draftedBy?: Prisma.UserCreateNestedOneWithoutMinutesDraftedInput
   publishedBy?: Prisma.UserCreateNestedOneWithoutMinutesPublishedInput
+  points?: Prisma.MinutePointCreateNestedManyWithoutMinutesInput
   accessTokens?: Prisma.MinutesAccessTokenCreateNestedManyWithoutMinutesInput
 }
 
 export type MinutesUncheckedCreateWithoutActionItemsInput = {
   id?: string
   eventId: string
-  body: string
-  summary?: string | null
   status?: $Enums.MinutesStatus
   draftedById?: string | null
   draftedAt?: Date | string | null
@@ -1007,6 +1053,7 @@ export type MinutesUncheckedCreateWithoutActionItemsInput = {
   archiveExempt?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  points?: Prisma.MinutePointUncheckedCreateNestedManyWithoutMinutesInput
   accessTokens?: Prisma.MinutesAccessTokenUncheckedCreateNestedManyWithoutMinutesInput
 }
 
@@ -1028,8 +1075,6 @@ export type MinutesUpdateToOneWithWhereWithoutActionItemsInput = {
 
 export type MinutesUpdateWithoutActionItemsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  body?: Prisma.StringFieldUpdateOperationsInput | string
-  summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumMinutesStatusFieldUpdateOperationsInput | $Enums.MinutesStatus
   draftedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1040,14 +1085,13 @@ export type MinutesUpdateWithoutActionItemsInput = {
   event?: Prisma.EventUpdateOneRequiredWithoutMinutesNestedInput
   draftedBy?: Prisma.UserUpdateOneWithoutMinutesDraftedNestedInput
   publishedBy?: Prisma.UserUpdateOneWithoutMinutesPublishedNestedInput
+  points?: Prisma.MinutePointUpdateManyWithoutMinutesNestedInput
   accessTokens?: Prisma.MinutesAccessTokenUpdateManyWithoutMinutesNestedInput
 }
 
 export type MinutesUncheckedUpdateWithoutActionItemsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   eventId?: Prisma.StringFieldUpdateOperationsInput | string
-  body?: Prisma.StringFieldUpdateOperationsInput | string
-  summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumMinutesStatusFieldUpdateOperationsInput | $Enums.MinutesStatus
   draftedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   draftedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1057,14 +1101,13 @@ export type MinutesUncheckedUpdateWithoutActionItemsInput = {
   archiveExempt?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  points?: Prisma.MinutePointUncheckedUpdateManyWithoutMinutesNestedInput
   accessTokens?: Prisma.MinutesAccessTokenUncheckedUpdateManyWithoutMinutesNestedInput
 }
 
 export type MinutesCreateManyDraftedByInput = {
   id?: string
   eventId: string
-  body: string
-  summary?: string | null
   status?: $Enums.MinutesStatus
   draftedAt?: Date | string | null
   publishedById?: string | null
@@ -1078,8 +1121,6 @@ export type MinutesCreateManyDraftedByInput = {
 export type MinutesCreateManyPublishedByInput = {
   id?: string
   eventId: string
-  body: string
-  summary?: string | null
   status?: $Enums.MinutesStatus
   draftedById?: string | null
   draftedAt?: Date | string | null
@@ -1092,8 +1133,6 @@ export type MinutesCreateManyPublishedByInput = {
 
 export type MinutesUpdateWithoutDraftedByInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  body?: Prisma.StringFieldUpdateOperationsInput | string
-  summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumMinutesStatusFieldUpdateOperationsInput | $Enums.MinutesStatus
   draftedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1104,14 +1143,13 @@ export type MinutesUpdateWithoutDraftedByInput = {
   event?: Prisma.EventUpdateOneRequiredWithoutMinutesNestedInput
   publishedBy?: Prisma.UserUpdateOneWithoutMinutesPublishedNestedInput
   actionItems?: Prisma.ActionItemUpdateManyWithoutMinutesNestedInput
+  points?: Prisma.MinutePointUpdateManyWithoutMinutesNestedInput
   accessTokens?: Prisma.MinutesAccessTokenUpdateManyWithoutMinutesNestedInput
 }
 
 export type MinutesUncheckedUpdateWithoutDraftedByInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   eventId?: Prisma.StringFieldUpdateOperationsInput | string
-  body?: Prisma.StringFieldUpdateOperationsInput | string
-  summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumMinutesStatusFieldUpdateOperationsInput | $Enums.MinutesStatus
   draftedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   publishedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1121,14 +1159,13 @@ export type MinutesUncheckedUpdateWithoutDraftedByInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   actionItems?: Prisma.ActionItemUncheckedUpdateManyWithoutMinutesNestedInput
+  points?: Prisma.MinutePointUncheckedUpdateManyWithoutMinutesNestedInput
   accessTokens?: Prisma.MinutesAccessTokenUncheckedUpdateManyWithoutMinutesNestedInput
 }
 
 export type MinutesUncheckedUpdateManyWithoutDraftedByInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   eventId?: Prisma.StringFieldUpdateOperationsInput | string
-  body?: Prisma.StringFieldUpdateOperationsInput | string
-  summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumMinutesStatusFieldUpdateOperationsInput | $Enums.MinutesStatus
   draftedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   publishedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1141,8 +1178,6 @@ export type MinutesUncheckedUpdateManyWithoutDraftedByInput = {
 
 export type MinutesUpdateWithoutPublishedByInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  body?: Prisma.StringFieldUpdateOperationsInput | string
-  summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumMinutesStatusFieldUpdateOperationsInput | $Enums.MinutesStatus
   draftedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1153,14 +1188,13 @@ export type MinutesUpdateWithoutPublishedByInput = {
   event?: Prisma.EventUpdateOneRequiredWithoutMinutesNestedInput
   draftedBy?: Prisma.UserUpdateOneWithoutMinutesDraftedNestedInput
   actionItems?: Prisma.ActionItemUpdateManyWithoutMinutesNestedInput
+  points?: Prisma.MinutePointUpdateManyWithoutMinutesNestedInput
   accessTokens?: Prisma.MinutesAccessTokenUpdateManyWithoutMinutesNestedInput
 }
 
 export type MinutesUncheckedUpdateWithoutPublishedByInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   eventId?: Prisma.StringFieldUpdateOperationsInput | string
-  body?: Prisma.StringFieldUpdateOperationsInput | string
-  summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumMinutesStatusFieldUpdateOperationsInput | $Enums.MinutesStatus
   draftedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   draftedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1170,14 +1204,13 @@ export type MinutesUncheckedUpdateWithoutPublishedByInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   actionItems?: Prisma.ActionItemUncheckedUpdateManyWithoutMinutesNestedInput
+  points?: Prisma.MinutePointUncheckedUpdateManyWithoutMinutesNestedInput
   accessTokens?: Prisma.MinutesAccessTokenUncheckedUpdateManyWithoutMinutesNestedInput
 }
 
 export type MinutesUncheckedUpdateManyWithoutPublishedByInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   eventId?: Prisma.StringFieldUpdateOperationsInput | string
-  body?: Prisma.StringFieldUpdateOperationsInput | string
-  summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumMinutesStatusFieldUpdateOperationsInput | $Enums.MinutesStatus
   draftedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   draftedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1195,11 +1228,13 @@ export type MinutesUncheckedUpdateManyWithoutPublishedByInput = {
 
 export type MinutesCountOutputType = {
   actionItems: number
+  points: number
   accessTokens: number
 }
 
 export type MinutesCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   actionItems?: boolean | MinutesCountOutputTypeCountActionItemsArgs
+  points?: boolean | MinutesCountOutputTypeCountPointsArgs
   accessTokens?: boolean | MinutesCountOutputTypeCountAccessTokensArgs
 }
 
@@ -1223,6 +1258,13 @@ export type MinutesCountOutputTypeCountActionItemsArgs<ExtArgs extends runtime.T
 /**
  * MinutesCountOutputType without action
  */
+export type MinutesCountOutputTypeCountPointsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.MinutePointWhereInput
+}
+
+/**
+ * MinutesCountOutputType without action
+ */
 export type MinutesCountOutputTypeCountAccessTokensArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.MinutesAccessTokenWhereInput
 }
@@ -1231,8 +1273,6 @@ export type MinutesCountOutputTypeCountAccessTokensArgs<ExtArgs extends runtime.
 export type MinutesSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   eventId?: boolean
-  body?: boolean
-  summary?: boolean
   status?: boolean
   draftedById?: boolean
   draftedAt?: boolean
@@ -1246,6 +1286,7 @@ export type MinutesSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   draftedBy?: boolean | Prisma.Minutes$draftedByArgs<ExtArgs>
   publishedBy?: boolean | Prisma.Minutes$publishedByArgs<ExtArgs>
   actionItems?: boolean | Prisma.Minutes$actionItemsArgs<ExtArgs>
+  points?: boolean | Prisma.Minutes$pointsArgs<ExtArgs>
   accessTokens?: boolean | Prisma.Minutes$accessTokensArgs<ExtArgs>
   _count?: boolean | Prisma.MinutesCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["minutes"]>
@@ -1253,8 +1294,6 @@ export type MinutesSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
 export type MinutesSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   eventId?: boolean
-  body?: boolean
-  summary?: boolean
   status?: boolean
   draftedById?: boolean
   draftedAt?: boolean
@@ -1272,8 +1311,6 @@ export type MinutesSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
 export type MinutesSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   eventId?: boolean
-  body?: boolean
-  summary?: boolean
   status?: boolean
   draftedById?: boolean
   draftedAt?: boolean
@@ -1291,8 +1328,6 @@ export type MinutesSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
 export type MinutesSelectScalar = {
   id?: boolean
   eventId?: boolean
-  body?: boolean
-  summary?: boolean
   status?: boolean
   draftedById?: boolean
   draftedAt?: boolean
@@ -1304,12 +1339,13 @@ export type MinutesSelectScalar = {
   updatedAt?: boolean
 }
 
-export type MinutesOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "eventId" | "body" | "summary" | "status" | "draftedById" | "draftedAt" | "publishedById" | "publishedAt" | "archivedAt" | "archiveExempt" | "createdAt" | "updatedAt", ExtArgs["result"]["minutes"]>
+export type MinutesOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "eventId" | "status" | "draftedById" | "draftedAt" | "publishedById" | "publishedAt" | "archivedAt" | "archiveExempt" | "createdAt" | "updatedAt", ExtArgs["result"]["minutes"]>
 export type MinutesInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   event?: boolean | Prisma.EventDefaultArgs<ExtArgs>
   draftedBy?: boolean | Prisma.Minutes$draftedByArgs<ExtArgs>
   publishedBy?: boolean | Prisma.Minutes$publishedByArgs<ExtArgs>
   actionItems?: boolean | Prisma.Minutes$actionItemsArgs<ExtArgs>
+  points?: boolean | Prisma.Minutes$pointsArgs<ExtArgs>
   accessTokens?: boolean | Prisma.Minutes$accessTokensArgs<ExtArgs>
   _count?: boolean | Prisma.MinutesCountOutputTypeDefaultArgs<ExtArgs>
 }
@@ -1331,13 +1367,12 @@ export type $MinutesPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     draftedBy: Prisma.$UserPayload<ExtArgs> | null
     publishedBy: Prisma.$UserPayload<ExtArgs> | null
     actionItems: Prisma.$ActionItemPayload<ExtArgs>[]
+    points: Prisma.$MinutePointPayload<ExtArgs>[]
     accessTokens: Prisma.$MinutesAccessTokenPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     eventId: string
-    body: string
-    summary: string | null
     status: $Enums.MinutesStatus
     draftedById: string | null
     draftedAt: Date | null
@@ -1745,6 +1780,7 @@ export interface Prisma__MinutesClient<T, Null = never, ExtArgs extends runtime.
   draftedBy<T extends Prisma.Minutes$draftedByArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Minutes$draftedByArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   publishedBy<T extends Prisma.Minutes$publishedByArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Minutes$publishedByArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   actionItems<T extends Prisma.Minutes$actionItemsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Minutes$actionItemsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ActionItemPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  points<T extends Prisma.Minutes$pointsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Minutes$pointsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MinutePointPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   accessTokens<T extends Prisma.Minutes$accessTokensArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Minutes$accessTokensArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MinutesAccessTokenPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -1777,8 +1813,6 @@ export interface Prisma__MinutesClient<T, Null = never, ExtArgs extends runtime.
 export interface MinutesFieldRefs {
   readonly id: Prisma.FieldRef<"Minutes", 'String'>
   readonly eventId: Prisma.FieldRef<"Minutes", 'String'>
-  readonly body: Prisma.FieldRef<"Minutes", 'String'>
-  readonly summary: Prisma.FieldRef<"Minutes", 'String'>
   readonly status: Prisma.FieldRef<"Minutes", 'MinutesStatus'>
   readonly draftedById: Prisma.FieldRef<"Minutes", 'String'>
   readonly draftedAt: Prisma.FieldRef<"Minutes", 'DateTime'>
@@ -2248,6 +2282,30 @@ export type Minutes$actionItemsArgs<ExtArgs extends runtime.Types.Extensions.Int
   take?: number
   skip?: number
   distinct?: Prisma.ActionItemScalarFieldEnum | Prisma.ActionItemScalarFieldEnum[]
+}
+
+/**
+ * Minutes.points
+ */
+export type Minutes$pointsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the MinutePoint
+   */
+  select?: Prisma.MinutePointSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the MinutePoint
+   */
+  omit?: Prisma.MinutePointOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.MinutePointInclude<ExtArgs> | null
+  where?: Prisma.MinutePointWhereInput
+  orderBy?: Prisma.MinutePointOrderByWithRelationInput | Prisma.MinutePointOrderByWithRelationInput[]
+  cursor?: Prisma.MinutePointWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.MinutePointScalarFieldEnum | Prisma.MinutePointScalarFieldEnum[]
 }
 
 /**

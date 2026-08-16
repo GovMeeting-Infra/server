@@ -41,3 +41,39 @@ export function isWithinRadius(
 ): boolean {
   return haversineDistance(lat, lng, anchorLat, anchorLng) <= radiusMeters;
 }
+
+export type FenceVerdict = 'VERIFIED' | 'PLAUSIBLE' | 'OUTSIDE' | 'TOO_VAGUE';
+
+/**
+ * Where a fix sits relative to the check-in area.
+ *
+ * A position is a disc, not a point: the browser reports a centre and the
+ * radius it is confident within. Treating accuracy as a gate before the
+ * distance — reject anything vaguer than the fence itself — threw away every
+ * indoor check-in, because a phone with no view of the sky falls back to
+ * Wi-Fi and cell towers and reports 50-500m as a matter of course. The person
+ * was standing in the room; the maths simply refused to look.
+ *
+ * So compare the two discs instead. Disjoint means outside beyond doubt.
+ * Contained means inside beyond doubt. Overlapping means the reading cannot
+ * settle it, which is a third answer and not a refusal.
+ */
+export function classifyFix({
+  distance,
+  accuracy,
+  radius,
+  ceiling,
+}: {
+  /** Metres from the anchor. */
+  distance: number;
+  /** Metres of error the browser reports around that position. */
+  accuracy: number;
+  radius: number;
+  /** Beyond this the fix localises nothing and is refused outright. */
+  ceiling: number;
+}): FenceVerdict {
+  if (accuracy > ceiling) return 'TOO_VAGUE';
+  if (distance - accuracy > radius) return 'OUTSIDE';
+  if (distance + accuracy <= radius) return 'VERIFIED';
+  return 'PLAUSIBLE';
+}
