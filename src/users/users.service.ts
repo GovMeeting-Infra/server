@@ -96,6 +96,58 @@ export class UsersService {
     }
   }
 
+  /**
+   * You cannot do this to yourself.
+   *
+   * Deactivating your own account deletes your own sessions and signs you out
+   * mid-request; erasing it anonymises you. Neither was blocked anywhere — not
+   * in the UI, not here — so one mis-tap on an icon could lock a ministry's
+   * only administrator out of their own ministry, recoverable solely by the
+   * platform operator. The UI now hides both controls on the actor's own row,
+   * and this exists because a hidden control is not a rule.
+   */
+  private assertNotSelf(targetId: string, actorId: string, action: string) {
+    if (targetId === actorId) {
+      throw new BadRequestException(
+        `You cannot ${action} your own account. Ask another administrator to do it.`,
+      );
+    }
+  }
+
+  /**
+   * One minister per ministry.
+   *
+   * The web app's role-change dialog has been stating this as a fact, and it
+   * was not one: nothing checked it, so a second minister could be promoted
+   * silently and nobody would find out until an audit. Naming the incumbent
+   * matters — "already has a minister" sends someone hunting, and the answer is
+   * something we already know.
+   *
+   * `exceptUserId` covers a no-op re-save of the sitting minister's own role.
+   */
+  private async assertMinistryHasNoMinister(
+    ministryId: string | null,
+    exceptUserId?: string,
+  ) {
+    if (!ministryId) return;
+
+    const existing = await (this.prisma as any).user.findFirst({
+      where: {
+        ministryId,
+        systemRole: 'MINISTER',
+        deletedAt: null,
+        ...(exceptUserId ? { id: { not: exceptUserId } } : {}),
+      },
+      select: { name: true },
+    });
+
+    if (existing) {
+      throw new BadRequestException(
+        `${existing.name} is already the minister for this ministry. A ministry has one minister, so change theirs first.`,
+      );
+    }
+  }
+
   async create(
     dto: CreateUserDto,
     userId: string,
@@ -113,6 +165,10 @@ export class UsersService {
       userMinistryId,
       userSystemRole,
     );
+
+    if (dto.systemRole === 'MINISTER') {
+      await this.assertMinistryHasNoMinister(ministryId);
+    }
 
     try {
       const user = await (this.prisma as any).user.create({
@@ -368,6 +424,12 @@ export class UsersService {
           select: { id: true },
           take: 1,
         },
+        // How much evidence erasing this person would blank. Erasing rewrites
+        // the signed name and wipes the signature and GPS on every attendance
+        // row they ever signed, and the dialog that asks for confirmation could
+        // not say how many that was. Counted here rather than behind its own
+        // endpoint: the list is already loaded when the question gets asked.
+        _count: { select: { attendances: true } },
       },
       orderBy: { email: 'asc' },
     });
@@ -414,7 +476,11 @@ export class UsersService {
     );
   }
 
-  async findOne(id: string) {
+  async findOne(
+    id: string,
+    actorMinistryId?: string,
+    actorRole = 'SUPER_ADMIN',
+  ) {
     const user = await (this.prisma as any).user.findUnique({
       where: { id },
       select: {
@@ -431,6 +497,12 @@ export class UsersService {
     if (!user) {
       throw new NotFoundException(`User ${id} not found`);
     }
+
+    // Every other method on this service scopes by ministry; this one read it
+    // out unscoped, so a ministry admin who guessed an id could read a user
+    // from another ministry. Cross-ministry leakage is a compliance failure
+    // here, not a rough edge.
+    this.assertCanManage(user, actorRole, actorMinistryId);
 
     return user;
   }
@@ -452,6 +524,10 @@ export class UsersService {
 
     this.assertCanManage(user, actorRole, actorMinistryId);
     this.assertCanAssignRole(dto.systemRole, actorRole);
+
+    if (dto.systemRole === 'MINISTER') {
+      await this.assertMinistryHasNoMinister(user.ministryId, user.id);
+    }
 
     const updated = await (this.prisma as any).user.update({
       where: { id },
@@ -672,6 +748,7 @@ export class UsersService {
     }
 
     this.assertCanManage(user, actorRole, actorMinistryId);
+    this.assertNotSelf(id, actorId, active ? 'reactivate' : 'deactivate');
 
     const updated = await (this.prisma as any).user.update({
       where: { id },
@@ -723,6 +800,7 @@ export class UsersService {
     }
 
     this.assertCanManage(user, actorRole, actorMinistryId);
+    this.assertNotSelf(id, actorId, 'erase');
 
     const anonEmail = `anonymous-${uuid()}@ministry.local`;
 

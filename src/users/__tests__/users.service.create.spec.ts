@@ -41,6 +41,8 @@ describe('UsersService.create — which ministry the user lands in', () => {
           id: 'new-user',
           ...data,
         })),
+        // No sitting minister unless a test says otherwise.
+        findFirst: jest.fn().mockResolvedValue(null),
       },
       userPreferences: { create: jest.fn().mockResolvedValue({}) },
       ministry: {
@@ -138,6 +140,18 @@ describe('UsersService.create — which ministry the user lands in', () => {
     );
   });
 
+  it('refuses a second minister, and names the one already there', async () => {
+    // The role dialog has been telling administrators this rule for a while.
+    // Nothing enforced it, so a second minister could be appointed silently.
+    prisma.user.findFirst.mockResolvedValue({ name: 'Fatmata Sesay' });
+
+    await expect(
+      asSuperAdmin(dto({ systemRole: 'MINISTER', ministryId: MOH.id })),
+    ).rejects.toThrow(/Fatmata Sesay/);
+
+    expect(prisma.user.create).not.toHaveBeenCalled();
+  });
+
   it('lets a minister add a ministry admin in their own ministry', async () => {
     // A minister is the super admin of their own ministry.
     await service.create(
@@ -222,6 +236,7 @@ describe('UsersService — audit entries for an actor with no ministry', () => {
         create: jest
           .fn()
           .mockImplementation(({ data }: any) => ({ id: 'new-user', ...data })),
+        findFirst: jest.fn().mockResolvedValue(null),
       },
       userPreferences: { create: jest.fn().mockResolvedValue({}) },
       ministry: {
