@@ -1,10 +1,12 @@
 /**
- * The kinds of notification the platform raises, and which Settings toggle
- * governs each.
+ * The kinds of notification the platform raises.
  *
- * Keeping the mapping in one table is what makes the preference gating
- * trustworthy: every producer goes through it, so a toggle cannot quietly stop
- * applying to one path.
+ * These are no longer gated by preference — notifyMany stopped consulting
+ * PREFERENCE_FOR when the Settings toggles were removed, and the table below
+ * now only serves wantsEmail. The type is what the inbox sorts, filters and
+ * icons by, so it has to describe the message honestly: a cancellation was
+ * filed as MEETING_INVITATION for a while, which meant any filter by kind
+ * would have offered someone a cancelled meeting under "invitations".
  */
 export type NotificationType =
   | 'MINUTES_PUBLISHED'
@@ -13,6 +15,8 @@ export type NotificationType =
   | 'ACTION_ITEM_DUE_SOON'
   | 'ACTION_ITEM_WEEKLY_DIGEST'
   | 'MEETING_INVITATION'
+  | 'MEETING_CHANGED'
+  | 'MEETING_CANCELLED'
   | 'MEETING_REMINDER';
 
 /** Category toggles on UserPreferences. */
@@ -30,6 +34,8 @@ export const PREFERENCE_FOR: Record<NotificationType, PreferenceKey> = {
   ACTION_ITEM_DUE_SOON: 'actionItemNotifications',
   ACTION_ITEM_WEEKLY_DIGEST: 'actionItemNotifications',
   MEETING_INVITATION: 'meetingReminders',
+  MEETING_CHANGED: 'meetingReminders',
+  MEETING_CANCELLED: 'meetingReminders',
   MEETING_REMINDER: 'meetingReminders',
 };
 

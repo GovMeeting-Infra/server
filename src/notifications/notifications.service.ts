@@ -21,6 +21,111 @@ export interface NotificationInput {
   entityId?: string;
 }
 
+/**
+ * Dates as a Sierra Leonean civil servant writes them.
+ *
+ * These titles and bodies are the entire content of the notifications page, and
+ * several of them used to leave out the one fact the reader needed — a meeting
+ * reminder that did not say when the meeting was, a change notice that did not
+ * say what changed. The data was loaded and dropped on the floor.
+ */
+function onDate(value: Date | string): string {
+  return new Date(value).toLocaleDateString('en-GB', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
+}
+
+function atTime(value: Date | string): string {
+  return new Date(value).toLocaleTimeString('en-GB', {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
+function onDateAtTime(value: Date | string): string {
+  return `${onDate(value)} at ${atTime(value)}`;
+}
+
+/**
+ * Status as the board writes it.
+ *
+ * These were rendered with `.replace('_', ' ').toLowerCase()`, which replaces
+ * only the FIRST underscore — fine for IN_PROGRESS, wrong for any future
+ * two-underscore status, and lowercase where the board shows title case. The
+ * labels here match BOARD_COLUMNS in the web app, so a notification and the
+ * column it refers to call the same thing by the same name.
+ */
+const STATUS_LABELS: Record<string, string> = {
+  TODO: 'To Do',
+  IN_PROGRESS: 'In Progress',
+  BLOCKED: 'Blocked',
+  COMPLETED: 'Done',
+  CANCELLED: 'Cancelled',
+};
+
+function statusLabel(status: string): string {
+  return STATUS_LABELS[status] ?? status.replaceAll('_', ' ').toLowerCase();
+}
+
+/**
+ * When a piece of work is due, or that it is not.
+ *
+ * An assignment notice that omits the date makes the person open the board to
+ * find out whether it matters today.
+ */
+function dueLine(dueDate: Date | string | null | undefined): string {
+  if (!dueDate) return 'No due date set.';
+  return `Due ${onDate(dueDate)}.`;
+}
+
+/**
+ * What actually changed about a meeting, rather than that something did.
+ *
+ * "The details have changed" sends someone to the event page to diff it against
+ * their own memory. Naming the move means most people never need to open it.
+ */
+function describeChange(
+  event: { startAt: Date | string; venueName?: string | null },
+  options: { previousStartAt?: Date | null; previousVenueName?: string | null },
+): string {
+  const parts: string[] = [];
+
+  const movedTime =
+    options.previousStartAt &&
+    new Date(options.previousStartAt).getTime() !==
+      new Date(event.startAt).getTime();
+
+  if (movedTime) {
+    parts.push(
+      `Now ${onDateAtTime(event.startAt)}, was ${onDateAtTime(options.previousStartAt!)}.`,
+    );
+  }
+
+  const movedVenue =
+    options.previousVenueName !== undefined &&
+    options.previousVenueName !== null &&
+    options.previousVenueName !== event.venueName;
+
+  if (movedVenue) {
+    parts.push(
+      event.venueName
+        ? `Now in ${event.venueName}, was ${options.previousVenueName}.`
+        : `No longer in ${options.previousVenueName}.`,
+    );
+  }
+
+  // The caller reports a change without saying which field, which happens when
+  // something other than time or venue was edited. Better to admit that than to
+  // name a change we cannot describe.
+  if (parts.length === 0) {
+    return `It is still ${onDateAtTime(event.startAt)}. Open it to see what was edited.`;
+  }
+
+  return parts.join(' ');
+}
+
 interface Recipient {
   userId: string;
   ministryId: string | null;
@@ -231,8 +336,8 @@ export class NotificationsService {
 
     await this.notifyMany(recipients, {
       type: 'MINUTES_PUBLISHED',
-      title: 'Minutes published',
-      body: `Minutes for "${event.title}" have been published.`,
+      title: `Minutes are up for ${event.title}`,
+      body: 'You attended, so check the actions recorded against your name.',
       link: `/administrative/events/${eventId}/minutes`,
       entityType: 'Event',
       entityId: eventId,
@@ -253,6 +358,7 @@ export class NotificationsService {
       select: {
         id: true,
         title: true,
+        dueDate: true,
         ownerId: true,
         ownerEmail: true,
         owner: { select: { ministryId: true } },
@@ -267,9 +373,11 @@ export class NotificationsService {
         userId: item.ownerId,
         ministryId: item.owner?.ministryId ?? undefined,
         type: 'ACTION_ITEM_ASSIGNED',
-        title: 'Action item assigned to you',
-        body: `You have been assigned: ${item.title}`,
-        link: '/administrative/action-items',
+        // Title and body used to say the same thing twice, and neither named
+        // the due date. The email version got this right all along.
+        title: `Assigned to you: ${item.title}`,
+        body: dueLine(item.dueDate),
+        link: `/administrative/action-items?item=${actionItemId}`,
         entityType: 'ActionItem',
         entityId: actionItemId,
       });
@@ -301,13 +409,12 @@ export class NotificationsService {
       userId: item.ownerId,
       ministryId: item.owner?.ministryId ?? undefined,
       type: 'ACTION_ITEM_DUE_SOON',
-      title: 'Action item due soon',
-      body: `"${item.title}" is due ${item.dueDate.toLocaleDateString('en-GB', {
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric',
-      })}.`,
-      link: '/administrative/action-items',
+      // The cron matches the calendar day the item is due, so "soon" always
+      // meant today — and a civil servant reading "due soon" at 08:00 had no
+      // way to know that.
+      title: `Due today: ${item.title}`,
+      body: `Set for ${onDate(item.dueDate)}.`,
+      link: `/administrative/action-items?item=${actionItemId}`,
       entityType: 'ActionItem',
       entityId: actionItemId,
     });
@@ -323,11 +430,12 @@ export class NotificationsService {
       userId,
       ministryId: ministryId ?? (undefined as any),
       type: 'ACTION_ITEM_WEEKLY_DIGEST',
-      title: 'Your open action items',
+      title: 'What is still open',
       body:
         openCount === 1
-          ? 'You have 1 action item still open.'
-          : `You have ${openCount} action items still open.`,
+          ? 'One action item to carry into this week.'
+          : `${openCount} action items to carry into this week.`,
+      // The whole board on purpose: a digest is about the set, not one item.
       link: '/administrative/action-items',
     });
   }
@@ -358,11 +466,9 @@ export class NotificationsService {
       userId,
       ministryId: user.ministryId ?? (undefined as any),
       type: 'ACTION_ITEM_STATUS_CHANGED',
-      title: 'Action item updated',
-      body: `${who}marked "${item.title}" as ${item.status
-        .replace('_', ' ')
-        .toLowerCase()}.`,
-      link: '/administrative/action-items',
+      title: `${who}moved "${item.title}" to ${statusLabel(item.status)}`,
+      body: 'For your awareness.',
+      link: `/administrative/action-items?item=${actionItemId}`,
       entityType: 'ActionItem',
       entityId: actionItemId,
     });
@@ -385,9 +491,9 @@ export class NotificationsService {
       userId: item.ownerId,
       ministryId: item.owner?.ministryId ?? undefined,
       type: 'ACTION_ITEM_STATUS_CHANGED',
-      title: 'Action item updated',
-      body: `"${item.title}" is now ${newStatus.replace('_', ' ').toLowerCase()}.`,
-      link: '/administrative/action-items',
+      title: `"${item.title}" moved to ${statusLabel(newStatus)}`,
+      body: 'Changed by someone else on the item.',
+      link: `/administrative/action-items?item=${actionItemId}`,
       entityType: 'ActionItem',
       entityId: actionItemId,
     });
@@ -473,9 +579,9 @@ export class NotificationsService {
         .map((r) => ({ userId: r.id as string, ministryId: r.ministryId })),
       {
         type: 'ACTION_ITEM_STATUS_CHANGED',
-        title: 'Action item completed',
-        body: `"${item.title}" has been completed.`,
-        link: '/administrative/action-items',
+        title: `Done: ${item.title}`,
+        body: 'Closed out, nothing further needed.',
+        link: `/administrative/action-items?item=${actionItemId}`,
         entityType: 'ActionItem',
         entityId: actionItemId,
       },
@@ -499,15 +605,23 @@ export class NotificationsService {
     if (!previous.email) return;
 
     if (previous.id && previous.ministryId) {
+      // Loaded for its title. The notice named neither the item nor anything
+      // else identifying — "An action item assigned to you has been passed to
+      // Aminata" left the reader guessing which of theirs had moved.
+      const item = await (this.prisma as any).actionItem.findUnique({
+        where: { id: actionItemId },
+        select: { title: true },
+      });
+
       await this.notify({
         userId: previous.id,
         ministryId: previous.ministryId,
         type: 'ACTION_ITEM_ASSIGNED',
-        title: 'Action item reassigned',
+        title: item ? `No longer yours: ${item.title}` : 'No longer yours',
         body: newOwnerName
-          ? `An action item assigned to you has been passed to ${newOwnerName}.`
-          : 'An action item assigned to you has been unassigned.',
-        link: '/administrative/action-items',
+          ? `Passed to ${newOwnerName}. Nothing further needed from you.`
+          : 'Unassigned. Nothing further needed from you.',
+        link: `/administrative/action-items?item=${actionItemId}`,
         entityType: 'ActionItem',
         entityId: actionItemId,
       });
@@ -544,6 +658,11 @@ export class NotificationsService {
       select: {
         title: true,
         ministryId: true,
+        // Needed to say what the meeting moved *to*. The previous values were
+        // already being passed in and forwarded to the email while the in-app
+        // notice said only that "details have changed".
+        startAt: true,
+        venueName: true,
         attendees: {
           // Somebody who declined does not need chasing about a meeting they
           // already said no to.
@@ -574,11 +693,16 @@ export class NotificationsService {
         .filter((r: any) => r.id)
         .map((r: any) => ({ userId: r.id, ministryId: event.ministryId })),
       {
-        type: 'MEETING_INVITATION',
-        title: options.cancelled ? 'Meeting cancelled' : 'Meeting changed',
+        // Its own kind. Filed as MEETING_INVITATION, a cancellation would be
+        // offered under "invitations" by any filter, and shown with the icon
+        // of the thing it cancels.
+        type: options.cancelled ? 'MEETING_CANCELLED' : 'MEETING_CHANGED',
+        title: options.cancelled
+          ? `${event.title} is cancelled`
+          : `${event.title} has moved`,
         body: options.cancelled
-          ? `"${event.title}" has been cancelled.`
-          : `The details of "${event.title}" have changed.`,
+          ? `It was set for ${onDateAtTime(event.startAt)}. You do not need to attend.`
+          : describeChange(event, options),
         link: `/administrative/events/${eventId}`,
         entityType: 'Event',
         entityId: eventId,
@@ -608,7 +732,13 @@ export class NotificationsService {
 
     const event = await (this.prisma as any).event.findUnique({
       where: { id: eventId },
-      select: { id: true, title: true, startAt: true, ministryId: true },
+      select: {
+        id: true,
+        title: true,
+        startAt: true,
+        venueName: true,
+        ministryId: true,
+      },
     });
 
     if (!event) return;
@@ -617,8 +747,13 @@ export class NotificationsService {
       userIds.map((userId) => ({ userId, ministryId: event.ministryId })),
       {
         type: 'MEETING_INVITATION',
-        title: 'You have been invited to a meeting',
-        body: `${event.title} on ${new Date(event.startAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}.`,
+        // The meeting's name, in the title. The longest title in the set used
+        // to be "You have been invited to a meeting", which is the one line
+        // that carries no information about which meeting.
+        title: `Invitation: ${event.title}`,
+        body: event.venueName
+          ? `${onDateAtTime(event.startAt)}, ${event.venueName}.`
+          : `${onDateAtTime(event.startAt)}.`,
         link: `/administrative/events/${eventId}`,
         entityType: 'Event',
         entityId: eventId,
@@ -629,7 +764,13 @@ export class NotificationsService {
   async notifyMeetingReminder(eventId: string, userId: string) {
     const event = await (this.prisma as any).event.findUnique({
       where: { id: eventId },
-      select: { id: true, title: true, ministryId: true },
+      select: {
+        id: true,
+        title: true,
+        startAt: true,
+        venueName: true,
+        ministryId: true,
+      },
     });
 
     if (!event) return;
@@ -638,8 +779,14 @@ export class NotificationsService {
       userId,
       ministryId: event.ministryId,
       type: 'MEETING_REMINDER',
-      title: 'Meeting starting soon',
-      body: `${event.title} starts within the hour.`,
+      // The most urgent message the platform sends, and it used to contain
+      // neither the time nor the place: "starts within the hour" is anywhere
+      // between four minutes and fifty-nine, and the person reading it is
+      // deciding whether to leave their desk now.
+      title: `${event.title} starts at ${atTime(event.startAt)}`,
+      body: event.venueName
+        ? `${event.venueName}. Check in when you arrive.`
+        : 'Check in when you arrive.',
       link: `/administrative/events/${eventId}`,
       entityType: 'Event',
       entityId: eventId,
@@ -665,15 +812,34 @@ export class NotificationsService {
     });
   }
 
-  async getUserNotifications(userId: string, limit = 20, includeRead = false) {
+  /**
+   * A page of someone's notifications, newest first.
+   *
+   * `total` comes back alongside the rows because the page cannot otherwise
+   * tell whether it is showing everything: it used to render 50 rows with no
+   * indication that a fifty-first existed, and nothing anywhere deletes an
+   * unread notification, so a backlog could sit permanently out of reach.
+   */
+  async getUserNotifications(
+    userId: string,
+    limit = 20,
+    includeRead = false,
+    skip = 0,
+  ) {
     const where: any = { userId };
     if (!includeRead) where.read = false;
 
-    return (this.prisma as any).notification.findMany({
-      where,
-      orderBy: { createdAt: 'desc' },
-      take: limit,
-    });
+    const [items, total] = await Promise.all([
+      (this.prisma as any).notification.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        take: limit,
+        skip,
+      }),
+      (this.prisma as any).notification.count({ where }),
+    ]);
+
+    return { items, total, skip, limit };
   }
 
   /**
