@@ -1000,11 +1000,25 @@ export class CheckinService {
       orderBy: { checkInAt: 'desc' },
     });
 
-    // Reduced to a boolean here rather than selected as one — Prisma has no way
-    // to project "is this column non-empty", and the blob must not leave the
-    // server.
+    // Reduced here rather than selected — Prisma has no way to project "is this
+    // column non-empty", and the blob must not leave the server.
+    //
+    // Three states, not two. `hasSignature: !!signature` folded an erased
+    // signature in with a walk-in, and the attendee table then narrated the
+    // walk-in story over both: "recorded by an organiser at the desk, so there
+    // was nobody to sign" — said about someone who signed and later asked for
+    // it to be removed. Null means nobody ever signed; an empty string means a
+    // signature was captured and then erased. On a register meant to survive
+    // being challenged, those are not the same fact.
     return rows.map(({ signature, ...row }: any) => ({
       ...row,
+      signatureState:
+        signature === null || signature === undefined
+          ? ('NONE' as const)
+          : signature === ''
+            ? ('ERASED' as const)
+            : ('SIGNED' as const),
+      // Kept for callers that only ask whether an image can be fetched.
       hasSignature: !!signature,
     }));
   }
