@@ -120,19 +120,21 @@ export class CheckinService {
     // organizer asked to reset and cannot.
     const wouldBeUnfenced = wantsCapture && !usableFix && !hasAnchor;
 
-    if (event.requireGeofence && wouldBeUnfenced) {
-      // The whole point of the setting. Before it existed, a fix worse than
-      // ANCHOR_MAX_ACCURACY_METERS quietly minted a code with no fence, and
-      // whether a meeting was protected came down to the organizer's handset.
-      // Refusing is the honest answer: the organizer can move, wait, or turn
-      // the requirement off, and any of those is a decision rather than an
-      // accident.
+    if (wouldBeUnfenced) {
+      // Always, now — this is no longer a per-event setting.
+      //
+      // A fix worse than ANCHOR_MAX_ACCURACY_METERS used to quietly mint a code
+      // with no fence unless the organizer had ticked a box, so whether a
+      // meeting was protected came down to their handset and whether they
+      // remembered. Refusing is the honest answer: the organizer can move,
+      // wait for a better signal, or record people at the desk — and any of
+      // those is a decision rather than an accident.
       throw new BadRequestException(
         dto.lat == null || dto.lng == null
-          ? 'This meeting requires location verification, so a check-in code cannot be generated without your location. Enable GPS and try again.'
-          : `This meeting requires location verification, but your location is only accurate to ${Math.round(
+          ? 'A check-in code sets the 100m area attendees must be inside, so it cannot be generated without your location. Turn on location for this site and try again. If you cannot, record people at the desk from the attendees page instead.'
+          : `Your location is only accurate to ${Math.round(
               dto.gpsAccuracy ?? 0,
-            )}m. Move into the open or wait for a better signal, then try again.`,
+            )}m, which is too vague to set the check-in area from. Step outside or near a window and try again. If the signal will not improve, record people at the desk from the attendees page instead.`,
       );
     }
 
@@ -315,10 +317,11 @@ export class CheckinService {
         anchorLng: event.checkInAnchorLng,
         anchorAccuracy: event.checkInAnchorAccuracy,
         anchorSetAt: event.checkInAnchorSetAt,
-        // Whether this event insists on a fence. Surfaced so the organizer
-        // page can say why generating was refused, rather than leaving the
-        // refusal to look like a fault.
-        required: event.requireGeofence ?? false,
+        // Always true now. Kept in the response so the organizer page can keep
+        // explaining why generating was refused rather than leaving the
+        // refusal looking like a fault, and so an older client still reads a
+        // field it expects.
+        required: true,
       },
       allowGuestCheckIn: event.allowGuestCheckIn,
       eventStatus: event.status,
@@ -375,14 +378,11 @@ export class CheckinService {
       };
     }
 
-    // Both halves, because they answer different questions: an area has to
-    // have been captured, and the organizer has to have asked for it to gate
-    // entry. An anchored meeting with the requirement off is measured, not
-    // policed, so the client must not block anyone over a refused fix.
+    // An anchor is now the only question. Generating a code requires a usable
+    // fix, so every code that exists is fenced, and every attendee holding one
+    // has to be inside the area.
     const geofenceRequired =
-      event.requireGeofence === true &&
-      event.checkInAnchorLat !== null &&
-      event.checkInAnchorLng !== null;
+      event.checkInAnchorLat !== null && event.checkInAnchorLng !== null;
 
     if (event.status === 'DRAFT' || event.status === 'CANCELLED') {
       // Rendered identically to INVALID by the client: someone holding a code
@@ -564,17 +564,16 @@ export class CheckinService {
     event: {
       checkInAnchorLat: number | null;
       checkInAnchorLng: number | null;
-      requireGeofence?: boolean;
     },
     dto: { lat?: number; lng?: number; gpsAccuracy?: number },
   ): GeofenceVerdict {
     const anchored =
       event.checkInAnchorLat !== null && event.checkInAnchorLng !== null;
 
-    // Measuring and refusing are different things, and only the organizer
-    // decides the second. An anchored meeting with the requirement off still
-    // records where people were; it just never turns anyone away over it.
-    const gates = anchored && event.requireGeofence === true;
+    // An anchored meeting always gates. Measuring without refusing was a
+    // per-event choice; it is not one any more, because a code cannot be minted
+    // without an anchor in the first place.
+    const gates = anchored;
 
     if (!anchored) {
       // No area was captured, so nothing can be verified. null rather than
