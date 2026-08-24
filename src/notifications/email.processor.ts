@@ -115,10 +115,26 @@ function textOf(points: any[], type: string): string[] {
  * straight into Resend's 10 requests per second, so the limiter is what makes
  * it safe — eight per second leaves headroom for the direct sends (invites,
  * password resets) that bypass this queue entirely.
+ *
+ * The two poll intervals below are about Upstash's bill, not throughput. On
+ * BullMQ's defaults an idle worker costs ~1.14M Redis commands a month —
+ * a BZPOPMIN and a moveToActive every 5s, plus a stalled sweep every 30s —
+ * which is roughly three quarters of everything this platform sends Redis,
+ * spent polling an empty queue.
+ *
+ * drainDelay does not delay delivery. Enqueuing writes the marker key that
+ * the blocked BZPOPMIN is parked on, so a waiting worker wakes the moment a
+ * job lands; the timeout only bounds how long it blocks with nothing to do.
+ *
+ * stalledInterval is a real trade: it sets how long a job orphaned by a
+ * crashed worker waits before another picks it up, so recovery goes from 30s
+ * to 5 minutes. For email that is worth the ~90% cut in idle commands.
  */
 @Processor('email-queue', {
   concurrency: 5,
   limiter: { max: 8, duration: 1_000 },
+  drainDelay: 30,
+  stalledInterval: 300_000,
 })
 export class EmailProcessor extends WorkerHost {
   private logger = new Logger('EmailProcessor');
