@@ -253,6 +253,7 @@ export type MinistryWhereInput = {
   invitedToEvents?: Prisma.EventListRelationFilter
   auditLogs?: Prisma.AuditLogListRelationFilter
   notifications?: Prisma.NotificationListRelationFilter
+  staffDirectory?: Prisma.StaffDirectoryEntryListRelationFilter
 }
 
 export type MinistryOrderByWithRelationInput = {
@@ -270,6 +271,7 @@ export type MinistryOrderByWithRelationInput = {
   invitedToEvents?: Prisma.EventOrderByRelationAggregateInput
   auditLogs?: Prisma.AuditLogOrderByRelationAggregateInput
   notifications?: Prisma.NotificationOrderByRelationAggregateInput
+  staffDirectory?: Prisma.StaffDirectoryEntryOrderByRelationAggregateInput
 }
 
 export type MinistryWhereUniqueInput = Prisma.AtLeast<{
@@ -290,6 +292,7 @@ export type MinistryWhereUniqueInput = Prisma.AtLeast<{
   invitedToEvents?: Prisma.EventListRelationFilter
   auditLogs?: Prisma.AuditLogListRelationFilter
   notifications?: Prisma.NotificationListRelationFilter
+  staffDirectory?: Prisma.StaffDirectoryEntryListRelationFilter
 }, "id" | "name" | "code">
 
 export type MinistryOrderByWithAggregationInput = {
@@ -339,6 +342,7 @@ export type MinistryCreateInput = {
   invitedToEvents?: Prisma.EventCreateNestedManyWithoutInvitedMinistriesInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutMinistryInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutMinistryInput
+  staffDirectory?: Prisma.StaffDirectoryEntryCreateNestedManyWithoutMinistryInput
 }
 
 export type MinistryUncheckedCreateInput = {
@@ -356,6 +360,7 @@ export type MinistryUncheckedCreateInput = {
   invitedToEvents?: Prisma.EventUncheckedCreateNestedManyWithoutInvitedMinistriesInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutMinistryInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutMinistryInput
+  staffDirectory?: Prisma.StaffDirectoryEntryUncheckedCreateNestedManyWithoutMinistryInput
 }
 
 export type MinistryUpdateInput = {
@@ -373,6 +378,7 @@ export type MinistryUpdateInput = {
   invitedToEvents?: Prisma.EventUpdateManyWithoutInvitedMinistriesNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutMinistryNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutMinistryNestedInput
+  staffDirectory?: Prisma.StaffDirectoryEntryUpdateManyWithoutMinistryNestedInput
 }
 
 export type MinistryUncheckedUpdateInput = {
@@ -390,6 +396,7 @@ export type MinistryUncheckedUpdateInput = {
   invitedToEvents?: Prisma.EventUncheckedUpdateManyWithoutInvitedMinistriesNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutMinistryNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutMinistryNestedInput
+  staffDirectory?: Prisma.StaffDirectoryEntryUncheckedUpdateManyWithoutMinistryNestedInput
 }
 
 export type MinistryCreateManyInput = {
@@ -508,6 +515,20 @@ export type MinistryUpdateOneWithoutUsersNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.MinistryUpdateToOneWithWhereWithoutUsersInput, Prisma.MinistryUpdateWithoutUsersInput>, Prisma.MinistryUncheckedUpdateWithoutUsersInput>
 }
 
+export type MinistryCreateNestedOneWithoutStaffDirectoryInput = {
+  create?: Prisma.XOR<Prisma.MinistryCreateWithoutStaffDirectoryInput, Prisma.MinistryUncheckedCreateWithoutStaffDirectoryInput>
+  connectOrCreate?: Prisma.MinistryCreateOrConnectWithoutStaffDirectoryInput
+  connect?: Prisma.MinistryWhereUniqueInput
+}
+
+export type MinistryUpdateOneRequiredWithoutStaffDirectoryNestedInput = {
+  create?: Prisma.XOR<Prisma.MinistryCreateWithoutStaffDirectoryInput, Prisma.MinistryUncheckedCreateWithoutStaffDirectoryInput>
+  connectOrCreate?: Prisma.MinistryCreateOrConnectWithoutStaffDirectoryInput
+  upsert?: Prisma.MinistryUpsertWithoutStaffDirectoryInput
+  connect?: Prisma.MinistryWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.MinistryUpdateToOneWithWhereWithoutStaffDirectoryInput, Prisma.MinistryUpdateWithoutStaffDirectoryInput>, Prisma.MinistryUncheckedUpdateWithoutStaffDirectoryInput>
+}
+
 export type MinistryCreateNestedOneWithoutEventsInput = {
   create?: Prisma.XOR<Prisma.MinistryCreateWithoutEventsInput, Prisma.MinistryUncheckedCreateWithoutEventsInput>
   connectOrCreate?: Prisma.MinistryCreateOrConnectWithoutEventsInput
@@ -606,6 +627,7 @@ export type MinistryCreateWithoutUsersInput = {
   invitedToEvents?: Prisma.EventCreateNestedManyWithoutInvitedMinistriesInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutMinistryInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutMinistryInput
+  staffDirectory?: Prisma.StaffDirectoryEntryCreateNestedManyWithoutMinistryInput
 }
 
 export type MinistryUncheckedCreateWithoutUsersInput = {
@@ -622,6 +644,7 @@ export type MinistryUncheckedCreateWithoutUsersInput = {
   invitedToEvents?: Prisma.EventUncheckedCreateNestedManyWithoutInvitedMinistriesInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutMinistryInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutMinistryInput
+  staffDirectory?: Prisma.StaffDirectoryEntryUncheckedCreateNestedManyWithoutMinistryInput
 }
 
 export type MinistryCreateOrConnectWithoutUsersInput = {
@@ -654,6 +677,7 @@ export type MinistryUpdateWithoutUsersInput = {
   invitedToEvents?: Prisma.EventUpdateManyWithoutInvitedMinistriesNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutMinistryNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutMinistryNestedInput
+  staffDirectory?: Prisma.StaffDirectoryEntryUpdateManyWithoutMinistryNestedInput
 }
 
 export type MinistryUncheckedUpdateWithoutUsersInput = {
@@ -666,6 +690,91 @@ export type MinistryUncheckedUpdateWithoutUsersInput = {
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  events?: Prisma.EventUncheckedUpdateManyWithoutMinistryNestedInput
+  invitedToEvents?: Prisma.EventUncheckedUpdateManyWithoutInvitedMinistriesNestedInput
+  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutMinistryNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutMinistryNestedInput
+  staffDirectory?: Prisma.StaffDirectoryEntryUncheckedUpdateManyWithoutMinistryNestedInput
+}
+
+export type MinistryCreateWithoutStaffDirectoryInput = {
+  id?: string
+  name: string
+  code: string
+  emailDomain: string
+  compoundMaxGpsAccuracy?: number
+  active?: boolean
+  logoUrl?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  users?: Prisma.UserCreateNestedManyWithoutMinistryInput
+  events?: Prisma.EventCreateNestedManyWithoutMinistryInput
+  invitedToEvents?: Prisma.EventCreateNestedManyWithoutInvitedMinistriesInput
+  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutMinistryInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutMinistryInput
+}
+
+export type MinistryUncheckedCreateWithoutStaffDirectoryInput = {
+  id?: string
+  name: string
+  code: string
+  emailDomain: string
+  compoundMaxGpsAccuracy?: number
+  active?: boolean
+  logoUrl?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  users?: Prisma.UserUncheckedCreateNestedManyWithoutMinistryInput
+  events?: Prisma.EventUncheckedCreateNestedManyWithoutMinistryInput
+  invitedToEvents?: Prisma.EventUncheckedCreateNestedManyWithoutInvitedMinistriesInput
+  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutMinistryInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutMinistryInput
+}
+
+export type MinistryCreateOrConnectWithoutStaffDirectoryInput = {
+  where: Prisma.MinistryWhereUniqueInput
+  create: Prisma.XOR<Prisma.MinistryCreateWithoutStaffDirectoryInput, Prisma.MinistryUncheckedCreateWithoutStaffDirectoryInput>
+}
+
+export type MinistryUpsertWithoutStaffDirectoryInput = {
+  update: Prisma.XOR<Prisma.MinistryUpdateWithoutStaffDirectoryInput, Prisma.MinistryUncheckedUpdateWithoutStaffDirectoryInput>
+  create: Prisma.XOR<Prisma.MinistryCreateWithoutStaffDirectoryInput, Prisma.MinistryUncheckedCreateWithoutStaffDirectoryInput>
+  where?: Prisma.MinistryWhereInput
+}
+
+export type MinistryUpdateToOneWithWhereWithoutStaffDirectoryInput = {
+  where?: Prisma.MinistryWhereInput
+  data: Prisma.XOR<Prisma.MinistryUpdateWithoutStaffDirectoryInput, Prisma.MinistryUncheckedUpdateWithoutStaffDirectoryInput>
+}
+
+export type MinistryUpdateWithoutStaffDirectoryInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  code?: Prisma.StringFieldUpdateOperationsInput | string
+  emailDomain?: Prisma.StringFieldUpdateOperationsInput | string
+  compoundMaxGpsAccuracy?: Prisma.IntFieldUpdateOperationsInput | number
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  users?: Prisma.UserUpdateManyWithoutMinistryNestedInput
+  events?: Prisma.EventUpdateManyWithoutMinistryNestedInput
+  invitedToEvents?: Prisma.EventUpdateManyWithoutInvitedMinistriesNestedInput
+  auditLogs?: Prisma.AuditLogUpdateManyWithoutMinistryNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutMinistryNestedInput
+}
+
+export type MinistryUncheckedUpdateWithoutStaffDirectoryInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  code?: Prisma.StringFieldUpdateOperationsInput | string
+  emailDomain?: Prisma.StringFieldUpdateOperationsInput | string
+  compoundMaxGpsAccuracy?: Prisma.IntFieldUpdateOperationsInput | number
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  users?: Prisma.UserUncheckedUpdateManyWithoutMinistryNestedInput
   events?: Prisma.EventUncheckedUpdateManyWithoutMinistryNestedInput
   invitedToEvents?: Prisma.EventUncheckedUpdateManyWithoutInvitedMinistriesNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutMinistryNestedInput
@@ -686,6 +795,7 @@ export type MinistryCreateWithoutEventsInput = {
   invitedToEvents?: Prisma.EventCreateNestedManyWithoutInvitedMinistriesInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutMinistryInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutMinistryInput
+  staffDirectory?: Prisma.StaffDirectoryEntryCreateNestedManyWithoutMinistryInput
 }
 
 export type MinistryUncheckedCreateWithoutEventsInput = {
@@ -702,6 +812,7 @@ export type MinistryUncheckedCreateWithoutEventsInput = {
   invitedToEvents?: Prisma.EventUncheckedCreateNestedManyWithoutInvitedMinistriesInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutMinistryInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutMinistryInput
+  staffDirectory?: Prisma.StaffDirectoryEntryUncheckedCreateNestedManyWithoutMinistryInput
 }
 
 export type MinistryCreateOrConnectWithoutEventsInput = {
@@ -723,6 +834,7 @@ export type MinistryCreateWithoutInvitedToEventsInput = {
   events?: Prisma.EventCreateNestedManyWithoutMinistryInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutMinistryInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutMinistryInput
+  staffDirectory?: Prisma.StaffDirectoryEntryCreateNestedManyWithoutMinistryInput
 }
 
 export type MinistryUncheckedCreateWithoutInvitedToEventsInput = {
@@ -739,6 +851,7 @@ export type MinistryUncheckedCreateWithoutInvitedToEventsInput = {
   events?: Prisma.EventUncheckedCreateNestedManyWithoutMinistryInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutMinistryInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutMinistryInput
+  staffDirectory?: Prisma.StaffDirectoryEntryUncheckedCreateNestedManyWithoutMinistryInput
 }
 
 export type MinistryCreateOrConnectWithoutInvitedToEventsInput = {
@@ -771,6 +884,7 @@ export type MinistryUpdateWithoutEventsInput = {
   invitedToEvents?: Prisma.EventUpdateManyWithoutInvitedMinistriesNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutMinistryNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutMinistryNestedInput
+  staffDirectory?: Prisma.StaffDirectoryEntryUpdateManyWithoutMinistryNestedInput
 }
 
 export type MinistryUncheckedUpdateWithoutEventsInput = {
@@ -787,6 +901,7 @@ export type MinistryUncheckedUpdateWithoutEventsInput = {
   invitedToEvents?: Prisma.EventUncheckedUpdateManyWithoutInvitedMinistriesNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutMinistryNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutMinistryNestedInput
+  staffDirectory?: Prisma.StaffDirectoryEntryUncheckedUpdateManyWithoutMinistryNestedInput
 }
 
 export type MinistryUpsertWithWhereUniqueWithoutInvitedToEventsInput = {
@@ -834,6 +949,7 @@ export type MinistryCreateWithoutNotificationsInput = {
   events?: Prisma.EventCreateNestedManyWithoutMinistryInput
   invitedToEvents?: Prisma.EventCreateNestedManyWithoutInvitedMinistriesInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutMinistryInput
+  staffDirectory?: Prisma.StaffDirectoryEntryCreateNestedManyWithoutMinistryInput
 }
 
 export type MinistryUncheckedCreateWithoutNotificationsInput = {
@@ -850,6 +966,7 @@ export type MinistryUncheckedCreateWithoutNotificationsInput = {
   events?: Prisma.EventUncheckedCreateNestedManyWithoutMinistryInput
   invitedToEvents?: Prisma.EventUncheckedCreateNestedManyWithoutInvitedMinistriesInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutMinistryInput
+  staffDirectory?: Prisma.StaffDirectoryEntryUncheckedCreateNestedManyWithoutMinistryInput
 }
 
 export type MinistryCreateOrConnectWithoutNotificationsInput = {
@@ -882,6 +999,7 @@ export type MinistryUpdateWithoutNotificationsInput = {
   events?: Prisma.EventUpdateManyWithoutMinistryNestedInput
   invitedToEvents?: Prisma.EventUpdateManyWithoutInvitedMinistriesNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutMinistryNestedInput
+  staffDirectory?: Prisma.StaffDirectoryEntryUpdateManyWithoutMinistryNestedInput
 }
 
 export type MinistryUncheckedUpdateWithoutNotificationsInput = {
@@ -898,6 +1016,7 @@ export type MinistryUncheckedUpdateWithoutNotificationsInput = {
   events?: Prisma.EventUncheckedUpdateManyWithoutMinistryNestedInput
   invitedToEvents?: Prisma.EventUncheckedUpdateManyWithoutInvitedMinistriesNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutMinistryNestedInput
+  staffDirectory?: Prisma.StaffDirectoryEntryUncheckedUpdateManyWithoutMinistryNestedInput
 }
 
 export type MinistryCreateWithoutAuditLogsInput = {
@@ -914,6 +1033,7 @@ export type MinistryCreateWithoutAuditLogsInput = {
   events?: Prisma.EventCreateNestedManyWithoutMinistryInput
   invitedToEvents?: Prisma.EventCreateNestedManyWithoutInvitedMinistriesInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutMinistryInput
+  staffDirectory?: Prisma.StaffDirectoryEntryCreateNestedManyWithoutMinistryInput
 }
 
 export type MinistryUncheckedCreateWithoutAuditLogsInput = {
@@ -930,6 +1050,7 @@ export type MinistryUncheckedCreateWithoutAuditLogsInput = {
   events?: Prisma.EventUncheckedCreateNestedManyWithoutMinistryInput
   invitedToEvents?: Prisma.EventUncheckedCreateNestedManyWithoutInvitedMinistriesInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutMinistryInput
+  staffDirectory?: Prisma.StaffDirectoryEntryUncheckedCreateNestedManyWithoutMinistryInput
 }
 
 export type MinistryCreateOrConnectWithoutAuditLogsInput = {
@@ -962,6 +1083,7 @@ export type MinistryUpdateWithoutAuditLogsInput = {
   events?: Prisma.EventUpdateManyWithoutMinistryNestedInput
   invitedToEvents?: Prisma.EventUpdateManyWithoutInvitedMinistriesNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutMinistryNestedInput
+  staffDirectory?: Prisma.StaffDirectoryEntryUpdateManyWithoutMinistryNestedInput
 }
 
 export type MinistryUncheckedUpdateWithoutAuditLogsInput = {
@@ -978,6 +1100,7 @@ export type MinistryUncheckedUpdateWithoutAuditLogsInput = {
   events?: Prisma.EventUncheckedUpdateManyWithoutMinistryNestedInput
   invitedToEvents?: Prisma.EventUncheckedUpdateManyWithoutInvitedMinistriesNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutMinistryNestedInput
+  staffDirectory?: Prisma.StaffDirectoryEntryUncheckedUpdateManyWithoutMinistryNestedInput
 }
 
 export type MinistryUpdateWithoutInvitedToEventsInput = {
@@ -994,6 +1117,7 @@ export type MinistryUpdateWithoutInvitedToEventsInput = {
   events?: Prisma.EventUpdateManyWithoutMinistryNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutMinistryNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutMinistryNestedInput
+  staffDirectory?: Prisma.StaffDirectoryEntryUpdateManyWithoutMinistryNestedInput
 }
 
 export type MinistryUncheckedUpdateWithoutInvitedToEventsInput = {
@@ -1010,6 +1134,7 @@ export type MinistryUncheckedUpdateWithoutInvitedToEventsInput = {
   events?: Prisma.EventUncheckedUpdateManyWithoutMinistryNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutMinistryNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutMinistryNestedInput
+  staffDirectory?: Prisma.StaffDirectoryEntryUncheckedUpdateManyWithoutMinistryNestedInput
 }
 
 export type MinistryUncheckedUpdateManyWithoutInvitedToEventsInput = {
@@ -1035,6 +1160,7 @@ export type MinistryCountOutputType = {
   invitedToEvents: number
   auditLogs: number
   notifications: number
+  staffDirectory: number
 }
 
 export type MinistryCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1043,6 +1169,7 @@ export type MinistryCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensio
   invitedToEvents?: boolean | MinistryCountOutputTypeCountInvitedToEventsArgs
   auditLogs?: boolean | MinistryCountOutputTypeCountAuditLogsArgs
   notifications?: boolean | MinistryCountOutputTypeCountNotificationsArgs
+  staffDirectory?: boolean | MinistryCountOutputTypeCountStaffDirectoryArgs
 }
 
 /**
@@ -1090,6 +1217,13 @@ export type MinistryCountOutputTypeCountNotificationsArgs<ExtArgs extends runtim
   where?: Prisma.NotificationWhereInput
 }
 
+/**
+ * MinistryCountOutputType without action
+ */
+export type MinistryCountOutputTypeCountStaffDirectoryArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.StaffDirectoryEntryWhereInput
+}
+
 
 export type MinistrySelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1106,6 +1240,7 @@ export type MinistrySelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   invitedToEvents?: boolean | Prisma.Ministry$invitedToEventsArgs<ExtArgs>
   auditLogs?: boolean | Prisma.Ministry$auditLogsArgs<ExtArgs>
   notifications?: boolean | Prisma.Ministry$notificationsArgs<ExtArgs>
+  staffDirectory?: boolean | Prisma.Ministry$staffDirectoryArgs<ExtArgs>
   _count?: boolean | Prisma.MinistryCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["ministry"]>
 
@@ -1152,6 +1287,7 @@ export type MinistryInclude<ExtArgs extends runtime.Types.Extensions.InternalArg
   invitedToEvents?: boolean | Prisma.Ministry$invitedToEventsArgs<ExtArgs>
   auditLogs?: boolean | Prisma.Ministry$auditLogsArgs<ExtArgs>
   notifications?: boolean | Prisma.Ministry$notificationsArgs<ExtArgs>
+  staffDirectory?: boolean | Prisma.Ministry$staffDirectoryArgs<ExtArgs>
   _count?: boolean | Prisma.MinistryCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type MinistryIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -1165,6 +1301,7 @@ export type $MinistryPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     invitedToEvents: Prisma.$EventPayload<ExtArgs>[]
     auditLogs: Prisma.$AuditLogPayload<ExtArgs>[]
     notifications: Prisma.$NotificationPayload<ExtArgs>[]
+    staffDirectory: Prisma.$StaffDirectoryEntryPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1575,6 +1712,7 @@ export interface Prisma__MinistryClient<T, Null = never, ExtArgs extends runtime
   invitedToEvents<T extends Prisma.Ministry$invitedToEventsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Ministry$invitedToEventsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   auditLogs<T extends Prisma.Ministry$auditLogsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Ministry$auditLogsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AuditLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   notifications<T extends Prisma.Ministry$notificationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Ministry$notificationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$NotificationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  staffDirectory<T extends Prisma.Ministry$staffDirectoryArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Ministry$staffDirectoryArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$StaffDirectoryEntryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2123,6 +2261,30 @@ export type Ministry$notificationsArgs<ExtArgs extends runtime.Types.Extensions.
   take?: number
   skip?: number
   distinct?: Prisma.NotificationScalarFieldEnum | Prisma.NotificationScalarFieldEnum[]
+}
+
+/**
+ * Ministry.staffDirectory
+ */
+export type Ministry$staffDirectoryArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the StaffDirectoryEntry
+   */
+  select?: Prisma.StaffDirectoryEntrySelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the StaffDirectoryEntry
+   */
+  omit?: Prisma.StaffDirectoryEntryOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.StaffDirectoryEntryInclude<ExtArgs> | null
+  where?: Prisma.StaffDirectoryEntryWhereInput
+  orderBy?: Prisma.StaffDirectoryEntryOrderByWithRelationInput | Prisma.StaffDirectoryEntryOrderByWithRelationInput[]
+  cursor?: Prisma.StaffDirectoryEntryWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.StaffDirectoryEntryScalarFieldEnum | Prisma.StaffDirectoryEntryScalarFieldEnum[]
 }
 
 /**

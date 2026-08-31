@@ -62,3 +62,7 @@ pids
 
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+# Staff directory exports. Real names and addresses of real people —
+# imported by scripts/import-staff-directory.ts, never committed.
+*.csv
