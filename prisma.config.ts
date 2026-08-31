@@ -27,9 +27,4 @@ const url =
 
 export default {
   datasource: { url },
-  // Prisma 7 reads the seed command from here, not from package.json's
-  // `prisma.seed` key (which it now ignores).
-  migrations: {
-    seed: 'ts-node prisma/seed.ts',
-  },
 };
