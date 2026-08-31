@@ -36,11 +36,19 @@ lerna-debug.log*
 !.vscode/extensions.json
 
 # dotenv environment variable files
-.env
-.env.development.local
-.env.test.local
-.env.production.local
-.env.local
+# Every .env variant, including .env.production — the previous list named only
+# the *.local ones, so a production env file copied here would have been
+# committed. The template is documentation, not secrets, so it is exempt.
+.env*
+!.env.example
+
+# Keys and certificates. Never belongs in this repository; the deploy key and
+# the TLS material live on the instance and in GitHub Actions secrets.
+*.pem
+*.key
+*.p12
+*.pfx
+id_rsa*
 
 # temp directory
 .temp
