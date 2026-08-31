@@ -15,6 +15,7 @@ import { UpdateUserDetailsDto } from './dto/update-user-details.dto';
 import {
   ministryScope,
   assertSameMinistry,
+  PLATFORM_ROLES,
 } from '../common/utils/ministry-scope.util';
 // `auth` and better-auth's hashPassword used to be imported here, from when
 // this service set passwords itself. Users now set their own from an invitation
@@ -38,6 +39,7 @@ export class UsersService {
   /** Roles that may administer other users. */
   private static readonly ADMIN_ROLES = [
     'SUPER_ADMIN',
+    'PLATFORM_ADMIN',
     'MINISTRY_ADMIN',
     'MINISTER',
   ];
@@ -55,9 +57,11 @@ export class UsersService {
     actorRole: string,
     actorMinistryId?: string,
   ) {
-    if (actorRole !== 'SUPER_ADMIN') {
-      if (target.systemRole === 'SUPER_ADMIN') {
-        throw new ForbiddenException('Cannot act on a super-admin');
+    if (!PLATFORM_ROLES.includes(actorRole)) {
+      if (PLATFORM_ROLES.includes(target.systemRole)) {
+        // Deliberately vague. Naming the role would tell a ministry admin that
+        // it exists, and the platform roles are not theirs to know about.
+        throw new ForbiddenException('You cannot act on this account');
       }
       assertSameMinistry(
         { systemRole: actorRole, ministryId: actorMinistryId },
@@ -72,27 +76,40 @@ export class UsersService {
    *
    *   SUPER_ADMIN     nobody — the platform has exactly one, provisioned
    *                   directly against the database
-   *   MINISTER        super admin only
-   *   MINISTRY_ADMIN  super admin, minister, ministry admin
+   *   PLATFORM_ADMIN  the platform owner alone
+   *   MINISTER        the owner and platform admins
+   *   MINISTRY_ADMIN  those two, plus ministers and ministry admins
    *   STAFF           the same
    *
-   * A minister is the super admin of their own ministry, so they administer
-   * their people; they still cannot mint a second minister. Staff never reach
-   * here — the controller's @Roles keeps them out of user administration
-   * entirely.
+   * The split is provisioning versus appointment. Platform admins are engineers
+   * who stand the platform up, so they create ministries and staff them —
+   * including appointing a ministry's minister. What they cannot do is appoint
+   * another of themselves: growing the set of people who can reach across every
+   * ministry stays with the owner, or the role would be self-propagating.
    *
-   * The DTOs already reject SUPER_ADMIN, so that branch is unreachable through
-   * HTTP. It stays because this method is the rule, and a future caller that
-   * skips the DTO should meet it too.
+   * A minister is the administrator of their own ministry, so they administer
+   * their people; they still cannot mint a second minister, which is enforced
+   * separately by assertMinistryHasNoMinister. Staff never reach here — the
+   * controller's @Roles keeps them out of user administration entirely.
+   *
+   * The DTOs already reject both platform roles, so those branches are
+   * unreachable through HTTP. They stay because this method is the rule, and a
+   * future caller that skips the DTO should meet it too.
    */
   private assertCanAssignRole(role: string, actorRole: string) {
     if (role === 'SUPER_ADMIN') {
+      throw new ForbiddenException('That role cannot be assigned.');
+    }
+    if (role === 'PLATFORM_ADMIN' && actorRole !== 'SUPER_ADMIN') {
       throw new ForbiddenException(
-        'SUPER_ADMIN cannot be assigned. The platform has a single super administrator.',
+        'Only the platform owner can appoint a platform administrator',
       );
     }
-    if (role === 'MINISTER' && actorRole !== 'SUPER_ADMIN') {
-      throw new ForbiddenException('Only a super-admin can assign MINISTER');
+    if (
+      role === 'MINISTER' &&
+      !PLATFORM_ROLES.includes(actorRole)
+    ) {
+      throw new ForbiddenException('You cannot appoint a minister');
     }
   }
 
@@ -327,24 +344,29 @@ export class UsersService {
     actorMinistryId?: string,
     actorSystemRole?: string,
   ): Promise<string | null> {
-    // No SUPER_ADMIN branch: assertCanAssignRole has already refused that role
-    // before anything reaches here, so every user created through this path
-    // belongs to a ministry.
-    const isSuperAdmin = actorSystemRole === 'SUPER_ADMIN';
+    // No platform-role branch: assertCanAssignRole has already refused those
+    // roles before anything reaches here, so every user created through this
+    // path belongs to a ministry.
+    //
+    // The platform roles have no ministry of their own, so there is no "their"
+    // ministry to default to — they must name one, and may name any.
+    const isPlatformRole = PLATFORM_ROLES.includes(
+      actorSystemRole ?? '',
+    );
 
-    if (dto.ministryId && !isSuperAdmin && dto.ministryId !== actorMinistryId) {
+    if (dto.ministryId && !isPlatformRole && dto.ministryId !== actorMinistryId) {
       throw new ForbiddenException(
-        'Only a SUPER_ADMIN can create users in another ministry',
+        'You can only create users in your own ministry',
       );
     }
 
-    const targetMinistryId = isSuperAdmin
+    const targetMinistryId = isPlatformRole
       ? dto.ministryId
       : dto.ministryId || actorMinistryId;
 
     if (!targetMinistryId) {
       throw new BadRequestException(
-        'ministryId is required when creating a user as a SUPER_ADMIN',
+        'Choose the ministry this user belongs to',
       );
     }
 
@@ -380,18 +402,33 @@ export class UsersService {
     user: { systemRole: string; ministryId?: string },
     filters: { q?: string; role?: string; ministryId?: string } = {},
   ) {
-    const isSuperAdmin = user.systemRole === 'SUPER_ADMIN';
+    const isOwner = user.systemRole === 'SUPER_ADMIN';
+    const isPlatformRole = PLATFORM_ROLES.includes(user.systemRole);
     const scope = ministryScope(user);
     const q = filters.q?.trim();
+
+    // The owner is never a manageable row, not even to itself. Platform admins
+    // are hidden from everyone below them — a ministry admin has no business
+    // knowing the role exists — but the owner must see them, since appointing
+    // them is the owner's job and so is taking it back.
+    const hiddenRoles = isOwner
+      ? ['SUPER_ADMIN']
+      : ['SUPER_ADMIN', 'PLATFORM_ADMIN'];
 
     const rows = await (this.prisma as any).user.findMany({
       where: {
         ...scope,
-        // Super-admins are never listed as manageable rows.
-        systemRole: filters.role ? filters.role : { not: 'SUPER_ADMIN' },
-        // Soft-deleted users are only visible to super-admins.
-        ...(isSuperAdmin ? {} : { deletedAt: null }),
-        ...(isSuperAdmin && filters.ministryId
+        // A role filter narrows the visible set; it does not widen it. Asking
+        // for a hidden role by name used to replace this clause outright,
+        // which handed anyone who could read the list a way to enumerate the
+        // roles it was meant to conceal.
+        systemRole:
+          filters.role && !hiddenRoles.includes(filters.role)
+            ? filters.role
+            : { notIn: hiddenRoles },
+        // Soft-deleted users are only visible to the platform roles.
+        ...(isPlatformRole ? {} : { deletedAt: null }),
+        ...(isPlatformRole && filters.ministryId
           ? { ministryId: filters.ministryId }
           : {}),
         ...(q
@@ -576,11 +613,13 @@ export class UsersService {
 
     this.assertCanManage(user, actorRole, actorMinistryId);
 
-    const isSuperAdmin = actorRole === 'SUPER_ADMIN';
-
-    if ((dto.ministryId || dto.email) && !isSuperAdmin) {
+    // Deliberately narrower than creating a user. An email is a login
+    // identity and a ministry decides what someone can see, so moving either
+    // is closer to erasing an account than to provisioning one — it stays with
+    // the owner, platform admins included.
+    if ((dto.ministryId || dto.email) && actorRole !== 'SUPER_ADMIN') {
       throw new ForbiddenException(
-        'Only a SUPER_ADMIN can change a user’s ministry or email',
+        'You cannot change a user’s ministry or email address',
       );
     }
 
@@ -653,7 +692,11 @@ export class UsersService {
     if (!dto.ministryId) {
       // An email change on its own still has to satisfy the ministry they are
       // already in.
-      if (email && user.ministryId && user.systemRole !== 'SUPER_ADMIN') {
+      if (
+        email &&
+        user.ministryId &&
+        !PLATFORM_ROLES.includes(user.systemRole)
+      ) {
         const current = await this.requireMinistry(user.ministryId);
         this.assertEmailOnDomain(email, current);
       }

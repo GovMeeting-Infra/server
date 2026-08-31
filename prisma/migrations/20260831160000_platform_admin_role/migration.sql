@@ -1,0 +1,22 @@
+-- An operations role, for engineers rather than civil servants.
+--
+-- Every role until now has been a meeting participant scoped to one ministry.
+-- This one is neither: it belongs to no ministry, runs no meetings, and exists
+-- to keep the platform standing up — watching health and the mail queue, and
+-- provisioning ministries and accounts.
+--
+-- What it deliberately cannot do is read what a ministry discussed. Minutes,
+-- attendance records, the CSV exports, reports and search stay closed to it.
+-- That is enforced by omission: RolesGuard is an allowlist, so a role absent
+-- from a route's @Roles list is refused before the handler runs. No new
+-- scoping mechanism, and no way to grant the access by accident — only by
+-- adding the role to a decorator on purpose.
+--
+-- Only SUPER_ADMIN may appoint one, which is why the two are distinct roles
+-- rather than one shared operations account.
+--
+-- Additive: Postgres allows a new enum value without rewriting the column, and
+-- no existing row changes. ALTER TYPE ... ADD VALUE cannot run inside a
+-- transaction block in older Postgres, so this migration holds nothing else.
+
+ALTER TYPE "SystemRole" ADD VALUE 'PLATFORM_ADMIN' AFTER 'SUPER_ADMIN';

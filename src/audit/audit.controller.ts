@@ -7,9 +7,12 @@ import { CurrentUser } from '../common/decorators/current-user.decorator';
 /**
  * The activity log.
  *
- * Ministers and super-admins only. The log records who did what to whose
+ * Ministers and the platform owner only. The log records who did what to whose
  * record across a whole ministry, which is oversight rather than day-to-day
  * administration — scoping happens in the service, not here.
+ *
+ * Platform admins are absent from those two routes on purpose and read /system
+ * instead, which is the same table with the people taken out of it.
  */
 @Controller('api/v1/audit')
 @UseGuards(RolesGuard)
@@ -60,5 +63,32 @@ export class AuditController {
     // Takes the same filter so the category list matches the ministry on
     // screen, rather than offering categories with no rows behind them.
     return this.auditService.categories(user, ministryId);
+  }
+
+  /**
+   * Operations view of the same log: what kind of thing happened and whether it
+   * worked, with no names, addresses, titles or IPs. See listSystemEvents.
+   */
+  @Get('system')
+  @Roles('SUPER_ADMIN', 'PLATFORM_ADMIN')
+  async systemEvents(
+    @Query('category') category?: string,
+    @Query('status') status?: string,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+    @Query('skip') skip?: string,
+    @Query('take') take?: string,
+  ) {
+    return this.auditService.listSystemEvents({
+      category,
+      status:
+        status === 'SUCCESS' || status === 'FAILURE' || status === 'PARTIAL'
+          ? status
+          : undefined,
+      from,
+      to,
+      skip: skip ? parseInt(skip, 10) || 0 : 0,
+      take: take ? parseInt(take, 10) || 50 : 50,
+    });
   }
 }

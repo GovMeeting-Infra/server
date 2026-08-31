@@ -55,8 +55,20 @@ model User {
   @@index([deletedAt])
 }
 
+/// SUPER_ADMIN and PLATFORM_ADMIN belong to no ministry; the rest are members
+/// of exactly one.
+///
+/// PLATFORM_ADMIN is the operations role: engineers who monitor the platform
+/// and provision it. They stand up ministries and create accounts, and they
+/// can see that the system is healthy — but never what a ministry discussed.
+/// Minutes, attendance, reports and search are closed to them, which is
+/// enforced by their absence from those routes' @Roles lists rather than by
+/// anything they carry.
+///
+/// Only SUPER_ADMIN may appoint one. See assertCanAssignRole.
 enum SystemRole {
   SUPER_ADMIN
+  PLATFORM_ADMIN
   MINISTER
   MINISTRY_ADMIN
   STAFF
