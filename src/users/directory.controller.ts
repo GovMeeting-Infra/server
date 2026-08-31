@@ -140,18 +140,28 @@ export class DirectoryController {
     });
 
     // Onboarded already? Then the account is the person, and the roster row is
-    // a leftover. Compared lowercased because both sides are written that way
-    // but older account rows predate that rule.
+    // a leftover.
+    //
+    // Matched case-insensitively per address rather than with `in`, which is
+    // case-sensitive in Postgres. Roster rows are lowercased on write and so
+    // are new accounts, but accounts created before that rule are not — and an
+    // account this missed would put the same person in the list twice, which
+    // is the one thing this endpoint exists to prevent. The OR is bounded by
+    // the take above.
     const onboarded = new Set<string>(
-      (
-        await (this.prisma as any).user.findMany({
-          where: {
-            email: { in: entries.map((e: any) => e.email) },
-            deletedAt: null,
-          },
-          select: { email: true },
-        })
-      ).map((u: any) => u.email.toLowerCase()),
+      entries.length === 0
+        ? []
+        : (
+            await (this.prisma as any).user.findMany({
+              where: {
+                deletedAt: null,
+                OR: entries.map((e: any) => ({
+                  email: { equals: e.email, mode: 'insensitive' },
+                })),
+              },
+              select: { email: true },
+            })
+          ).map((u: any) => u.email.toLowerCase()),
     );
 
     const staff: DirectoryPerson[] = entries
