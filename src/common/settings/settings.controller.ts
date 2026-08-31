@@ -11,8 +11,9 @@ import { CurrentUser } from '../decorators/current-user.decorator';
 export class SettingsController {
   constructor(private settings: SettingsService) {}
 
-  // Super-admin only, both of them: one governs how long every session lives,
-  // the other governs who is allowed to sign in at all.
+  // Super-admin only, all of them: one governs how long every session lives,
+  // one governs who is allowed to sign in at all, and one is the address the
+  // help page offers to somebody who is stuck.
   @Get()
   @Roles('SUPER_ADMIN')
   @ApiOperation({ summary: 'Current platform settings and their source' })

@@ -93,6 +93,20 @@ function parse(csv: string): { rows: Row[]; skipped: string[] } {
   return { rows, skipped };
 }
 
+/**
+ * The platform's support address, as the app resolves it: a stored override
+ * first, then the environment. Mirrors SettingsService, which this script
+ * cannot reach without standing up the Nest container.
+ */
+async function supportAddress(prisma: any): Promise<string | null> {
+  const row = await prisma.platformSetting.findUnique({
+    where: { key: 'SUPPORT_EMAIL' },
+    select: { value: true },
+  });
+  const value = (row?.value ?? process.env.SUPPORT_EMAIL ?? '').trim().toLowerCase();
+  return value || null;
+}
+
 async function main() {
   const csvPath = arg('csv');
   const ministryCode = arg('ministry');
@@ -143,6 +157,58 @@ async function main() {
       }
     }
 
+    // Somebody who already holds an account is not a candidate for onboarding
+    // — they are onboarded. Importing them would put the same person in the
+    // picker twice, and deleting the leftover row by hand would only last
+    // until the next run of this script.
+    const accounts = await prisma.user.findMany({
+      where: {
+        deletedAt: null,
+        OR: onDomain.map((r) => ({
+          email: { equals: r.email, mode: 'insensitive' as const },
+        })),
+      },
+      select: { email: true },
+    });
+    const held = new Set(accounts.map((a) => a.email.toLowerCase()));
+
+    // A shared mailbox is not a person. info@ and support@ belong on the help
+    // page, where somebody is expected to be reading them, not in a picker
+    // that offers them as a meeting attendee or an action-item owner.
+    const support = await supportAddress(prisma);
+
+    const toImport = onDomain.filter((r) => {
+      if (held.has(r.email)) {
+        skipped.push(`${r.email}: already has an account`);
+        return false;
+      }
+      if (support && r.email === support) {
+        skipped.push(`${r.email}: the support address, not a person`);
+        return false;
+      }
+      return true;
+    });
+
+    // Reconcile, rather than only add. A roster row for somebody who has since
+    // been given an account is a leftover, and the endpoint already hides it —
+    // but a hidden row is still a row, and leaving it means the two lists drift
+    // apart until nobody trusts either.
+    const stale = await prisma.staffDirectoryEntry.findMany({
+      where: {
+        ministryId: ministry.id,
+        email: {
+          in: [...held, ...(support ? [support] : [])],
+        },
+      },
+      select: { id: true, email: true },
+    });
+
+    if (stale.length > 0 && !dryRun) {
+      await prisma.staffDirectoryEntry.deleteMany({
+        where: { id: { in: stale.map((e: { id: string }) => e.id) } },
+      });
+    }
+
     // The export is the source of truth for a name; a person who has since
     // been given a surname should get it. Nothing else about the row changes.
     const source = `csv:${csvPath.split('/').pop()}`;
@@ -150,11 +216,11 @@ async function main() {
     let updated = 0;
 
     console.log(
-      `${ministry.name} (@${domain}) — ${onDomain.length} rows to import${dryRun ? ' [dry run]' : ''}`,
+      `${ministry.name} (@${domain}) — ${toImport.length} rows to import${dryRun ? ' [dry run]' : ''}`,
     );
 
     if (!dryRun) {
-      for (const row of onDomain) {
+      for (const row of toImport) {
         const existing = await prisma.staffDirectoryEntry.findUnique({
           where: { ministryId_email: { ministryId: ministry.id, email: row.email } },
           select: { id: true },
@@ -172,6 +238,8 @@ async function main() {
 
     console.log(`  created: ${dryRun ? '—' : created}`);
     console.log(`  updated: ${dryRun ? '—' : updated}`);
+    console.log(`  removed: ${dryRun ? `${stale.length} (would)` : stale.length}`);
+    stale.forEach((e: { email: string }) => console.log(`    - ${e.email}`));
     console.log(`  skipped: ${skipped.length}`);
     skipped.forEach((s) => console.log(`    - ${s}`));
 
