@@ -8,7 +8,14 @@ interface UserWithMinistry {
 export function ministryScope(user: UserWithMinistry): Record<string, unknown> {
   return user.systemRole === 'SUPER_ADMIN'
     ? {}
-    : { ministryId: user.ministryId };
+    : // Never `undefined`: Prisma drops an undefined filter key, which would
+      // turn "a minister with no ministry" into "every ministry" — the exact
+      // opposite of what this function exists to do, and silently, since no
+      // error is raised and the query simply returns more than it should.
+      // `null` matches nothing, which is the safe reading of "belongs to no
+      // ministry". audit.service.ts:88-98 has always defended against this;
+      // this shared helper had not.
+      { ministryId: user.ministryId ?? null };
 }
 
 export function assertSameMinistry(
