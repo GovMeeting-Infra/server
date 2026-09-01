@@ -10,6 +10,7 @@ import { SignInDto } from './dto/sign-in.dto';
 import { auth } from './auth.config';
 import { APIError } from 'better-auth/api';
 import { SettingsService, SETTINGS } from '../common/settings/settings.service';
+import { matchesGovDomain } from '../common/utils/gov-domain.util';
 
 /** Failures allowed before the account is locked. */
 const MAX_LOGIN_ATTEMPTS = 5;
@@ -214,19 +215,12 @@ export class AuthService {
   }
 
   private async isGovDomain(email: string): Promise<boolean> {
-    const domain = email.split('@')[1]?.toLowerCase();
-    if (!domain) return false;
-
-    const configured = await this.settings.get(
-      SETTINGS.GOVERNMENT_EMAIL_DOMAIN,
+    // The rule itself lives in a shared helper, so that account creation
+    // applies the same one. See matchesGovDomain for why it anchors on a dot.
+    return matchesGovDomain(
+      email,
+      await this.settings.get(SETTINGS.GOVERNMENT_EMAIL_DOMAIN),
     );
-    const bare = configured.trim().toLowerCase().replace(/^\./, '');
-
-    // Anchored on a dot. The old check was `domain.endsWith(suffix)`, and
-    // .env.production sets the suffix without a leading dot ("gov.sl"), so
-    // evilgov.sl ended with it and passed the government-email gate. The bare
-    // domain still counts, so gov.sl itself is accepted alongside moh.gov.sl.
-    return domain === bare || domain.endsWith(`.${bare}`);
   }
 
   /**

@@ -45,6 +45,7 @@ describe('UsersService — who may appoint whom', () => {
       { log: jest.fn().mockResolvedValue(undefined) } as any,
       { issue: jest.fn().mockResolvedValue({ link: 'https://x/invite' }) } as any,
       { invalidateAnalyticsFor: jest.fn() } as any,
+      { get: jest.fn().mockResolvedValue('.gov.sl') } as any,
     );
   });
 
@@ -98,11 +99,59 @@ describe('UsersService — who may appoint whom', () => {
     });
   });
 
-  describe('the owner', () => {
-    it('can appoint a platform admin', async () => {
+  describe('the owner appointing a platform admin', () => {
+    it('can do it', async () => {
       await expect(
         create(dto({ systemRole: 'PLATFORM_ADMIN' }), 'SUPER_ADMIN'),
       ).resolves.toBeDefined();
+    });
+
+    it('files them under no ministry, whatever ministry was named', async () => {
+      // The role reaches across every ministry, so belonging to one would be
+      // both meaningless and — through ministryScope — quietly narrowing.
+      await create(
+        dto({ systemRole: 'PLATFORM_ADMIN', ministryId: MOH.id }),
+        'SUPER_ADMIN',
+      );
+
+      expect(prisma.user.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ ministryId: null }),
+        }),
+      );
+    });
+
+    it('needs no ministry named at all', async () => {
+      await expect(
+        create(dto({ systemRole: 'PLATFORM_ADMIN', ministryId: undefined }), 'SUPER_ADMIN'),
+      ).resolves.toBeDefined();
+    });
+
+    it('checks the address against the platform domain, not a ministry one', async () => {
+      // moh.gov.sl would satisfy a ministry check; the point is that this
+      // account has no ministry, so .gov.sl is the whole of the rule.
+      await expect(
+        create(
+          dto({ systemRole: 'PLATFORM_ADMIN', email: 'eng@example.com' }),
+          'SUPER_ADMIN',
+        ),
+      ).rejects.toThrow(/government address/i);
+
+      await expect(
+        create(
+          dto({ systemRole: 'PLATFORM_ADMIN', email: 'eng@mocti.gov.sl' }),
+          'SUPER_ADMIN',
+        ),
+      ).resolves.toBeDefined();
+    });
+
+    it('refuses a lookalike domain', async () => {
+      await expect(
+        create(
+          dto({ systemRole: 'PLATFORM_ADMIN', email: 'eng@evilgov.sl' }),
+          'SUPER_ADMIN',
+        ),
+      ).rejects.toThrow(/government address/i);
     });
   });
 

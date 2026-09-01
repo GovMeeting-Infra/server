@@ -17,6 +17,11 @@ import {
   assertSameMinistry,
   PLATFORM_ROLES,
 } from '../common/utils/ministry-scope.util';
+import { matchesGovDomain } from '../common/utils/gov-domain.util';
+import {
+  SettingsService,
+  SETTINGS,
+} from '../common/settings/settings.service';
 // `auth` and better-auth's hashPassword used to be imported here, from when
 // this service set passwords itself. Users now set their own from an invitation
 // link, so both were dead — and they dragged better-auth's ESM build and
@@ -34,6 +39,7 @@ export class UsersService {
     private audit: AuditService,
     private invites: InvitesService,
     private cache: CacheService,
+    private settings: SettingsService,
   ) {}
 
   /** Roles that may administer other users. */
@@ -344,10 +350,22 @@ export class UsersService {
     actorMinistryId?: string,
     actorSystemRole?: string,
   ): Promise<string | null> {
-    // No platform-role branch: assertCanAssignRole has already refused those
-    // roles before anything reaches here, so every user created through this
-    // path belongs to a ministry.
-    //
+    // A platform admin belongs to no ministry, so there is nothing to resolve.
+    // Every other account is checked against its ministry's own domain; this
+    // one has only the platform-wide rule, and an address outside it would be
+    // an account nobody could ever sign into — auth refuses it at the gate.
+    if (PLATFORM_ROLES.includes(dto.systemRole)) {
+      const configured = await this.settings.get(
+        SETTINGS.GOVERNMENT_EMAIL_DOMAIN,
+      );
+      if (!matchesGovDomain(email, configured)) {
+        throw new BadRequestException(
+          `Email must be a government address (${configured})`,
+        );
+      }
+      return null;
+    }
+
     // The platform roles have no ministry of their own, so there is no "their"
     // ministry to default to — they must name one, and may name any.
     const isPlatformRole = PLATFORM_ROLES.includes(
