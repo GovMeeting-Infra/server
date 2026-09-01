@@ -150,6 +150,79 @@ export class AuditService {
    * that belong to none — a failed sign-in for an unknown address has no
    * ministry to file it under, and those are worth being able to isolate.
    */
+  /**
+   * The same table, read as operations data rather than as a record of people.
+   *
+   * A platform admin needs to know that check-ins are failing, or that the mail
+   * category is throwing — not who checked in or what the meeting was called.
+   * The ordinary list() cannot be reused with a narrower select, because what
+   * makes it unsafe is the content of the rows: entityName holds raw user
+   * emails, event titles, action-item titles and attendee signed names, and
+   * description concatenates them into sentences like "Staff check-in: {name}
+   * to event: {title}". Every row also carries an ipAddress.
+   *
+   * So this is a separate path with its own projection, and deliberately no
+   * free-text search — searching description and entityName is precisely what
+   * turns the log into an index of every meeting and person on the platform.
+   *
+   * What survives is the shape of what happened: which action, in which
+   * category, on which kind of entity, succeeded or failed, when, and in which
+   * ministry by id alone.
+   */
+  async listSystemEvents(
+    opts: {
+      category?: string;
+      status?: 'SUCCESS' | 'FAILURE' | 'PARTIAL';
+      from?: string;
+      to?: string;
+      skip?: number;
+      take?: number;
+    } = {},
+  ) {
+    const skip = opts.skip ?? 0;
+    const take = Math.min(opts.take ?? 50, 200);
+
+    const createdAt: any = {};
+    if (opts.from && !Number.isNaN(Date.parse(opts.from))) {
+      createdAt.gte = new Date(opts.from);
+    }
+    if (opts.to && !Number.isNaN(Date.parse(opts.to))) {
+      createdAt.lte = new Date(opts.to);
+    }
+
+    // No ministry scoping: the platform roles are the only callers and they
+    // have no ministry of their own. Failures do not respect boundaries, and
+    // the projection carries nothing a boundary would be protecting.
+    const where: any = {
+      ...(opts.category ? { actionCategory: opts.category } : {}),
+      ...(opts.status ? { status: opts.status } : {}),
+      ...(Object.keys(createdAt).length ? { createdAt } : {}),
+    };
+
+    const [data, total] = await Promise.all([
+      (this.prisma as any).auditLog.findMany({
+        where,
+        select: {
+          id: true,
+          createdAt: true,
+          action: true,
+          actionCategory: true,
+          entityType: true,
+          status: true,
+          // The id, never the name. An id correlates rows for debugging; a name
+          // is the thing this projection exists to withhold.
+          ministryId: true,
+        },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take,
+      }),
+      (this.prisma as any).auditLog.count({ where }),
+    ]);
+
+    return { data, total, skip, take };
+  }
+
   private ministryFilter(ministryId?: string): Record<string, unknown> {
     if (!ministryId) return {};
     if (ministryId === 'none') return { ministryId: null };

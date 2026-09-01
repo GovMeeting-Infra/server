@@ -55,8 +55,20 @@ model User {
   @@index([deletedAt])
 }
 
+/// SUPER_ADMIN and PLATFORM_ADMIN belong to no ministry; the rest are members
+/// of exactly one.
+///
+/// PLATFORM_ADMIN is the operations role: engineers who monitor the platform
+/// and provision it. They stand up ministries and create accounts, and they
+/// can see that the system is healthy — but never what a ministry discussed.
+/// Minutes, attendance, reports and search are closed to them, which is
+/// enforced by their absence from those routes' @Roles lists rather than by
+/// anything they carry.
+///
+/// Only SUPER_ADMIN may appoint one. See assertCanAssignRole.
 enum SystemRole {
   SUPER_ADMIN
+  PLATFORM_ADMIN
   MINISTER
   MINISTRY_ADMIN
   STAFF
@@ -130,8 +142,40 @@ model Ministry {
   invitedToEvents Event[]        @relation("EventInvitedMinistries")
   auditLogs       AuditLog[]
   notifications   Notification[]
+  staffDirectory  StaffDirectoryEntry[]
 
   @@index([active])
+}
+
+/// A ministry's staff roster, imported from an HR or mail-system export.
+///
+/// Deliberately not a User. A User row is a login identity — it can sign in,
+/// counts toward the ministry, appears in the colleague directory and can be
+/// invited. These are people who merely exist, so that an organiser can pick a
+/// colleague out of a list instead of retyping an address that a typo would
+/// turn into a different person.
+///
+/// The list is a staging list: an entry is hidden from the pickers once someone
+/// holds the same address as a real account, so it shrinks as staff are
+/// onboarded rather than duplicating them.
+model StaffDirectoryEntry {
+  id         String   @id @default(cuid())
+  firstName  String
+  /// Some exports carry only one name.
+  lastName   String?
+  /// Stored lowercased. This is the join key, so case drift here would do the
+  /// same damage it does to EventAttendee.externalEmail.
+  email      String
+  ministryId String
+  /// Where the row came from, so a bad import can be identified and undone.
+  source     String?
+  importedAt DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  ministry Ministry @relation(fields: [ministryId], references: [id], onDelete: Cascade)
+
+  @@unique([ministryId, email])
+  @@index([ministryId, email])
 }
 
 model UserPreferences {

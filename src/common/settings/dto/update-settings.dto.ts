@@ -14,4 +14,16 @@ export class UpdateSettingsDto {
   @IsOptional()
   @IsString()
   GOVERNMENT_EMAIL_DOMAIN?: string;
+
+  /**
+   * Was missing from this whitelist while being a fully implemented setting:
+   * the service has held a spec and an address validator for it all along, and
+   * every session response carries it to the help page. But main.ts sets
+   * forbidNonWhitelisted, so a super admin who sent it got a 400 and the only
+   * way to change it was a redeploy. Blank is a valid value — it sends people
+   * to their ministry administrator instead.
+   */
+  @IsOptional()
+  @IsString()
+  SUPPORT_EMAIL?: string;
 }

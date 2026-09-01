@@ -43,6 +43,21 @@ export type Verification = Prisma.VerificationModel
  */
 export type Ministry = Prisma.MinistryModel
 /**
+ * Model StaffDirectoryEntry
+ * A ministry's staff roster, imported from an HR or mail-system export.
+ * 
+ * Deliberately not a User. A User row is a login identity — it can sign in,
+ * counts toward the ministry, appears in the colleague directory and can be
+ * invited. These are people who merely exist, so that an organiser can pick a
+ * colleague out of a list instead of retyping an address that a typo would
+ * turn into a different person.
+ * 
+ * The list is a staging list: an entry is hidden from the pickers once someone
+ * holds the same address as a real account, so it shrinks as staff are
+ * onboarded rather than duplicating them.
+ */
+export type StaffDirectoryEntry = Prisma.StaffDirectoryEntryModel
+/**
  * Model UserPreferences
  * 
  */

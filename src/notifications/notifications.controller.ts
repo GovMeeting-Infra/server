@@ -19,10 +19,14 @@ import { Roles } from '../auth/decorators/roles.decorator';
 @Controller('api/v1/notifications')
 @UseGuards(RolesGuard)
 export class NotificationsController {
+  // Platform admins are included even though nothing generates a notification
+  // for them: every route here is scoped to the caller's own id, so the answer
+  // is an empty list rather than anyone else's. Excluding them made the bell —
+  // which polls on every page — return 403 forever in the corner of the screen.
   constructor(private notificationsService: NotificationsService) {}
 
   @Get()
-  @Roles('STAFF', 'MINISTRY_ADMIN', 'MINISTER', 'SUPER_ADMIN')
+  @Roles('STAFF', 'MINISTRY_ADMIN', 'MINISTER', 'SUPER_ADMIN', 'PLATFORM_ADMIN')
   async getNotifications(
     @CurrentUser() user: any,
     @Query('limit') limit?: string,
@@ -52,13 +56,13 @@ export class NotificationsController {
 
   /** Declared before ':notificationId' routes so it is not read as an id. */
   @Get('unread-count')
-  @Roles('STAFF', 'MINISTRY_ADMIN', 'MINISTER', 'SUPER_ADMIN')
+  @Roles('STAFF', 'MINISTRY_ADMIN', 'MINISTER', 'SUPER_ADMIN', 'PLATFORM_ADMIN')
   async getUnreadCount(@CurrentUser() user: any) {
     return { unread: await this.notificationsService.countUnread(user.id) };
   }
 
   @Patch(':notificationId/read')
-  @Roles('STAFF', 'MINISTRY_ADMIN', 'MINISTER', 'SUPER_ADMIN')
+  @Roles('STAFF', 'MINISTRY_ADMIN', 'MINISTER', 'SUPER_ADMIN', 'PLATFORM_ADMIN')
   async markAsRead(
     @Param('notificationId') notificationId: string,
     @CurrentUser() user: any,
@@ -67,14 +71,14 @@ export class NotificationsController {
   }
 
   @Patch('mark-all-read')
-  @Roles('STAFF', 'MINISTRY_ADMIN', 'MINISTER', 'SUPER_ADMIN')
+  @Roles('STAFF', 'MINISTRY_ADMIN', 'MINISTER', 'SUPER_ADMIN', 'PLATFORM_ADMIN')
   async markAllAsRead(@CurrentUser() user: any) {
     return this.notificationsService.markAllAsRead(user.id);
   }
 
   @Delete(':notificationId')
   @HttpCode(204)
-  @Roles('STAFF', 'MINISTRY_ADMIN', 'MINISTER', 'SUPER_ADMIN')
+  @Roles('STAFF', 'MINISTRY_ADMIN', 'MINISTER', 'SUPER_ADMIN', 'PLATFORM_ADMIN')
   async deleteNotification(
     @Param('notificationId') notificationId: string,
     @CurrentUser() user: any,
@@ -84,7 +88,7 @@ export class NotificationsController {
 
   @Delete()
   @HttpCode(204)
-  @Roles('STAFF', 'MINISTRY_ADMIN', 'MINISTER', 'SUPER_ADMIN')
+  @Roles('STAFF', 'MINISTRY_ADMIN', 'MINISTER', 'SUPER_ADMIN', 'PLATFORM_ADMIN')
   async deleteAllNotifications(@CurrentUser() user: any) {
     await this.notificationsService.deleteAllUserNotifications(user.id);
   }

@@ -9,6 +9,7 @@ import { AuditModule } from './audit/audit.module';
 import { AuthModule } from './auth/auth.module';
 import { MinistriesModule } from './ministries/ministries.module';
 import { UsersModule } from './users/users.module';
+import { PlatformModule } from './platform/platform.module';
 import { CacheModule } from './cache/cache.module';
 import { EventsModule } from './events/events.module';
 import { AttendanceModule } from './attendance/attendance.module';
@@ -47,6 +48,7 @@ import { SettingsModule } from './common/settings/settings.module';
     // producer. In-app notifications are written straight to the database.
     BullModule.registerQueue({ name: 'email-queue' }),
     PrismaModule,
+    PlatformModule,
     // Global: AuthService reads the session timeout on every request.
     SettingsModule,
     AuditModule,

@@ -26,7 +26,7 @@ export class UsersController {
   constructor(private usersService: UsersService) {}
 
   @Post()
-  @Roles('SUPER_ADMIN', 'MINISTER', 'MINISTRY_ADMIN')
+  @Roles('SUPER_ADMIN', 'PLATFORM_ADMIN', 'MINISTER', 'MINISTRY_ADMIN')
   create(@Body() dto: CreateUserDto, @CurrentUser() user: any) {
     // The service resolves which ministry the new user lands in. It used to be
     // decided here as `user.ministryId || ''`, which meant a super admin — who
@@ -41,7 +41,7 @@ export class UsersController {
   }
 
   @Get()
-  @Roles('SUPER_ADMIN', 'MINISTER', 'MINISTRY_ADMIN')
+  @Roles('SUPER_ADMIN', 'PLATFORM_ADMIN', 'MINISTER', 'MINISTRY_ADMIN')
   findAll(
     @CurrentUser() user: any,
     @Query('q') q?: string,
@@ -52,13 +52,13 @@ export class UsersController {
   }
 
   @Get(':id')
-  @Roles('SUPER_ADMIN', 'MINISTER', 'MINISTRY_ADMIN')
+  @Roles('SUPER_ADMIN', 'PLATFORM_ADMIN', 'MINISTER', 'MINISTRY_ADMIN')
   findOne(@Param('id') id: string, @CurrentUser() user: any) {
     return this.usersService.findOne(id, user.ministryId, user.systemRole);
   }
 
   @Patch(':id/role')
-  @Roles('SUPER_ADMIN', 'MINISTER', 'MINISTRY_ADMIN')
+  @Roles('SUPER_ADMIN', 'PLATFORM_ADMIN', 'MINISTER', 'MINISTRY_ADMIN')
   updateRole(
     @Param('id') id: string,
     @Body() dto: UpdateUserRoleDto,
@@ -74,7 +74,7 @@ export class UsersController {
   }
 
   @Patch(':id')
-  @Roles('SUPER_ADMIN', 'MINISTER', 'MINISTRY_ADMIN')
+  @Roles('SUPER_ADMIN', 'PLATFORM_ADMIN', 'MINISTER', 'MINISTRY_ADMIN')
   updateDetails(
     @Param('id') id: string,
     @Body() dto: UpdateUserDetailsDto,
@@ -108,7 +108,7 @@ export class UsersController {
   /** Re-issues an invitation, invalidating any previous link. */
   @Post(':id/invite')
   @HttpCode(200)
-  @Roles('SUPER_ADMIN', 'MINISTER', 'MINISTRY_ADMIN')
+  @Roles('SUPER_ADMIN', 'PLATFORM_ADMIN', 'MINISTER', 'MINISTRY_ADMIN')
   reinvite(@Param('id') id: string, @CurrentUser() user: any) {
     return this.usersService.reissueInvite(
       id,

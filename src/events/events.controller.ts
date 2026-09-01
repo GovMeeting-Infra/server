@@ -22,6 +22,22 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { CanManageEventGuard } from './guards/can-manage-event.guard';
 
+/**
+ * Reading an event, as opposed to running one.
+ *
+ * Platform admins are here and nowhere else in this controller: they oversee
+ * every ministry's calendar without belonging to one, so they see what is
+ * scheduled and can change none of it. Every other route below stays with the
+ * people who actually hold the meeting.
+ */
+const EVENT_READERS = [
+  'SUPER_ADMIN',
+  'PLATFORM_ADMIN',
+  'MINISTER',
+  'MINISTRY_ADMIN',
+  'STAFF',
+];
+
 @Controller('api/v1/events')
 @UseGuards(RolesGuard)
 export class EventsController {
@@ -31,7 +47,7 @@ export class EventsController {
   ) {}
 
   @Get()
-  @Roles('SUPER_ADMIN', 'MINISTER', 'MINISTRY_ADMIN', 'STAFF')
+  @Roles(...EVENT_READERS)
   list(
     @CurrentUser() user: any,
     @Query('page') page: number = 1,
@@ -94,7 +110,7 @@ export class EventsController {
   }
 
   @Get(':id')
-  @Roles('SUPER_ADMIN', 'MINISTER', 'MINISTRY_ADMIN', 'STAFF')
+  @Roles(...EVENT_READERS)
   getOne(@Param('id') id: string, @CurrentUser() user: any) {
     return this.eventsService.getOne(id, user);
   }

@@ -402,6 +402,7 @@ export const ModelName = {
   Account: 'Account',
   Verification: 'Verification',
   Ministry: 'Ministry',
+  StaffDirectoryEntry: 'StaffDirectoryEntry',
   UserPreferences: 'UserPreferences',
   Event: 'Event',
   EventSeries: 'EventSeries',
@@ -433,7 +434,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "session" | "account" | "verification" | "ministry" | "userPreferences" | "event" | "eventSeries" | "eventCoOrganizer" | "eventAttendee" | "attendance" | "qRToken" | "minutes" | "minutePoint" | "minutesAccessToken" | "actionItem" | "actionItemAssistant" | "notification" | "emailSuppression" | "auditLog" | "platformSetting"
+    modelProps: "user" | "session" | "account" | "verification" | "ministry" | "staffDirectoryEntry" | "userPreferences" | "event" | "eventSeries" | "eventCoOrganizer" | "eventAttendee" | "attendance" | "qRToken" | "minutes" | "minutePoint" | "minutesAccessToken" | "actionItem" | "actionItemAssistant" | "notification" | "emailSuppression" | "auditLog" | "platformSetting"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -804,6 +805,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.MinistryCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.MinistryCountAggregateOutputType> | number
+        }
+      }
+    }
+    StaffDirectoryEntry: {
+      payload: Prisma.$StaffDirectoryEntryPayload<ExtArgs>
+      fields: Prisma.StaffDirectoryEntryFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.StaffDirectoryEntryFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StaffDirectoryEntryPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.StaffDirectoryEntryFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StaffDirectoryEntryPayload>
+        }
+        findFirst: {
+          args: Prisma.StaffDirectoryEntryFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StaffDirectoryEntryPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.StaffDirectoryEntryFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StaffDirectoryEntryPayload>
+        }
+        findMany: {
+          args: Prisma.StaffDirectoryEntryFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StaffDirectoryEntryPayload>[]
+        }
+        create: {
+          args: Prisma.StaffDirectoryEntryCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StaffDirectoryEntryPayload>
+        }
+        createMany: {
+          args: Prisma.StaffDirectoryEntryCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.StaffDirectoryEntryCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StaffDirectoryEntryPayload>[]
+        }
+        delete: {
+          args: Prisma.StaffDirectoryEntryDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StaffDirectoryEntryPayload>
+        }
+        update: {
+          args: Prisma.StaffDirectoryEntryUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StaffDirectoryEntryPayload>
+        }
+        deleteMany: {
+          args: Prisma.StaffDirectoryEntryDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.StaffDirectoryEntryUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.StaffDirectoryEntryUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StaffDirectoryEntryPayload>[]
+        }
+        upsert: {
+          args: Prisma.StaffDirectoryEntryUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StaffDirectoryEntryPayload>
+        }
+        aggregate: {
+          args: Prisma.StaffDirectoryEntryAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateStaffDirectoryEntry>
+        }
+        groupBy: {
+          args: Prisma.StaffDirectoryEntryGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.StaffDirectoryEntryGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.StaffDirectoryEntryCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.StaffDirectoryEntryCountAggregateOutputType> | number
         }
       }
     }
@@ -2112,6 +2187,20 @@ export const MinistryScalarFieldEnum = {
 export type MinistryScalarFieldEnum = (typeof MinistryScalarFieldEnum)[keyof typeof MinistryScalarFieldEnum]
 
 
+export const StaffDirectoryEntryScalarFieldEnum = {
+  id: 'id',
+  firstName: 'firstName',
+  lastName: 'lastName',
+  email: 'email',
+  ministryId: 'ministryId',
+  source: 'source',
+  importedAt: 'importedAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type StaffDirectoryEntryScalarFieldEnum = (typeof StaffDirectoryEntryScalarFieldEnum)[keyof typeof StaffDirectoryEntryScalarFieldEnum]
+
+
 export const UserPreferencesScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
@@ -2859,6 +2948,7 @@ export type GlobalOmitConfig = {
   account?: Prisma.AccountOmit
   verification?: Prisma.VerificationOmit
   ministry?: Prisma.MinistryOmit
+  staffDirectoryEntry?: Prisma.StaffDirectoryEntryOmit
   userPreferences?: Prisma.UserPreferencesOmit
   event?: Prisma.EventOmit
   eventSeries?: Prisma.EventSeriesOmit

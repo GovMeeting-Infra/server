@@ -133,15 +133,15 @@ jobs:
       # Migrations run here rather than in CI so the database credentials never
       # leave the instance — prisma.config.ts reads DIRECT_URL from its .env.
       # That is also why this is a full install: --omit=dev would drop the
-      # Prisma CLI (and ts-node, which seed-accounts.ts needs).
+      # Prisma CLI, which `prisma migrate deploy` below needs.
       #
       # It must be the DIRECT endpoint. Neon's pooler is PgBouncer in
       # transaction mode and breaks the advisory locks migrate relies on;
       # prisma.config.ts already prefers DIRECT_URL over DATABASE_URL.
       #
-      # Never add a seed step. prisma/seed.ts creates super@gov.sl,
-      # admin@med.gov.sl and staff@moh.gov.sl with a shared password, and a push
-      # to main must not recreate those on a government production database.
+      # Never add a seed step. Accounts on this platform are created through the
+      # application by an administrator; a push to main must not write users to
+      # a government production database.
       #
       # Reload names one app on purpose. Both repos share a PM2 daemon, so
       # `pm2 reload all` would bounce the web app on every API deploy.

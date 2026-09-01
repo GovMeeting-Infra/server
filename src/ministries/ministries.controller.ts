@@ -22,25 +22,25 @@ export class MinistriesController {
   constructor(private ministriesService: MinistriesService) {}
 
   @Post()
-  @Roles('SUPER_ADMIN')
+  @Roles('SUPER_ADMIN', 'PLATFORM_ADMIN')
   create(@Body() dto: CreateMinistryDto, @CurrentUser() user: any) {
     return this.ministriesService.create(dto, user.id, user.ministryId);
   }
 
   @Get()
-  @Roles('SUPER_ADMIN', 'MINISTRY_ADMIN')
+  @Roles('SUPER_ADMIN', 'PLATFORM_ADMIN', 'MINISTRY_ADMIN')
   findAll(@CurrentUser() user: any) {
     return this.ministriesService.findAll(user);
   }
 
   @Get(':id')
-  @Roles('SUPER_ADMIN', 'MINISTRY_ADMIN')
+  @Roles('SUPER_ADMIN', 'PLATFORM_ADMIN', 'MINISTRY_ADMIN')
   findOne(@Param('id') id: string) {
     return this.ministriesService.findOne(id);
   }
 
   @Patch(':id')
-  @Roles('SUPER_ADMIN')
+  @Roles('SUPER_ADMIN', 'PLATFORM_ADMIN')
   update(
     @Param('id') id: string,
     @Body() dto: UpdateMinistryDto,

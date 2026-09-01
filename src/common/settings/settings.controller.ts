@@ -1,4 +1,11 @@
-import { Body, Controller, Get, Patch, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  ForbiddenException,
+  Get,
+  Patch,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiOperation } from '@nestjs/swagger';
 import { SettingsService, SettingKey } from './settings.service';
 import { UpdateSettingsDto } from './dto/update-settings.dto';
@@ -11,20 +18,37 @@ import { CurrentUser } from '../decorators/current-user.decorator';
 export class SettingsController {
   constructor(private settings: SettingsService) {}
 
-  // Super-admin only, both of them: one governs how long every session lives,
-  // the other governs who is allowed to sign in at all.
+  /**
+   * Three settings: one governs how long every session lives, one governs who
+   * is allowed to sign in at all, and one is the address the help page offers
+   * to somebody who is stuck.
+   *
+   * Platform admins may read all three and change two. The sign-in domain is
+   * withheld from them because a wrong value there locks every user out of
+   * every ministry, including the person who could put it back — it is the one
+   * setting whose blast radius is the whole platform.
+   */
   @Get()
-  @Roles('SUPER_ADMIN')
+  @Roles('SUPER_ADMIN', 'PLATFORM_ADMIN')
   @ApiOperation({ summary: 'Current platform settings and their source' })
   findAll() {
     return this.settings.getAll();
   }
 
   @Patch()
-  @Roles('SUPER_ADMIN')
+  @Roles('SUPER_ADMIN', 'PLATFORM_ADMIN')
   @ApiOperation({ summary: 'Change platform settings' })
   async update(@Body() dto: UpdateSettingsDto, @CurrentUser() user: any) {
     const results: Array<{ key: SettingKey; value: string }> = [];
+
+    if (
+      dto.GOVERNMENT_EMAIL_DOMAIN !== undefined &&
+      user.systemRole !== 'SUPER_ADMIN'
+    ) {
+      throw new ForbiddenException(
+        'The sign-in domain can only be changed by the platform owner',
+      );
+    }
 
     for (const [key, value] of Object.entries(dto)) {
       if (value === undefined) continue;

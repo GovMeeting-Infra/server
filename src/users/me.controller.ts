@@ -30,14 +30,14 @@ export class MeController {
   constructor(private meService: MeService) {}
 
   @Get()
-  @Roles('SUPER_ADMIN', 'MINISTER', 'MINISTRY_ADMIN', 'STAFF')
+  @Roles('SUPER_ADMIN', 'PLATFORM_ADMIN', 'MINISTER', 'MINISTRY_ADMIN', 'STAFF')
   getProfile(@CurrentUser() user: any) {
     return this.meService.getProfile(user.id);
   }
 
   /** Everything held about the caller, as a downloadable file. */
   @Get('export')
-  @Roles('SUPER_ADMIN', 'MINISTER', 'MINISTRY_ADMIN', 'STAFF')
+  @Roles('SUPER_ADMIN', 'PLATFORM_ADMIN', 'MINISTER', 'MINISTRY_ADMIN', 'STAFF')
   async exportData(@CurrentUser() user: any, @Res() res: Response) {
     const data = await this.meService.exportMyData(user.id);
     const stamp = new Date().toISOString().slice(0, 10);
@@ -51,14 +51,14 @@ export class MeController {
   }
 
   @Patch()
-  @Roles('SUPER_ADMIN', 'MINISTER', 'MINISTRY_ADMIN', 'STAFF')
+  @Roles('SUPER_ADMIN', 'PLATFORM_ADMIN', 'MINISTER', 'MINISTRY_ADMIN', 'STAFF')
   updateProfile(@CurrentUser() user: any, @Body() dto: UpdateMeDto) {
     return this.meService.updateProfile(user.id, dto);
   }
 
   @Post('password')
   @HttpCode(200)
-  @Roles('SUPER_ADMIN', 'MINISTER', 'MINISTRY_ADMIN', 'STAFF')
+  @Roles('SUPER_ADMIN', 'PLATFORM_ADMIN', 'MINISTER', 'MINISTRY_ADMIN', 'STAFF')
   changePassword(
     @CurrentUser() user: any,
     @Body() dto: ChangePasswordDto,
@@ -70,13 +70,13 @@ export class MeController {
   }
 
   @Get('preferences')
-  @Roles('SUPER_ADMIN', 'MINISTER', 'MINISTRY_ADMIN', 'STAFF')
+  @Roles('SUPER_ADMIN', 'PLATFORM_ADMIN', 'MINISTER', 'MINISTRY_ADMIN', 'STAFF')
   getPreferences(@CurrentUser() user: any) {
     return this.meService.getPreferences(user.id);
   }
 
   @Patch('preferences')
-  @Roles('SUPER_ADMIN', 'MINISTER', 'MINISTRY_ADMIN', 'STAFF')
+  @Roles('SUPER_ADMIN', 'PLATFORM_ADMIN', 'MINISTER', 'MINISTRY_ADMIN', 'STAFF')
   updatePreferences(
     @CurrentUser() user: any,
     @Body() dto: UpdatePreferencesDto,

@@ -24,7 +24,10 @@ import {
   MinistryBreakdownDto,
   AnalyticsDashboardDto,
 } from './dto/analytics.dto';
-import { ministryScope } from '../common/utils/ministry-scope.util';
+import {
+  PLATFORM_ROLES,
+  ministryScope,
+} from '../common/utils/ministry-scope.util';
 
 @Injectable()
 export class ReportsService {
@@ -64,7 +67,7 @@ export class ReportsService {
     ] = await Promise.all([
       this.getEventStats(scope),
       this.getAttendanceStats(scope),
-      this.getUserStats(scope),
+      this.getUserStats(scope, user.systemRole),
       this.getActionItemStats(scope),
       this.getCheckInMethods(scope),
       this.getEventsOverTime(scope),
@@ -413,7 +416,12 @@ export class ReportsService {
 
   private async getUserStats(
     scope: Record<string, unknown>,
+    viewerRole: string,
   ): Promise<UserStatsDto> {
+    // Keyed on the role, not on an empty scope. Both ministry-less roles get an
+    // empty scope, so scope emptiness would have shown a platform admin a "Super
+    // Admin: 1" tile — a headcount is a poor way to learn a role exists.
+    const isOwner = viewerRole === 'SUPER_ADMIN';
     const now = new Date();
     const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
@@ -466,10 +474,23 @@ export class ReportsService {
     return {
       totalUsers,
       activeUsers,
-      usersByRole: usersByRole.map((item: any) => ({
-        role: item.systemRole,
-        count: item._count,
-      })),
+      // Only the owner sees the ministry-less roles counted.
+      //
+      // For a ministry-scoped viewer they are already absent, since those
+      // accounts hold no ministryId and cannot match a filter on one — but that
+      // is a consequence of how the accounts happen to be shaped rather than a
+      // rule, and it would stop being true the moment one were given a
+      // ministry. For a platform admin they are present and have to be removed:
+      // their scope is empty too. Either way, learning from a headcount tile
+      // that a super admin exists is exactly what this must not do.
+      usersByRole: usersByRole
+        .filter(
+          (item: any) => isOwner || !PLATFORM_ROLES.includes(item.systemRole),
+        )
+        .map((item: any) => ({
+          role: item.systemRole,
+          count: item._count,
+        })),
       averageDaysSinceLastLogin,
     };
   }

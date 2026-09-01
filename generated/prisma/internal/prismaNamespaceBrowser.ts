@@ -56,6 +56,7 @@ export const ModelName = {
   Account: 'Account',
   Verification: 'Verification',
   Ministry: 'Ministry',
+  StaffDirectoryEntry: 'StaffDirectoryEntry',
   UserPreferences: 'UserPreferences',
   Event: 'Event',
   EventSeries: 'EventSeries',
@@ -170,6 +171,20 @@ export const MinistryScalarFieldEnum = {
 } as const
 
 export type MinistryScalarFieldEnum = (typeof MinistryScalarFieldEnum)[keyof typeof MinistryScalarFieldEnum]
+
+
+export const StaffDirectoryEntryScalarFieldEnum = {
+  id: 'id',
+  firstName: 'firstName',
+  lastName: 'lastName',
+  email: 'email',
+  ministryId: 'ministryId',
+  source: 'source',
+  importedAt: 'importedAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type StaffDirectoryEntryScalarFieldEnum = (typeof StaffDirectoryEntryScalarFieldEnum)[keyof typeof StaffDirectoryEntryScalarFieldEnum]
 
 
 export const UserPreferencesScalarFieldEnum = {
