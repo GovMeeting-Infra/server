@@ -74,7 +74,7 @@ export class UsersController {
   }
 
   @Patch(':id')
-  @Roles('SUPER_ADMIN', 'MINISTER', 'MINISTRY_ADMIN')
+  @Roles('SUPER_ADMIN', 'PLATFORM_ADMIN', 'MINISTER', 'MINISTRY_ADMIN')
   updateDetails(
     @Param('id') id: string,
     @Body() dto: UpdateUserDetailsDto,

@@ -155,6 +155,53 @@ describe('UsersService — who may appoint whom', () => {
     });
   });
 
+  describe('editing an existing account', () => {
+    const TARGET = {
+      id: 'u-target',
+      email: 'someone@moh.gov.sl',
+      name: 'Someone',
+      systemRole: 'STAFF',
+      ministryId: MOH.id,
+      deletedAt: null,
+    };
+
+    beforeEach(() => {
+      prisma.user.findUnique = jest.fn().mockResolvedValue(TARGET);
+      prisma.user.update = jest
+        .fn()
+        .mockImplementation(({ data }: any) => ({ ...TARGET, ...data }));
+    });
+
+    const edit = (dto: any, role: string) =>
+      (service as any).updateDetails(TARGET.id, dto, 'actor', undefined, role);
+
+    it('lets a platform admin correct a name and job title', async () => {
+      await expect(
+        edit({ name: 'Someone Else', jobTitle: 'Director' }, 'PLATFORM_ADMIN'),
+      ).resolves.toBeDefined();
+    });
+
+    it.each([
+      ['an email', { email: 'new@moh.gov.sl' }],
+      ['a ministry', { ministryId: 'min-other' }],
+    ])('refuses a platform admin %s', async (_label, dto) => {
+      // Both decide who someone is and what they can see, so they stay with
+      // the owner even though the rest of the form does not.
+      await expect(edit(dto, 'PLATFORM_ADMIN')).rejects.toThrow(
+        ForbiddenException,
+      );
+    });
+
+    it('does not name the owner role when refusing', async () => {
+      const error = await edit(
+        { email: 'new@moh.gov.sl' },
+        'PLATFORM_ADMIN',
+      ).catch((e: Error) => e);
+
+      expect((error as Error).message).not.toMatch(/super[ _-]?admin/i);
+    });
+  });
+
   describe('a ministry admin', () => {
     it('cannot appoint a platform admin', async () => {
       await expect(

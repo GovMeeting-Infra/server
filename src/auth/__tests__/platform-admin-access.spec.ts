@@ -167,6 +167,7 @@ describe('PLATFORM_ADMIN reaches provisioning and operations', () => {
     ['list users', UsersController, 'findAll'],
     ['change a role', UsersController, 'updateRole'],
     ['re-send an invite', UsersController, 'reinvite'],
+    ['correct a name or job title', UsersController, 'updateDetails'],
     ['create a ministry', MinistriesController, 'create'],
     ['list ministries', MinistriesController, 'findAll'],
     ['edit a ministry', MinistriesController, 'update'],
@@ -182,7 +183,6 @@ describe('PLATFORM_ADMIN reaches provisioning and operations', () => {
     ['revoke sessions', UsersController, 'revokeSessions'],
     ['unlock an account', UsersController, 'unlock'],
     ['erase a user', UsersController, 'anonymize'],
-    ['change an email or ministry', UsersController, 'updateDetails'],
     ['delete a ministry', MinistriesController, 'delete'],
   ])('cannot %s', (_label, controller, method) => {
     const roles = rolesFor(controller, method as string);
