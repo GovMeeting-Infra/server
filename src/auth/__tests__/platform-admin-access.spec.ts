@@ -59,12 +59,62 @@ const CONTENT_CONTROLLERS: Array<[string, any]> = [
   ['ActionItemsController', ActionItemsController],
   ['CheckinController', CheckinController],
   ['AttendanceExportController', AttendanceExportController],
-  ['ReportsController', ReportsController],
   ['SearchController', SearchController],
-  ['EventsController', EventsController],
   ['DirectoryController', DirectoryController],
   ['UploadsController', UploadsController],
 ];
+
+/**
+ * Events and reports are partly open, so they are checked route by route rather
+ * than wholesale. A platform admin oversees every ministry's calendar and sees
+ * the aggregate figures; it runs no meeting and exports no rows about people.
+ */
+describe('PLATFORM_ADMIN sees the schedule but cannot touch it', () => {
+  it.each([
+    ['list events', 'list'],
+    ['read one event', 'getOne'],
+  ])('can %s', (_label, method) => {
+    expect(rolesFor(EventsController, method)).toContain(ROLE);
+  });
+
+  it('can read the aggregate figures', () => {
+    expect(rolesFor(ReportsController, 'getAnalyticsDashboard')).toContain(ROLE);
+  });
+
+  it('is refused every other route on those two controllers', () => {
+    const READ_ONLY = new Set([
+      'EventsController.list',
+      'EventsController.getOne',
+      'ReportsController.getAnalyticsDashboard',
+    ]);
+    const leaked: string[] = [];
+
+    for (const [name, controller] of [
+      ['EventsController', EventsController],
+      ['ReportsController', ReportsController],
+    ] as Array<[string, any]>) {
+      for (const method of methodsOf(controller)) {
+        const id = `${name}.${method}`;
+        const roles = rolesFor(controller, method);
+        if (READ_ONLY.has(id)) continue;
+        // Undecorated counts as a leak here too: no @Roles is open to everyone.
+        if (!roles || roles.includes(ROLE)) leaked.push(id);
+      }
+    }
+
+    expect(leaked).toEqual([]);
+  });
+
+  it('cannot export rows about people', () => {
+    for (const method of [
+      'exportEventsCSV',
+      'exportAttendanceCSV',
+      'exportActionItemsCSV',
+    ]) {
+      expect(rolesFor(ReportsController, method)).not.toContain(ROLE);
+    }
+  });
+});
 
 describe('PLATFORM_ADMIN is kept out of ministry content', () => {
   it.each(CONTENT_CONTROLLERS)('%s names it on no route', (_name, controller) => {

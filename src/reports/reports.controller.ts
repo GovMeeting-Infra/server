@@ -34,8 +34,11 @@ export class ReportsController {
 
   constructor(private reportsService: ReportsService) {}
 
+  // Aggregates only — counts, rates, per-ministry totals. The three exports
+  // below are rows about people, with names, addresses and phone numbers, and
+  // stay where they were.
   @Get('analytics')
-  @Roles('MINISTRY_ADMIN', 'MINISTER', 'SUPER_ADMIN')
+  @Roles('MINISTRY_ADMIN', 'MINISTER', 'SUPER_ADMIN', 'PLATFORM_ADMIN')
   async getAnalyticsDashboard(@CurrentUser() user: any) {
     return this.reportsService.getAnalyticsDashboard(user);
   }

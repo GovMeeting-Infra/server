@@ -67,7 +67,7 @@ export class ReportsService {
     ] = await Promise.all([
       this.getEventStats(scope),
       this.getAttendanceStats(scope),
-      this.getUserStats(scope),
+      this.getUserStats(scope, user.systemRole),
       this.getActionItemStats(scope),
       this.getCheckInMethods(scope),
       this.getEventsOverTime(scope),
@@ -416,11 +416,12 @@ export class ReportsService {
 
   private async getUserStats(
     scope: Record<string, unknown>,
+    viewerRole: string,
   ): Promise<UserStatsDto> {
-    // An empty scope is the platform-wide view, which only the super admin
-    // gets — the same test reports.service already uses for the cross-ministry
-    // cache key.
-    const isPlatformWide = Object.keys(scope).length === 0;
+    // Keyed on the role, not on an empty scope. Both ministry-less roles get an
+    // empty scope, so scope emptiness would have shown a platform admin a "Super
+    // Admin: 1" tile — a headcount is a poor way to learn a role exists.
+    const isOwner = viewerRole === 'SUPER_ADMIN';
     const now = new Date();
     const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
@@ -473,18 +474,18 @@ export class ReportsService {
     return {
       totalUsers,
       activeUsers,
-      // The ministry-less roles are dropped for a ministry-scoped viewer.
+      // Only the owner sees the ministry-less roles counted.
       //
-      // They are already absent — those accounts hold no ministryId, so they
-      // cannot match a scope that filters on one. But that is a consequence of
-      // how the accounts happen to be shaped rather than a rule, and it would
-      // stop being true the moment one of them were given a ministry. A
-      // ministry admin learning from a headcount tile that a super admin exists
-      // is exactly what this must not do, so say it rather than rely on it.
+      // For a ministry-scoped viewer they are already absent, since those
+      // accounts hold no ministryId and cannot match a filter on one — but that
+      // is a consequence of how the accounts happen to be shaped rather than a
+      // rule, and it would stop being true the moment one were given a
+      // ministry. For a platform admin they are present and have to be removed:
+      // their scope is empty too. Either way, learning from a headcount tile
+      // that a super admin exists is exactly what this must not do.
       usersByRole: usersByRole
         .filter(
-          (item: any) =>
-            isPlatformWide || !PLATFORM_ROLES.includes(item.systemRole),
+          (item: any) => isOwner || !PLATFORM_ROLES.includes(item.systemRole),
         )
         .map((item: any) => ({
           role: item.systemRole,

@@ -26,13 +26,13 @@ describe('ReportsService — usersByRole', () => {
     return new ReportsService(prisma, { get: jest.fn(), set: jest.fn() } as any);
   }
 
-  const stats = (scope: Record<string, unknown>) =>
-    (serviceReturning(ROWS) as any).getUserStats(scope);
+  const stats = (scope: Record<string, unknown>, role: string) =>
+    (serviceReturning(ROWS) as any).getUserStats(scope, role);
 
   it('hides the ministry-less roles from a ministry-scoped viewer', async () => {
     // Even when the query hands them back — which it would if one of those
     // accounts were ever given a ministry.
-    const result = await stats({ ministryId: 'min-moh' });
+    const result = await stats({ ministryId: 'min-moh' }, 'MINISTRY_ADMIN');
 
     expect(result.usersByRole.map((r: any) => r.role)).toEqual([
       'MINISTER',
@@ -41,16 +41,27 @@ describe('ReportsService — usersByRole', () => {
     ]);
   });
 
-  it('shows every role to the platform-wide viewer', async () => {
-    const result = await stats({});
+  it('shows every role to the owner', async () => {
+    const result = await stats({}, 'SUPER_ADMIN');
     const roles = result.usersByRole.map((r: any) => r.role);
 
     expect(roles).toContain('SUPER_ADMIN');
     expect(roles).toContain('PLATFORM_ADMIN');
   });
 
+  it('hides them from a platform admin, whose scope is empty too', async () => {
+    // The trap this closes: keying the filter on an empty scope would have put
+    // a "Super Admin: 1" tile in front of the one role that must not see it.
+    const result = await stats({}, 'PLATFORM_ADMIN');
+    const roles = result.usersByRole.map((r: any) => r.role);
+
+    expect(roles).not.toContain('SUPER_ADMIN');
+    expect(roles).not.toContain('PLATFORM_ADMIN');
+    expect(roles).toEqual(['MINISTER', 'MINISTRY_ADMIN', 'STAFF']);
+  });
+
   it('keeps the counts it does return intact', async () => {
-    const result = await stats({ ministryId: 'min-moh' });
+    const result = await stats({ ministryId: 'min-moh' }, 'MINISTRY_ADMIN');
 
     expect(result.usersByRole).toEqual([
       { role: 'MINISTER', count: 1 },
