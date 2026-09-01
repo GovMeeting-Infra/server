@@ -28,6 +28,7 @@ import { MinistriesController } from '../../ministries/ministries.controller';
 import { SettingsController } from '../../common/settings/settings.controller';
 import { AuditController } from '../../audit/audit.controller';
 import { PlatformController } from '../../platform/platform.controller';
+import { NotificationsController } from '../../notifications/notifications.controller';
 
 /**
  * What a platform admin can reach is decided by omission: RolesGuard is an
@@ -137,5 +138,30 @@ describe('PLATFORM_ADMIN reaches provisioning and operations', () => {
     const roles = rolesFor(controller, method as string);
     expect(roles).toBeDefined();
     expect(roles).not.toContain(ROLE);
+  });
+});
+
+/**
+ * The bell polls on every page and the results page is reachable from the
+ * topbar, so getting these two wrong is not a locked door — it is a permanent
+ * error in the corner of the screen.
+ */
+describe('what a platform admin needs in order to use any page at all', () => {
+  it('can read its own notifications', () => {
+    // Every route there is scoped to the caller's own id, so this is their own
+    // (empty) list rather than anyone else's.
+    for (const method of methodsOf(NotificationsController)) {
+      const roles = rolesFor(NotificationsController, method);
+      if (!roles) continue;
+      expect(roles).toContain(ROLE);
+    }
+  });
+
+  it('still cannot search', () => {
+    // Search spans events, minutes and people. The topbar hides the box for
+    // them; this is why it has to.
+    for (const method of methodsOf(SearchController)) {
+      expect(rolesFor(SearchController, method)).not.toContain(ROLE);
+    }
   });
 });
