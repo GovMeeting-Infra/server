@@ -24,7 +24,10 @@ import {
   MinistryBreakdownDto,
   AnalyticsDashboardDto,
 } from './dto/analytics.dto';
-import { ministryScope } from '../common/utils/ministry-scope.util';
+import {
+  PLATFORM_ROLES,
+  ministryScope,
+} from '../common/utils/ministry-scope.util';
 
 @Injectable()
 export class ReportsService {
@@ -414,6 +417,10 @@ export class ReportsService {
   private async getUserStats(
     scope: Record<string, unknown>,
   ): Promise<UserStatsDto> {
+    // An empty scope is the platform-wide view, which only the super admin
+    // gets — the same test reports.service already uses for the cross-ministry
+    // cache key.
+    const isPlatformWide = Object.keys(scope).length === 0;
     const now = new Date();
     const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
@@ -466,10 +473,23 @@ export class ReportsService {
     return {
       totalUsers,
       activeUsers,
-      usersByRole: usersByRole.map((item: any) => ({
-        role: item.systemRole,
-        count: item._count,
-      })),
+      // The ministry-less roles are dropped for a ministry-scoped viewer.
+      //
+      // They are already absent — those accounts hold no ministryId, so they
+      // cannot match a scope that filters on one. But that is a consequence of
+      // how the accounts happen to be shaped rather than a rule, and it would
+      // stop being true the moment one of them were given a ministry. A
+      // ministry admin learning from a headcount tile that a super admin exists
+      // is exactly what this must not do, so say it rather than rely on it.
+      usersByRole: usersByRole
+        .filter(
+          (item: any) =>
+            isPlatformWide || !PLATFORM_ROLES.includes(item.systemRole),
+        )
+        .map((item: any) => ({
+          role: item.systemRole,
+          count: item._count,
+        })),
       averageDaysSinceLastLogin,
     };
   }
