@@ -330,21 +330,34 @@ export class PlatformController {
         this.settings.get(SETTINGS.SUPPORT_EMAIL),
       ]);
 
+    const isProduction = process.env.NODE_ENV === 'production';
+    const isLocal = /localhost|127\.0\.0\.1/.test(webUrl);
+
     const warnings: string[] = [];
     if (!process.env.RESEND_API_KEY) {
       warnings.push(
         'No mail provider key. Every invitation, reset and notification is being silently discarded.',
       );
     }
+
+    // Judged against the environment, not in the abstract. A localhost link
+    // base is correct on a developer's machine and catastrophic on the server,
+    // and a console that cries wolf in development is one nobody reads in
+    // production.
     if (!webUrl) {
       warnings.push(
-        'WEB_URL is unset, so emailed links fall back to localhost and lead nowhere.',
+        'WEB_URL is unset, so every emailed link falls back to localhost and leads nowhere.',
       );
-    } else if (webUrl.includes('localhost')) {
+    } else if (isProduction && isLocal) {
       warnings.push(
-        `Emailed links point at ${webUrl}, which only works on this machine.`,
+        `Emailed links point at ${webUrl}, which only resolves on the server itself. Invitations, password resets and RSVP links are all unusable.`,
+      );
+    } else if (isProduction && !webUrl.startsWith('https://')) {
+      warnings.push(
+        `Emailed links point at ${webUrl}. A session cookie scoped Secure will not survive a plain-HTTP link.`,
       );
     }
+
     if (!supportEmail) {
       warnings.push(
         'No support address, so the help page sends people to their ministry administrator instead.',
@@ -359,6 +372,9 @@ export class PlatformController {
       emailFrom: process.env.EMAIL_FROM ?? null,
       uploadsConfigured: Boolean(process.env.CLOUDINARY_API_KEY),
       webUrl: webUrl || null,
+      // So the page can say "correct for this environment" rather than leaving
+      // a reader to judge a URL against a NODE_ENV shown three panels away.
+      webUrlLooksRight: Boolean(webUrl) && (!isProduction || (!isLocal && webUrl.startsWith('https://'))),
       supportEmail: supportEmail || null,
       sessionTimeoutSeconds: Number(sessionTimeout),
       governmentEmailDomain,
