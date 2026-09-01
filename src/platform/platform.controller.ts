@@ -8,6 +8,22 @@ import { SettingsService, SETTINGS } from '../common/settings/settings.service';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 
+/**
+ * Prisma is reached through a Proxy typed `any` (see PrismaService), so results
+ * arrive untyped. Everything this controller asks for is a count or a small
+ * grouped row, so it is annotated at the call site rather than left to spread.
+ */
+interface CountQuery {
+  count(args?: unknown): Promise<number>;
+}
+
+interface GroupedRow {
+  status?: string;
+  action?: string;
+  actionCategory?: string;
+  _count: number;
+}
+
 /** Enough recent failures to spot a pattern, not enough to page through. */
 const FAILED_SAMPLE = 20;
 
@@ -80,7 +96,11 @@ export class PlatformController {
   private async checkDatabase() {
     const started = Date.now();
     try {
-      await (this.prisma as any).$queryRawUnsafe('SELECT 1');
+      await (
+        this.prisma as unknown as {
+          $queryRawUnsafe(sql: string): Promise<unknown>;
+        }
+      ).$queryRawUnsafe('SELECT 1');
       return { status: 'up' as const, latencyMs: Date.now() - started };
     } catch (error) {
       return {
@@ -170,7 +190,7 @@ export class PlatformController {
   /** What is on the platform. Row counts, never rows. */
   private async contentTotals() {
     try {
-      const p = this.prisma as any;
+      const p = this.prisma as unknown as Record<string, CountQuery>;
       const [
         ministries,
         activeMinistries,
@@ -185,7 +205,7 @@ export class PlatformController {
         actionItems,
         openActionItems,
         staffDirectory,
-      ] = await Promise.all([
+      ]: number[] = await Promise.all([
         p.ministry.count(),
         p.ministry.count({ where: { active: true } }),
         p.user.count({ where: { deletedAt: null } }),
@@ -232,21 +252,23 @@ export class PlatformController {
    */
   private async authHealth(since: Date) {
     try {
-      const p = this.prisma as any;
+      const p = this.prisma as unknown as Record<string, CountQuery>;
       const now = new Date();
-      const [activeSessions, lockedAccounts, failedSignIns, successfulSignIns] =
-        await Promise.all([
-          p.session.count({ where: { expiresAt: { gt: now } } }),
-          p.user.count({
-            where: { lockedUntil: { gt: now }, deletedAt: null },
-          }),
-          p.auditLog.count({
-            where: { action: 'LOGIN_FAILED', createdAt: { gte: since } },
-          }),
-          p.auditLog.count({
-            where: { action: 'LOGIN_SUCCESS', createdAt: { gte: since } },
-          }),
-        ]);
+      const [
+        activeSessions,
+        lockedAccounts,
+        failedSignIns,
+        successfulSignIns,
+      ]: number[] = await Promise.all([
+        p.session.count({ where: { expiresAt: { gt: now } } }),
+        p.user.count({ where: { lockedUntil: { gt: now }, deletedAt: null } }),
+        p.auditLog.count({
+          where: { action: 'LOGIN_FAILED', createdAt: { gte: since } },
+        }),
+        p.auditLog.count({
+          where: { action: 'LOGIN_SUCCESS', createdAt: { gte: since } },
+        }),
+      ]);
 
       return {
         status: 'up' as const,
@@ -270,7 +292,9 @@ export class PlatformController {
    */
   private async recentActivity(since: Date) {
     try {
-      const p = this.prisma as any;
+      const p = this.prisma as unknown as {
+        auditLog: { groupBy(args: unknown): Promise<GroupedRow[]> };
+      };
       const [byStatus, failuresByAction] = await Promise.all([
         p.auditLog.groupBy({
           by: ['status'],
@@ -284,12 +308,9 @@ export class PlatformController {
         }),
       ]);
 
-      const total = byStatus.reduce(
-        (sum: number, r: any) => sum + r._count,
-        0,
-      );
+      const total = byStatus.reduce((sum, r) => sum + r._count, 0);
       const failures =
-        byStatus.find((r: any) => r.status === 'FAILURE')?._count ?? 0;
+        byStatus.find((r) => r.status === 'FAILURE')?._count ?? 0;
 
       return {
         status: 'up' as const,
@@ -297,12 +318,12 @@ export class PlatformController {
         failures24h: failures,
         failureRate: total ? Math.round((failures / total) * 1000) / 10 : 0,
         failuresByAction: failuresByAction
-          .map((r: any) => ({
+          .map((r) => ({
             action: r.action,
             category: r.actionCategory,
             count: r._count,
           }))
-          .sort((a: any, b: any) => b.count - a.count)
+          .sort((a, b) => b.count - a.count)
           .slice(0, 10),
       };
     } catch (error) {
@@ -374,7 +395,9 @@ export class PlatformController {
       webUrl: webUrl || null,
       // So the page can say "correct for this environment" rather than leaving
       // a reader to judge a URL against a NODE_ENV shown three panels away.
-      webUrlLooksRight: Boolean(webUrl) && (!isProduction || (!isLocal && webUrl.startsWith('https://'))),
+      webUrlLooksRight:
+        Boolean(webUrl) &&
+        (!isProduction || (!isLocal && webUrl.startsWith('https://'))),
       supportEmail: supportEmail || null,
       sessionTimeoutSeconds: Number(sessionTimeout),
       governmentEmailDomain,

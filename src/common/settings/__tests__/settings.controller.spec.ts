@@ -12,7 +12,11 @@ describe('SettingsController.update', () => {
   let controller: SettingsController;
 
   const OWNER = { id: 'u1', systemRole: 'SUPER_ADMIN', ministryId: null };
-  const PLATFORM_ADMIN = { id: 'u2', systemRole: 'PLATFORM_ADMIN', ministryId: null };
+  const PLATFORM_ADMIN = {
+    id: 'u2',
+    systemRole: 'PLATFORM_ADMIN',
+    ministryId: null,
+  };
 
   beforeEach(() => {
     settings = {
@@ -56,7 +60,9 @@ describe('SettingsController.update', () => {
   it('lets the owner change the domain', async () => {
     await expect(
       controller.update({ GOVERNMENT_EMAIL_DOMAIN: '.gov.sl' }, OWNER),
-    ).resolves.toEqual({ updated: [{ key: 'GOVERNMENT_EMAIL_DOMAIN', value: '.gov.sl' }] });
+    ).resolves.toEqual({
+      updated: [{ key: 'GOVERNMENT_EMAIL_DOMAIN', value: '.gov.sl' }],
+    });
   });
 
   it('does not name the owner role when refusing', async () => {

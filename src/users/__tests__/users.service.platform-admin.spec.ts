@@ -30,20 +30,26 @@ describe('UsersService — who may appoint whom', () => {
   beforeEach(() => {
     prisma = {
       user: {
-        create: jest.fn().mockImplementation(({ data }: any) => ({ id: 'u', ...data })),
+        create: jest
+          .fn()
+          .mockImplementation(({ data }: any) => ({ id: 'u', ...data })),
         findFirst: jest.fn().mockResolvedValue(null),
       },
       userPreferences: { create: jest.fn().mockResolvedValue({}) },
       ministry: {
         findUnique: jest
           .fn()
-          .mockImplementation(({ where }: any) => (where.id === MOH.id ? MOH : null)),
+          .mockImplementation(({ where }: any) =>
+            where.id === MOH.id ? MOH : null,
+          ),
       },
     };
     service = new UsersService(
       prisma,
       { log: jest.fn().mockResolvedValue(undefined) } as any,
-      { issue: jest.fn().mockResolvedValue({ link: 'https://x/invite' }) } as any,
+      {
+        issue: jest.fn().mockResolvedValue({ link: 'https://x/invite' }),
+      } as any,
       { invalidateAnalyticsFor: jest.fn() } as any,
       { get: jest.fn().mockResolvedValue('.gov.sl') } as any,
     );
@@ -91,7 +97,10 @@ describe('UsersService — who may appoint whom', () => {
     });
 
     it('still honours the one-minister-per-ministry rule', async () => {
-      prisma.user.findFirst.mockResolvedValue({ id: 'sitting', name: 'A Minister' });
+      prisma.user.findFirst.mockResolvedValue({
+        id: 'sitting',
+        name: 'A Minister',
+      });
 
       await expect(
         create(dto({ systemRole: 'MINISTER' }), 'PLATFORM_ADMIN'),
@@ -123,7 +132,10 @@ describe('UsersService — who may appoint whom', () => {
 
     it('needs no ministry named at all', async () => {
       await expect(
-        create(dto({ systemRole: 'PLATFORM_ADMIN', ministryId: undefined }), 'SUPER_ADMIN'),
+        create(
+          dto({ systemRole: 'PLATFORM_ADMIN', ministryId: undefined }),
+          'SUPER_ADMIN',
+        ),
       ).resolves.toBeDefined();
     });
 

@@ -18,10 +18,7 @@ import {
   PLATFORM_ROLES,
 } from '../common/utils/ministry-scope.util';
 import { matchesGovDomain } from '../common/utils/gov-domain.util';
-import {
-  SettingsService,
-  SETTINGS,
-} from '../common/settings/settings.service';
+import { SettingsService, SETTINGS } from '../common/settings/settings.service';
 // `auth` and better-auth's hashPassword used to be imported here, from when
 // this service set passwords itself. Users now set their own from an invitation
 // link, so both were dead — and they dragged better-auth's ESM build and
@@ -111,10 +108,7 @@ export class UsersService {
         'Only the platform owner can appoint a platform administrator',
       );
     }
-    if (
-      role === 'MINISTER' &&
-      !PLATFORM_ROLES.includes(actorRole)
-    ) {
+    if (role === 'MINISTER' && !PLATFORM_ROLES.includes(actorRole)) {
       throw new ForbiddenException('You cannot appoint a minister');
     }
   }
@@ -368,11 +362,13 @@ export class UsersService {
 
     // The platform roles have no ministry of their own, so there is no "their"
     // ministry to default to — they must name one, and may name any.
-    const isPlatformRole = PLATFORM_ROLES.includes(
-      actorSystemRole ?? '',
-    );
+    const isPlatformRole = PLATFORM_ROLES.includes(actorSystemRole ?? '');
 
-    if (dto.ministryId && !isPlatformRole && dto.ministryId !== actorMinistryId) {
+    if (
+      dto.ministryId &&
+      !isPlatformRole &&
+      dto.ministryId !== actorMinistryId
+    ) {
       throw new ForbiddenException(
         'You can only create users in your own ministry',
       );
@@ -383,9 +379,7 @@ export class UsersService {
       : dto.ministryId || actorMinistryId;
 
     if (!targetMinistryId) {
-      throw new BadRequestException(
-        'Choose the ministry this user belongs to',
-      );
+      throw new BadRequestException('Choose the ministry this user belongs to');
     }
 
     const ministry = await (this.prisma as any).ministry.findUnique({

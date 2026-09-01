@@ -8,7 +8,9 @@ jest.mock('better-auth/crypto', () => ({
   verifyPassword: jest.fn(),
 }));
 jest.mock('better-auth/plugins', () => ({ admin: jest.fn() }));
-jest.mock('better-auth/api', () => ({ APIError: class APIError extends Error {} }));
+jest.mock('better-auth/api', () => ({
+  APIError: class APIError extends Error {},
+}));
 jest.mock('better-auth/adapters/prisma', () => ({ prismaAdapter: jest.fn() }));
 
 import 'reflect-metadata';
@@ -78,7 +80,9 @@ describe('PLATFORM_ADMIN sees the schedule but cannot touch it', () => {
   });
 
   it('can read the aggregate figures', () => {
-    expect(rolesFor(ReportsController, 'getAnalyticsDashboard')).toContain(ROLE);
+    expect(rolesFor(ReportsController, 'getAnalyticsDashboard')).toContain(
+      ROLE,
+    );
   });
 
   it('is refused every other route on those two controllers', () => {
@@ -117,13 +121,16 @@ describe('PLATFORM_ADMIN sees the schedule but cannot touch it', () => {
 });
 
 describe('PLATFORM_ADMIN is kept out of ministry content', () => {
-  it.each(CONTENT_CONTROLLERS)('%s names it on no route', (_name, controller) => {
-    for (const method of methodsOf(controller)) {
-      const roles = rolesFor(controller, method);
-      if (!roles) continue;
-      expect(roles).not.toContain(ROLE);
-    }
-  });
+  it.each(CONTENT_CONTROLLERS)(
+    '%s names it on no route',
+    (_name, controller) => {
+      for (const method of methodsOf(controller)) {
+        const roles = rolesFor(controller, method);
+        if (!roles) continue;
+        expect(roles).not.toContain(ROLE);
+      }
+    },
+  );
 
   it('covers every route on those controllers, not just the decorated ones', () => {
     // A handler with no @Roles is open to everyone, this role included, so the
@@ -145,7 +152,10 @@ describe('PLATFORM_ADMIN is kept out of ministry content', () => {
     for (const [name, controller] of CONTENT_CONTROLLERS) {
       for (const method of methodsOf(controller)) {
         const id = `${name}.${method}`;
-        if (rolesFor(controller, method) === undefined && !PUBLIC_BY_TOKEN.has(id)) {
+        if (
+          rolesFor(controller, method) === undefined &&
+          !PUBLIC_BY_TOKEN.has(id)
+        ) {
           undecorated.push(id);
         }
       }

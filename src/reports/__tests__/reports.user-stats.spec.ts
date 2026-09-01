@@ -23,7 +23,10 @@ describe('ReportsService — usersByRole', () => {
         findMany: jest.fn().mockResolvedValue([]),
       },
     };
-    return new ReportsService(prisma, { get: jest.fn(), set: jest.fn() } as any);
+    return new ReportsService(prisma, {
+      get: jest.fn(),
+      set: jest.fn(),
+    } as any);
   }
 
   const stats = (scope: Record<string, unknown>, role: string) =>

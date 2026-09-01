@@ -9,7 +9,12 @@ describe('PlatformController — configuration warnings', () => {
     get: jest.fn().mockResolvedValue('x'),
   } as any;
 
-  const controller = new PlatformController({} as any, {} as any, settings, {} as any);
+  const controller = new PlatformController(
+    {} as any,
+    {} as any,
+    settings,
+    {} as any,
+  );
   const config = () => (controller as any).configuration();
 
   const ORIGINAL = process.env;
