@@ -21,6 +21,7 @@ import { UpdateMinutesDto } from './dto/update-minutes.dto';
 import {
   detectConflict,
   describeConflict,
+  type WriteConflict,
 } from '../common/utils/write-conflict.util';
 import type { SyncMeta } from '../common/decorators/sync-meta.decorator';
 
@@ -43,6 +44,7 @@ export class MinutesService {
     userId: string,
     userRole: string,
     ministryId: string,
+    sync?: SyncMeta,
   ) {
     const event = await (this.prisma as any).event.findUnique({
       where: { id: eventId },
@@ -73,6 +75,11 @@ export class MinutesService {
     let minutes = await (this.prisma as any).minutes.findUnique({
       where: { eventId },
     });
+
+    let overwritten: WriteConflict<{
+      decisions: string[];
+      nextSteps: string[];
+    }> | null = null;
 
     if (!minutes) {
       minutes = await (this.prisma as any).minutes.create({
@@ -105,6 +112,23 @@ export class MinutesService {
       // client happened to pick is not a permission.
       await this.assertEditable(eventId, userId, userRole, ministryId);
 
+      /*
+       * Conflict reporting belongs here as much as on PATCH.
+       *
+       * A write replayed from a device's queue always arrives as POST — offline
+       * the client cannot know whether the record exists, and this method is
+       * the one that handles both. So putting the overwrite check only on PATCH
+       * would mean the one case it exists for, a save made during an outage,
+       * was the one case that never reported it.
+       */
+      overwritten = detectConflict(sync?.baseUpdatedAt ?? null, minutes.updatedAt)
+        ? describeConflict(
+            minutes.updatedAt,
+            minutes.draftedById ? { id: minutes.draftedById, name: null } : null,
+            await this.currentLists(minutes.id),
+          )
+        : null;
+
       minutes = await (this.prisma as any).minutes.update({
         where: { id: minutes.id },
         data: {
@@ -125,10 +149,16 @@ export class MinutesService {
         ministryId,
         actorId: userId,
         description: `Updated minutes draft for event: ${event.title}`,
+        changes: {
+          after: dto,
+          ...(overwritten ? { before: overwritten.previousContent } : {}),
+        } as unknown as Record<string, unknown>,
+        requestId: sync?.clientOpId ?? undefined,
       });
     }
 
-    return this.getMinutes(eventId);
+    const saved = await this.getMinutes(eventId);
+    return overwritten ? { ...saved, conflict: overwritten } : saved;
   }
 
   /**

@@ -345,6 +345,31 @@ describe('MinutesService', () => {
       expect(result.conflict).toBeUndefined();
     });
 
+    it('reports an overwrite on POST too, since a queued write always arrives that way', async () => {
+      // Offline the client cannot know whether the record exists, so the sync
+      // path always POSTs. Reporting only on PATCH would miss the one case
+      // this exists for.
+      const serverUpdatedAt = new Date('2026-09-07T10:05:00.000Z');
+      seedForUpdate(serverUpdatedAt);
+
+      const result: any = await service.draftMinutes(
+        EVENT_ID,
+        { decisions: ['My version'] },
+        ORGANIZER,
+        'STAFF',
+        MINISTRY,
+        { baseUpdatedAt: new Date('2026-09-07T10:00:00.000Z'), clientOpId: 'op-2' },
+      );
+
+      expect(result.conflict).toMatchObject({
+        overwritten: true,
+        previousContent: {
+          decisions: ['The line someone else wrote'],
+          nextSteps: ['Their follow-up'],
+        },
+      });
+    });
+
     it('reports nothing when the client did not say what it read', async () => {
       // An ordinary online save. Nobody checked, so nothing is claimed either
       // way — asserting "no conflict" here would be a guess presented as fact.

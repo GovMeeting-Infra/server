@@ -38,6 +38,7 @@ export class MinutesController {
     @Param('eventId') eventId: string,
     @Body() dto: CreateMinutesDto,
     @CurrentUser() user: any,
+    @Sync() sync: SyncMeta,
   ) {
     return this.minutesService.draftMinutes(
       eventId,
@@ -45,6 +46,7 @@ export class MinutesController {
       user.id,
       user.systemRole,
       user.ministryId,
+      sync,
     );
   }
 
