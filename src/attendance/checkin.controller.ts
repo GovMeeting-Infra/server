@@ -17,6 +17,7 @@ import { CheckInDto } from './dto/check-in.dto';
 import { GuestCheckInDto } from './dto/guest-check-in.dto';
 import { GenerateCheckInCodeDto } from './dto/generate-check-in-code.dto';
 import { ManualCheckInDto } from './dto/manual-check-in.dto';
+import { OfflineRegisterDto } from './dto/offline-register.dto';
 import { RSVPDto } from './dto/rsvp.dto';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -163,6 +164,32 @@ export class CheckinController {
       eventId,
       dto,
       user.id,
+      requestMeta(req),
+    );
+  }
+
+  /**
+   * Take in a register an organizer kept while their device had no signal.
+   *
+   * Same guards as the desk check-in above, and for the same reason: this is
+   * an organizer recording people, not an attendee recording themselves. There
+   * is no QR token involved — during an outage nobody could have received one.
+   */
+  @Post('checkin/:eventId/offline-register')
+  @UseGuards(RolesGuard, CanManageEventGuard)
+  @AllowCoOrganizers()
+  @Roles(...CODE_ROLES)
+  @HttpCode(200)
+  async syncOfflineRegister(
+    @Param('eventId') eventId: string,
+    @Body() dto: OfflineRegisterDto,
+    @CurrentUser() user: any,
+    @Req() req: any,
+  ) {
+    return this.checkinService.syncOfflineRegister(
+      eventId,
+      dto,
+      { id: user.id },
       requestMeta(req),
     );
   }

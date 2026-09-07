@@ -28,10 +28,12 @@ export type AggregateAttendance = {
 
 export type AttendanceAvgAggregateOutputType = {
   gpsAccuracy: number | null
+  clockSkewSeconds: number | null
 }
 
 export type AttendanceSumAggregateOutputType = {
   gpsAccuracy: number | null
+  clockSkewSeconds: number | null
 }
 
 export type AttendanceMinAggregateOutputType = {
@@ -55,6 +57,11 @@ export type AttendanceMinAggregateOutputType = {
   mockLocationFlag: boolean | null
   ipAddress: string | null
   userAgent: string | null
+  capturedOffline: boolean | null
+  capturedAt: Date | null
+  syncedAt: Date | null
+  capturedById: string | null
+  clockSkewSeconds: number | null
 }
 
 export type AttendanceMaxAggregateOutputType = {
@@ -78,6 +85,11 @@ export type AttendanceMaxAggregateOutputType = {
   mockLocationFlag: boolean | null
   ipAddress: string | null
   userAgent: string | null
+  capturedOffline: boolean | null
+  capturedAt: Date | null
+  syncedAt: Date | null
+  capturedById: string | null
+  clockSkewSeconds: number | null
 }
 
 export type AttendanceCountAggregateOutputType = {
@@ -101,16 +113,23 @@ export type AttendanceCountAggregateOutputType = {
   mockLocationFlag: number
   ipAddress: number
   userAgent: number
+  capturedOffline: number
+  capturedAt: number
+  syncedAt: number
+  capturedById: number
+  clockSkewSeconds: number
   _all: number
 }
 
 
 export type AttendanceAvgAggregateInputType = {
   gpsAccuracy?: true
+  clockSkewSeconds?: true
 }
 
 export type AttendanceSumAggregateInputType = {
   gpsAccuracy?: true
+  clockSkewSeconds?: true
 }
 
 export type AttendanceMinAggregateInputType = {
@@ -134,6 +153,11 @@ export type AttendanceMinAggregateInputType = {
   mockLocationFlag?: true
   ipAddress?: true
   userAgent?: true
+  capturedOffline?: true
+  capturedAt?: true
+  syncedAt?: true
+  capturedById?: true
+  clockSkewSeconds?: true
 }
 
 export type AttendanceMaxAggregateInputType = {
@@ -157,6 +181,11 @@ export type AttendanceMaxAggregateInputType = {
   mockLocationFlag?: true
   ipAddress?: true
   userAgent?: true
+  capturedOffline?: true
+  capturedAt?: true
+  syncedAt?: true
+  capturedById?: true
+  clockSkewSeconds?: true
 }
 
 export type AttendanceCountAggregateInputType = {
@@ -180,6 +209,11 @@ export type AttendanceCountAggregateInputType = {
   mockLocationFlag?: true
   ipAddress?: true
   userAgent?: true
+  capturedOffline?: true
+  capturedAt?: true
+  syncedAt?: true
+  capturedById?: true
+  clockSkewSeconds?: true
   _all?: true
 }
 
@@ -290,6 +324,11 @@ export type AttendanceGroupByOutputType = {
   mockLocationFlag: boolean
   ipAddress: string | null
   userAgent: string | null
+  capturedOffline: boolean
+  capturedAt: Date | null
+  syncedAt: Date | null
+  capturedById: string | null
+  clockSkewSeconds: number | null
   _count: AttendanceCountAggregateOutputType | null
   _avg: AttendanceAvgAggregateOutputType | null
   _sum: AttendanceSumAggregateOutputType | null
@@ -336,6 +375,11 @@ export type AttendanceWhereInput = {
   mockLocationFlag?: Prisma.BoolFilter<"Attendance"> | boolean
   ipAddress?: Prisma.StringNullableFilter<"Attendance"> | string | null
   userAgent?: Prisma.StringNullableFilter<"Attendance"> | string | null
+  capturedOffline?: Prisma.BoolFilter<"Attendance"> | boolean
+  capturedAt?: Prisma.DateTimeNullableFilter<"Attendance"> | Date | string | null
+  syncedAt?: Prisma.DateTimeNullableFilter<"Attendance"> | Date | string | null
+  capturedById?: Prisma.StringNullableFilter<"Attendance"> | string | null
+  clockSkewSeconds?: Prisma.IntNullableFilter<"Attendance"> | number | null
   event?: Prisma.XOR<Prisma.EventScalarRelationFilter, Prisma.EventWhereInput>
   user?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
 }
@@ -361,6 +405,11 @@ export type AttendanceOrderByWithRelationInput = {
   mockLocationFlag?: Prisma.SortOrder
   ipAddress?: Prisma.SortOrderInput | Prisma.SortOrder
   userAgent?: Prisma.SortOrderInput | Prisma.SortOrder
+  capturedOffline?: Prisma.SortOrder
+  capturedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  syncedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  capturedById?: Prisma.SortOrderInput | Prisma.SortOrder
+  clockSkewSeconds?: Prisma.SortOrderInput | Prisma.SortOrder
   event?: Prisma.EventOrderByWithRelationInput
   user?: Prisma.UserOrderByWithRelationInput
 }
@@ -391,6 +440,11 @@ export type AttendanceWhereUniqueInput = Prisma.AtLeast<{
   mockLocationFlag?: Prisma.BoolFilter<"Attendance"> | boolean
   ipAddress?: Prisma.StringNullableFilter<"Attendance"> | string | null
   userAgent?: Prisma.StringNullableFilter<"Attendance"> | string | null
+  capturedOffline?: Prisma.BoolFilter<"Attendance"> | boolean
+  capturedAt?: Prisma.DateTimeNullableFilter<"Attendance"> | Date | string | null
+  syncedAt?: Prisma.DateTimeNullableFilter<"Attendance"> | Date | string | null
+  capturedById?: Prisma.StringNullableFilter<"Attendance"> | string | null
+  clockSkewSeconds?: Prisma.IntNullableFilter<"Attendance"> | number | null
   event?: Prisma.XOR<Prisma.EventScalarRelationFilter, Prisma.EventWhereInput>
   user?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
 }, "id" | "eventId_userId" | "eventId_guestEmail">
@@ -416,6 +470,11 @@ export type AttendanceOrderByWithAggregationInput = {
   mockLocationFlag?: Prisma.SortOrder
   ipAddress?: Prisma.SortOrderInput | Prisma.SortOrder
   userAgent?: Prisma.SortOrderInput | Prisma.SortOrder
+  capturedOffline?: Prisma.SortOrder
+  capturedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  syncedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  capturedById?: Prisma.SortOrderInput | Prisma.SortOrder
+  clockSkewSeconds?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.AttendanceCountOrderByAggregateInput
   _avg?: Prisma.AttendanceAvgOrderByAggregateInput
   _max?: Prisma.AttendanceMaxOrderByAggregateInput
@@ -447,6 +506,11 @@ export type AttendanceScalarWhereWithAggregatesInput = {
   mockLocationFlag?: Prisma.BoolWithAggregatesFilter<"Attendance"> | boolean
   ipAddress?: Prisma.StringNullableWithAggregatesFilter<"Attendance"> | string | null
   userAgent?: Prisma.StringNullableWithAggregatesFilter<"Attendance"> | string | null
+  capturedOffline?: Prisma.BoolWithAggregatesFilter<"Attendance"> | boolean
+  capturedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Attendance"> | Date | string | null
+  syncedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Attendance"> | Date | string | null
+  capturedById?: Prisma.StringNullableWithAggregatesFilter<"Attendance"> | string | null
+  clockSkewSeconds?: Prisma.IntNullableWithAggregatesFilter<"Attendance"> | number | null
 }
 
 export type AttendanceCreateInput = {
@@ -468,6 +532,11 @@ export type AttendanceCreateInput = {
   mockLocationFlag?: boolean
   ipAddress?: string | null
   userAgent?: string | null
+  capturedOffline?: boolean
+  capturedAt?: Date | string | null
+  syncedAt?: Date | string | null
+  capturedById?: string | null
+  clockSkewSeconds?: number | null
   event: Prisma.EventCreateNestedOneWithoutAttendancesInput
   user?: Prisma.UserCreateNestedOneWithoutAttendancesInput
 }
@@ -493,6 +562,11 @@ export type AttendanceUncheckedCreateInput = {
   mockLocationFlag?: boolean
   ipAddress?: string | null
   userAgent?: string | null
+  capturedOffline?: boolean
+  capturedAt?: Date | string | null
+  syncedAt?: Date | string | null
+  capturedById?: string | null
+  clockSkewSeconds?: number | null
 }
 
 export type AttendanceUpdateInput = {
@@ -514,6 +588,11 @@ export type AttendanceUpdateInput = {
   mockLocationFlag?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ipAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   userAgent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  capturedOffline?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  capturedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  syncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  capturedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clockSkewSeconds?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   event?: Prisma.EventUpdateOneRequiredWithoutAttendancesNestedInput
   user?: Prisma.UserUpdateOneWithoutAttendancesNestedInput
 }
@@ -539,6 +618,11 @@ export type AttendanceUncheckedUpdateInput = {
   mockLocationFlag?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ipAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   userAgent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  capturedOffline?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  capturedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  syncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  capturedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clockSkewSeconds?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
 }
 
 export type AttendanceCreateManyInput = {
@@ -562,6 +646,11 @@ export type AttendanceCreateManyInput = {
   mockLocationFlag?: boolean
   ipAddress?: string | null
   userAgent?: string | null
+  capturedOffline?: boolean
+  capturedAt?: Date | string | null
+  syncedAt?: Date | string | null
+  capturedById?: string | null
+  clockSkewSeconds?: number | null
 }
 
 export type AttendanceUpdateManyMutationInput = {
@@ -583,6 +672,11 @@ export type AttendanceUpdateManyMutationInput = {
   mockLocationFlag?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ipAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   userAgent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  capturedOffline?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  capturedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  syncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  capturedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clockSkewSeconds?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
 }
 
 export type AttendanceUncheckedUpdateManyInput = {
@@ -606,6 +700,11 @@ export type AttendanceUncheckedUpdateManyInput = {
   mockLocationFlag?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ipAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   userAgent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  capturedOffline?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  capturedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  syncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  capturedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clockSkewSeconds?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
 }
 
 export type AttendanceListRelationFilter = {
@@ -649,10 +748,16 @@ export type AttendanceCountOrderByAggregateInput = {
   mockLocationFlag?: Prisma.SortOrder
   ipAddress?: Prisma.SortOrder
   userAgent?: Prisma.SortOrder
+  capturedOffline?: Prisma.SortOrder
+  capturedAt?: Prisma.SortOrder
+  syncedAt?: Prisma.SortOrder
+  capturedById?: Prisma.SortOrder
+  clockSkewSeconds?: Prisma.SortOrder
 }
 
 export type AttendanceAvgOrderByAggregateInput = {
   gpsAccuracy?: Prisma.SortOrder
+  clockSkewSeconds?: Prisma.SortOrder
 }
 
 export type AttendanceMaxOrderByAggregateInput = {
@@ -676,6 +781,11 @@ export type AttendanceMaxOrderByAggregateInput = {
   mockLocationFlag?: Prisma.SortOrder
   ipAddress?: Prisma.SortOrder
   userAgent?: Prisma.SortOrder
+  capturedOffline?: Prisma.SortOrder
+  capturedAt?: Prisma.SortOrder
+  syncedAt?: Prisma.SortOrder
+  capturedById?: Prisma.SortOrder
+  clockSkewSeconds?: Prisma.SortOrder
 }
 
 export type AttendanceMinOrderByAggregateInput = {
@@ -699,10 +809,16 @@ export type AttendanceMinOrderByAggregateInput = {
   mockLocationFlag?: Prisma.SortOrder
   ipAddress?: Prisma.SortOrder
   userAgent?: Prisma.SortOrder
+  capturedOffline?: Prisma.SortOrder
+  capturedAt?: Prisma.SortOrder
+  syncedAt?: Prisma.SortOrder
+  capturedById?: Prisma.SortOrder
+  clockSkewSeconds?: Prisma.SortOrder
 }
 
 export type AttendanceSumOrderByAggregateInput = {
   gpsAccuracy?: Prisma.SortOrder
+  clockSkewSeconds?: Prisma.SortOrder
 }
 
 export type AttendanceCreateNestedManyWithoutUserInput = {
@@ -816,6 +932,11 @@ export type AttendanceCreateWithoutUserInput = {
   mockLocationFlag?: boolean
   ipAddress?: string | null
   userAgent?: string | null
+  capturedOffline?: boolean
+  capturedAt?: Date | string | null
+  syncedAt?: Date | string | null
+  capturedById?: string | null
+  clockSkewSeconds?: number | null
   event: Prisma.EventCreateNestedOneWithoutAttendancesInput
 }
 
@@ -839,6 +960,11 @@ export type AttendanceUncheckedCreateWithoutUserInput = {
   mockLocationFlag?: boolean
   ipAddress?: string | null
   userAgent?: string | null
+  capturedOffline?: boolean
+  capturedAt?: Date | string | null
+  syncedAt?: Date | string | null
+  capturedById?: string | null
+  clockSkewSeconds?: number | null
 }
 
 export type AttendanceCreateOrConnectWithoutUserInput = {
@@ -891,6 +1017,11 @@ export type AttendanceScalarWhereInput = {
   mockLocationFlag?: Prisma.BoolFilter<"Attendance"> | boolean
   ipAddress?: Prisma.StringNullableFilter<"Attendance"> | string | null
   userAgent?: Prisma.StringNullableFilter<"Attendance"> | string | null
+  capturedOffline?: Prisma.BoolFilter<"Attendance"> | boolean
+  capturedAt?: Prisma.DateTimeNullableFilter<"Attendance"> | Date | string | null
+  syncedAt?: Prisma.DateTimeNullableFilter<"Attendance"> | Date | string | null
+  capturedById?: Prisma.StringNullableFilter<"Attendance"> | string | null
+  clockSkewSeconds?: Prisma.IntNullableFilter<"Attendance"> | number | null
 }
 
 export type AttendanceCreateWithoutEventInput = {
@@ -912,6 +1043,11 @@ export type AttendanceCreateWithoutEventInput = {
   mockLocationFlag?: boolean
   ipAddress?: string | null
   userAgent?: string | null
+  capturedOffline?: boolean
+  capturedAt?: Date | string | null
+  syncedAt?: Date | string | null
+  capturedById?: string | null
+  clockSkewSeconds?: number | null
   user?: Prisma.UserCreateNestedOneWithoutAttendancesInput
 }
 
@@ -935,6 +1071,11 @@ export type AttendanceUncheckedCreateWithoutEventInput = {
   mockLocationFlag?: boolean
   ipAddress?: string | null
   userAgent?: string | null
+  capturedOffline?: boolean
+  capturedAt?: Date | string | null
+  syncedAt?: Date | string | null
+  capturedById?: string | null
+  clockSkewSeconds?: number | null
 }
 
 export type AttendanceCreateOrConnectWithoutEventInput = {
@@ -983,6 +1124,11 @@ export type AttendanceCreateManyUserInput = {
   mockLocationFlag?: boolean
   ipAddress?: string | null
   userAgent?: string | null
+  capturedOffline?: boolean
+  capturedAt?: Date | string | null
+  syncedAt?: Date | string | null
+  capturedById?: string | null
+  clockSkewSeconds?: number | null
 }
 
 export type AttendanceUpdateWithoutUserInput = {
@@ -1004,6 +1150,11 @@ export type AttendanceUpdateWithoutUserInput = {
   mockLocationFlag?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ipAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   userAgent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  capturedOffline?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  capturedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  syncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  capturedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clockSkewSeconds?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   event?: Prisma.EventUpdateOneRequiredWithoutAttendancesNestedInput
 }
 
@@ -1027,6 +1178,11 @@ export type AttendanceUncheckedUpdateWithoutUserInput = {
   mockLocationFlag?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ipAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   userAgent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  capturedOffline?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  capturedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  syncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  capturedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clockSkewSeconds?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
 }
 
 export type AttendanceUncheckedUpdateManyWithoutUserInput = {
@@ -1049,6 +1205,11 @@ export type AttendanceUncheckedUpdateManyWithoutUserInput = {
   mockLocationFlag?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ipAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   userAgent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  capturedOffline?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  capturedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  syncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  capturedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clockSkewSeconds?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
 }
 
 export type AttendanceCreateManyEventInput = {
@@ -1071,6 +1232,11 @@ export type AttendanceCreateManyEventInput = {
   mockLocationFlag?: boolean
   ipAddress?: string | null
   userAgent?: string | null
+  capturedOffline?: boolean
+  capturedAt?: Date | string | null
+  syncedAt?: Date | string | null
+  capturedById?: string | null
+  clockSkewSeconds?: number | null
 }
 
 export type AttendanceUpdateWithoutEventInput = {
@@ -1092,6 +1258,11 @@ export type AttendanceUpdateWithoutEventInput = {
   mockLocationFlag?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ipAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   userAgent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  capturedOffline?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  capturedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  syncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  capturedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clockSkewSeconds?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   user?: Prisma.UserUpdateOneWithoutAttendancesNestedInput
 }
 
@@ -1115,6 +1286,11 @@ export type AttendanceUncheckedUpdateWithoutEventInput = {
   mockLocationFlag?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ipAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   userAgent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  capturedOffline?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  capturedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  syncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  capturedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clockSkewSeconds?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
 }
 
 export type AttendanceUncheckedUpdateManyWithoutEventInput = {
@@ -1137,6 +1313,11 @@ export type AttendanceUncheckedUpdateManyWithoutEventInput = {
   mockLocationFlag?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ipAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   userAgent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  capturedOffline?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  capturedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  syncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  capturedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clockSkewSeconds?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
 }
 
 
@@ -1162,6 +1343,11 @@ export type AttendanceSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   mockLocationFlag?: boolean
   ipAddress?: boolean
   userAgent?: boolean
+  capturedOffline?: boolean
+  capturedAt?: boolean
+  syncedAt?: boolean
+  capturedById?: boolean
+  clockSkewSeconds?: boolean
   event?: boolean | Prisma.EventDefaultArgs<ExtArgs>
   user?: boolean | Prisma.Attendance$userArgs<ExtArgs>
 }, ExtArgs["result"]["attendance"]>
@@ -1187,6 +1373,11 @@ export type AttendanceSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ex
   mockLocationFlag?: boolean
   ipAddress?: boolean
   userAgent?: boolean
+  capturedOffline?: boolean
+  capturedAt?: boolean
+  syncedAt?: boolean
+  capturedById?: boolean
+  clockSkewSeconds?: boolean
   event?: boolean | Prisma.EventDefaultArgs<ExtArgs>
   user?: boolean | Prisma.Attendance$userArgs<ExtArgs>
 }, ExtArgs["result"]["attendance"]>
@@ -1212,6 +1403,11 @@ export type AttendanceSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ex
   mockLocationFlag?: boolean
   ipAddress?: boolean
   userAgent?: boolean
+  capturedOffline?: boolean
+  capturedAt?: boolean
+  syncedAt?: boolean
+  capturedById?: boolean
+  clockSkewSeconds?: boolean
   event?: boolean | Prisma.EventDefaultArgs<ExtArgs>
   user?: boolean | Prisma.Attendance$userArgs<ExtArgs>
 }, ExtArgs["result"]["attendance"]>
@@ -1237,9 +1433,14 @@ export type AttendanceSelectScalar = {
   mockLocationFlag?: boolean
   ipAddress?: boolean
   userAgent?: boolean
+  capturedOffline?: boolean
+  capturedAt?: boolean
+  syncedAt?: boolean
+  capturedById?: boolean
+  clockSkewSeconds?: boolean
 }
 
-export type AttendanceOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "eventId" | "userId" | "guestName" | "guestEmail" | "guestTitle" | "guestOrganisation" | "guestPhone" | "isWalkIn" | "signedName" | "signature" | "checkInAt" | "checkInMethod" | "lat" | "lng" | "gpsAccuracy" | "withinGeofence" | "mockLocationFlag" | "ipAddress" | "userAgent", ExtArgs["result"]["attendance"]>
+export type AttendanceOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "eventId" | "userId" | "guestName" | "guestEmail" | "guestTitle" | "guestOrganisation" | "guestPhone" | "isWalkIn" | "signedName" | "signature" | "checkInAt" | "checkInMethod" | "lat" | "lng" | "gpsAccuracy" | "withinGeofence" | "mockLocationFlag" | "ipAddress" | "userAgent" | "capturedOffline" | "capturedAt" | "syncedAt" | "capturedById" | "clockSkewSeconds", ExtArgs["result"]["attendance"]>
 export type AttendanceInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   event?: boolean | Prisma.EventDefaultArgs<ExtArgs>
   user?: boolean | Prisma.Attendance$userArgs<ExtArgs>
@@ -1280,6 +1481,11 @@ export type $AttendancePayload<ExtArgs extends runtime.Types.Extensions.Internal
     mockLocationFlag: boolean
     ipAddress: string | null
     userAgent: string | null
+    capturedOffline: boolean
+    capturedAt: Date | null
+    syncedAt: Date | null
+    capturedById: string | null
+    clockSkewSeconds: number | null
   }, ExtArgs["result"]["attendance"]>
   composites: {}
 }
@@ -1725,6 +1931,11 @@ export interface AttendanceFieldRefs {
   readonly mockLocationFlag: Prisma.FieldRef<"Attendance", 'Boolean'>
   readonly ipAddress: Prisma.FieldRef<"Attendance", 'String'>
   readonly userAgent: Prisma.FieldRef<"Attendance", 'String'>
+  readonly capturedOffline: Prisma.FieldRef<"Attendance", 'Boolean'>
+  readonly capturedAt: Prisma.FieldRef<"Attendance", 'DateTime'>
+  readonly syncedAt: Prisma.FieldRef<"Attendance", 'DateTime'>
+  readonly capturedById: Prisma.FieldRef<"Attendance", 'String'>
+  readonly clockSkewSeconds: Prisma.FieldRef<"Attendance", 'Int'>
 }
     
 

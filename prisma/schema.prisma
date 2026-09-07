@@ -406,6 +406,40 @@ model Attendance {
   ipAddress         String?
   userAgent         String?
 
+  // --- Offline capture ------------------------------------------------------
+  // Set when this row was recorded on a device with no connection and synced
+  // afterwards. A flag rather than a CheckInMethod value on purpose:
+  // checkInMethod answers "did they scan, did GPS verify, or did staff vouch",
+  // and captured-offline is orthogonal to all three — an offline row still has
+  // a real signature and a real fix. Folding it into the enum would silently
+  // change every existing grouping in the attendance export and the reports
+  // check-in-method panel.
+  capturedOffline   Boolean       @default(false)
+  // What the recording device believed the time was, before any correction.
+  // checkInAt carries the corrected, clamped time that reports read; this is
+  // kept beside it so a disputed record can be examined rather than argued
+  // about.
+  capturedAt        DateTime?
+  // When it actually reached the server. The gap between this and checkInAt is
+  // the honest measure of how long a record sat on a device.
+  syncedAt          DateTime?
+  // Who was holding the device. Follows the checkInAnchorSetById precedent: an
+  // audit breadcrumb, deliberately not a relation, so removing a user cannot
+  // cascade into attendance history.
+  capturedById      String?
+  // How far that device's clock was from the server's, in SECONDS.
+  //
+  // Seconds because milliseconds do not fit. A tablet that came back from a
+  // power cut believing it was 1970 is out by about 1.79 trillion ms, which
+  // overflows a 4-byte integer — so the one device this column exists to
+  // describe was the one whose row would not write. Seconds spans ±68 years,
+  // and sub-second precision in a skew measurement was never real anyway: the
+  // round trip that measures it costs more than that.
+  //
+  // Recorded rather than silently corrected, so someone reading this row later
+  // can tell whether its time was trusted or repaired.
+  clockSkewSeconds  Int?
+
   event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
   user  User? @relation(fields: [userId], references: [id], onDelete: Cascade)
 
