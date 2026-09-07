@@ -7,29 +7,25 @@ const UNIQUE_VIOLATION = 'P2002';
 
 interface PrismaKnownError {
   code?: string;
-  meta?: { target?: unknown };
 }
 
 /**
- * True when this error is the record's own primary key colliding, rather than
- * some other unique index.
+ * Whether this error is a unique-constraint violation at all.
  *
- * The distinction matters. A primary-key collision on a client-minted id means
- * "this exact operation already landed", which is success arriving twice. A
- * collision on, say, Ministry.name means the caller sent something genuinely
- * conflicting, and quietly returning the existing row would be wrong.
+ * Deliberately does NOT try to work out *which* constraint. The obvious version
+ * of this read `meta.target` and asked whether it named the primary key — and
+ * it silently never matched, because Prisma 7 with the pg driver adapter does
+ * not populate `target`. The meta carries `modelName` and a driver error and
+ * nothing else, so every replay fell through as an unhandled P2002 and came
+ * back a 500. Unit tests missed it completely: they built the error object by
+ * hand, from how an older Prisma behaved.
+ *
+ * Which constraint it was is answered below by looking, which needs no
+ * cooperation from the client's error shape and cannot rot with the next
+ * release.
  */
-function isPrimaryKeyConflict(error: unknown): boolean {
-  const known = error as PrismaKnownError;
-  if (known?.code !== UNIQUE_VIOLATION) return false;
-
-  const target = known.meta?.target;
-  if (Array.isArray(target)) return target.length === 1 && target[0] === 'id';
-  // Postgres reports the constraint name; a table's primary key is "<Table>_pkey".
-  if (typeof target === 'string') {
-    return target === 'id' || target.endsWith('_pkey');
-  }
-  return false;
+function isUniqueViolation(error: unknown): boolean {
+  return (error as PrismaKnownError)?.code === UNIQUE_VIOLATION;
 }
 
 export interface IdempotentCreateOptions<T> {
@@ -82,13 +78,19 @@ export async function idempotentCreate<T>({
   try {
     return await create();
   } catch (error) {
-    if (!id || !isPrimaryKeyConflict(error)) throw error;
+    if (!id || !isUniqueViolation(error)) throw error;
 
+    /*
+     * Ask the database which constraint it was, rather than the error object.
+     *
+     * If a row already exists under the id this caller supplied, the collision
+     * was that row and this is a replay. If nothing is there, the violation was
+     * some other unique index — a duplicate ministry name, say — which is a
+     * real disagreement with the caller and must surface as one.
+     *
+     * This also covers the row having been deleted between the insert and now.
+     */
     const existing = await findExisting(id);
-
-    // The row collided a moment ago and is gone now — deleted in between, or
-    // the conflict was on a different index after all. Either way this is not
-    // the replay it looked like, so surface the original failure.
     if (!existing) throw error;
 
     if (!canAccessExisting(existing)) {
