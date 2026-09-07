@@ -42,6 +42,7 @@ export class MinutesController {
       eventId,
       dto,
       user.id,
+      user.systemRole,
       user.ministryId,
     );
   }

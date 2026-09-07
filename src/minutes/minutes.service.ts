@@ -36,6 +36,7 @@ export class MinutesService {
     eventId: string,
     dto: CreateMinutesDto,
     userId: string,
+    userRole: string,
     ministryId: string,
   ) {
     const event = await (this.prisma as any).event.findUnique({
@@ -92,6 +93,13 @@ export class MinutesService {
         description: `Drafted minutes for event: ${event.title}`,
       });
     } else {
+      // Same record, same rules. This branch edits minutes that already exist,
+      // which is exactly what PATCH does — but it used to reach the write with
+      // only the organizer check above, so a POST went through after the edit
+      // window had closed and after the record was archived. The verb the
+      // client happened to pick is not a permission.
+      await this.assertEditable(eventId, userId, userRole, ministryId);
+
       minutes = await (this.prisma as any).minutes.update({
         where: { id: minutes.id },
         data: {
@@ -177,25 +185,7 @@ export class MinutesService {
       throw new NotFoundException('Minutes not found');
     }
 
-    // Checked before the generic refusal below so the caller is told the real
-    // reason. An archived record is frozen permanently, which is quite
-    // different from an edit window that a ministry admin can still override.
-    if (minutes.status === 'ARCHIVED') {
-      throw new ForbiddenException(
-        'These minutes have been archived and can no longer be changed',
-      );
-    }
-
-    const canEdit = await this.canEditMinutes(
-      eventId,
-      userId,
-      userRole,
-      ministryId,
-    );
-
-    if (!canEdit) {
-      throw new ForbiddenException('Edit window expired (2 days after event)');
-    }
+    await this.assertEditable(eventId, userId, userRole, ministryId);
 
     await this.replacePoints(minutes.id, dto);
 
@@ -351,6 +341,52 @@ export class MinutesService {
    * recomputing `endAt + 2 days` in the client would be a second copy of the
    * rule waiting to drift.
    */
+  /**
+   * Refuse a write to an existing record, saying which rule stopped it.
+   *
+   * describeEditPermission already knows every reason; what was missing was one
+   * place that turns a reason into the right refusal, so both write paths had
+   * to remember to ask. updateMinutes asked and draftMinutes did not, which is
+   * how POST became a way around the edit window.
+   *
+   * The reasons are kept distinct on purpose: an archived record is frozen for
+   * everyone permanently, while a closed window is something a minister or a
+   * ministry admin can still override, and a caller told the wrong one will
+   * chase the wrong remedy.
+   */
+  private async assertEditable(
+    eventId: string,
+    userId: string,
+    userRole: string,
+    ministryId: string,
+  ): Promise<void> {
+    const { canEdit, reason } = await this.describeEditPermission(
+      eventId,
+      userId,
+      userRole,
+      ministryId,
+    );
+
+    if (canEdit) return;
+
+    switch (reason) {
+      case 'NOT_FOUND':
+        throw new NotFoundException('Event not found');
+      case 'ARCHIVED':
+        throw new ForbiddenException(
+          'These minutes have been archived and can no longer be changed',
+        );
+      case 'OTHER_MINISTRY':
+        throw new ForbiddenException('Cross-ministry access denied');
+      case 'NOT_ORGANIZER':
+        throw new ForbiddenException('Only organizers can draft minutes');
+      default:
+        throw new ForbiddenException(
+          'Edit window expired (2 days after event)',
+        );
+    }
+  }
+
   async describeEditPermission(
     eventId: string,
     userId: string,

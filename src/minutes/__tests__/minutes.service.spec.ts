@@ -90,6 +90,7 @@ describe('MinutesService', () => {
         EVENT_ID,
         { decisions: ['Approved the budget', 'Deferred the tender'] },
         ORGANIZER,
+        'STAFF',
         MINISTRY,
       );
 
@@ -115,6 +116,7 @@ describe('MinutesService', () => {
         EVENT_ID,
         { decisions: ['Approved the budget'] },
         ORGANIZER,
+        'STAFF',
         MINISTRY,
       );
 
@@ -131,6 +133,7 @@ describe('MinutesService', () => {
         EVENT_ID,
         { decisions: [] },
         ORGANIZER,
+        'STAFF',
         MINISTRY,
       );
 
@@ -147,6 +150,7 @@ describe('MinutesService', () => {
         EVENT_ID,
         { nextSteps: ['  ', 'Reconvene after the review', ''] },
         ORGANIZER,
+        'STAFF',
         MINISTRY,
       );
 
@@ -166,6 +170,7 @@ describe('MinutesService', () => {
         EVENT_ID,
         { decisions: ['One'], nextSteps: ['Two'] },
         ORGANIZER,
+        'STAFF',
         MINISTRY,
       );
 
@@ -183,6 +188,7 @@ describe('MinutesService', () => {
           EVENT_ID,
           { decisions: ['x'] },
           ORGANIZER,
+          'STAFF',
           MINISTRY,
         ),
       ).rejects.toThrow(BadRequestException);
@@ -194,9 +200,84 @@ describe('MinutesService', () => {
           EVENT_ID,
           { decisions: ['x'] },
           'someone',
+          'STAFF',
           MINISTRY,
         ),
       ).rejects.toThrow(ForbiddenException);
+    });
+  });
+
+  describe('editing an existing record', () => {
+    /** A meeting that ended three days ago: past the two-day window. */
+    const seedClosedWindow = () =>
+      seedEvent({ endAt: new Date(Date.now() - 3 * 24 * 60 * 60_000) });
+
+    it('refuses a POST once the edit window has closed', async () => {
+      // The record already exists, so this is an edit however it is addressed.
+      // POST used to skip the window check entirely and write anyway.
+      seedClosedWindow();
+      seedMinutes();
+
+      await expect(
+        service.draftMinutes(
+          EVENT_ID,
+          { decisions: ['slipped in late'] },
+          ORGANIZER,
+          'STAFF',
+          MINISTRY,
+        ),
+      ).rejects.toThrow(ForbiddenException);
+
+      expect(prisma.$transaction).not.toHaveBeenCalled();
+    });
+
+    it('refuses a POST to an archived record', async () => {
+      seedEvent();
+      seedMinutes({ status: 'ARCHIVED' });
+
+      await expect(
+        service.draftMinutes(
+          EVENT_ID,
+          { decisions: ['reopened'] },
+          ORGANIZER,
+          'STAFF',
+          MINISTRY,
+        ),
+      ).rejects.toThrow(ForbiddenException);
+
+      expect(prisma.$transaction).not.toHaveBeenCalled();
+    });
+
+    it('still lets a ministry admin edit past the window', async () => {
+      seedClosedWindow();
+      seedMinutes();
+
+      await service.draftMinutes(
+        EVENT_ID,
+        { decisions: ['corrected the attendance'] },
+        ORGANIZER,
+        'MINISTRY_ADMIN',
+        MINISTRY,
+      );
+
+      expect(prisma.$transaction).toHaveBeenCalledTimes(1);
+    });
+
+    it('leaves a first draft alone', async () => {
+      // No record yet, so there is nothing to have expired. Creating the
+      // minutes for a meeting that ran long must stay possible.
+      seedClosedWindow();
+      prisma.minutes.findUnique.mockResolvedValue(null);
+
+      await service.draftMinutes(
+        EVENT_ID,
+        { decisions: ['written up afterwards'] },
+        ORGANIZER,
+        'STAFF',
+        MINISTRY,
+      );
+
+      expect(prisma.$transaction).toHaveBeenCalledTimes(1);
     });
   });
 
