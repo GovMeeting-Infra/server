@@ -17,6 +17,7 @@ import { UpdateMinutesDto } from './dto/update-minutes.dto';
 import { CreateActionItemDto } from './dto/create-action-item.dto';
 import { UpdateActionItemDto } from './dto/update-action-item.dto';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { Sync, type SyncMeta } from '../common/decorators/sync-meta.decorator';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { ARCHIVE_MANAGER_ROLES, canReadArchived } from './archive.policy';
@@ -53,6 +54,7 @@ export class MinutesController {
     @Param('eventId') eventId: string,
     @Body() dto: UpdateMinutesDto,
     @CurrentUser() user: any,
+    @Sync() sync: SyncMeta,
   ) {
     return this.minutesService.updateMinutes(
       eventId,
@@ -60,6 +62,7 @@ export class MinutesController {
       user.id,
       user.systemRole,
       user.ministryId,
+      sync,
     );
   }
 
@@ -159,6 +162,7 @@ export class MinutesController {
     @Param('eventId') eventId: string,
     @Body() dto: CreateActionItemDto,
     @CurrentUser() user: any,
+    @Sync() sync: SyncMeta,
   ) {
     const minutes = await (
       this.minutesService as any
@@ -178,6 +182,7 @@ export class MinutesController {
       user.id,
       user.ministryId,
       user.systemRole,
+      sync.clientOpId,
     );
   }
 

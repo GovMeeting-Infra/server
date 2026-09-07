@@ -20,6 +20,7 @@ import { EventSeriesService } from './event-series.service';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { Sync, type SyncMeta } from '../common/decorators/sync-meta.decorator';
 import { CanManageEventGuard } from './guards/can-manage-event.guard';
 
 /**
@@ -117,12 +118,17 @@ export class EventsController {
 
   @Post()
   @Roles('SUPER_ADMIN', 'MINISTER', 'MINISTRY_ADMIN', 'STAFF')
-  create(@Body() dto: CreateEventDto, @CurrentUser() user: any) {
+  create(
+    @Body() dto: CreateEventDto,
+    @CurrentUser() user: any,
+    @Sync() sync: SyncMeta,
+  ) {
     return this.eventsService.createEvent(
       dto,
       user.id,
       user.ministryId,
       user.systemRole,
+      sync.clientOpId,
     );
   }
 

@@ -55,6 +55,7 @@ describe('MinutesService', () => {
         update: jest.fn().mockResolvedValue({ id: 'm1', eventId: EVENT_ID }),
       },
       minutePoint: {
+        findMany: jest.fn().mockResolvedValue([]),
         deleteMany: jest.fn().mockImplementation((args: any) => ({
           op: 'delete',
           ...args,
@@ -278,6 +279,80 @@ describe('MinutesService', () => {
       );
 
       expect(prisma.$transaction).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('overwriting a save made by someone else', () => {
+    const seedForUpdate = (updatedAt: Date) => {
+      seedEvent();
+      seedMinutes({ updatedAt, draftedById: 'u-other' });
+      prisma.minutePoint.findMany.mockResolvedValue([
+        { type: 'DECISION', text: 'The line someone else wrote' },
+        { type: 'NEXT_STEP', text: 'Their follow-up' },
+      ]);
+    };
+
+    const update = (baseUpdatedAt: Date | null) =>
+      service.updateMinutes(
+        EVENT_ID,
+        { decisions: ['My version'] },
+        ORGANIZER,
+        'STAFF',
+        MINISTRY,
+        { baseUpdatedAt, clientOpId: 'op-1' },
+      );
+
+    it('still writes, and hands back the lines it replaced', async () => {
+      // Last write wins is the rule. What must not happen is the loser finding
+      // out only by noticing their lines are missing.
+      const serverUpdatedAt = new Date('2026-09-07T10:05:00.000Z');
+      seedForUpdate(serverUpdatedAt);
+
+      const result: any = await update(new Date('2026-09-07T10:00:00.000Z'));
+
+      expect(prisma.$transaction).toHaveBeenCalledTimes(1);
+      expect(result.conflict).toMatchObject({
+        overwritten: true,
+        previousUpdatedAt: serverUpdatedAt.toISOString(),
+        previousContent: {
+          decisions: ['The line someone else wrote'],
+          nextSteps: ['Their follow-up'],
+        },
+      });
+    });
+
+    it('records the replaced lines in the audit log', async () => {
+      // The durable copy. The client that was warned may be closed long before
+      // anyone tries to recover them.
+      seedForUpdate(new Date('2026-09-07T10:05:00.000Z'));
+
+      await update(new Date('2026-09-07T10:00:00.000Z'));
+
+      const entry = (service as any).audit.log.mock.calls.at(-1)[0];
+      expect(entry.changes.before).toEqual({
+        decisions: ['The line someone else wrote'],
+        nextSteps: ['Their follow-up'],
+      });
+      expect(entry.requestId).toBe('op-1');
+    });
+
+    it('reports nothing when the record has not moved', async () => {
+      const at = new Date('2026-09-07T10:00:00.000Z');
+      seedForUpdate(at);
+
+      const result: any = await update(at);
+
+      expect(result.conflict).toBeUndefined();
+    });
+
+    it('reports nothing when the client did not say what it read', async () => {
+      // An ordinary online save. Nobody checked, so nothing is claimed either
+      // way — asserting "no conflict" here would be a guess presented as fact.
+      seedForUpdate(new Date('2026-09-07T10:05:00.000Z'));
+
+      const result: any = await update(null);
+
+      expect(result.conflict).toBeUndefined();
     });
   });
 
