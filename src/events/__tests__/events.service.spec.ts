@@ -10,6 +10,7 @@ import { AuditService } from '../../audit/audit.service';
 import { getQueueToken } from '@nestjs/bullmq';
 import { CacheService } from '../../cache/cache.service';
 import { EventsRepository } from '../events.repository';
+import { EventSeriesService } from '../event-series.service';
 import { MailService } from '../../mail/mail.service';
 import { NotificationsService } from '../../notifications/notifications.service';
 import { CreateEventDto } from '../dto/create-event.dto';
@@ -41,6 +42,11 @@ describe('EventsService', () => {
       findUnique: jest.fn().mockResolvedValue({ name: 'Ministry of Health' }),
     },
     eventCoOrganizer: { createMany: jest.fn().mockResolvedValue({ count: 1 }) },
+    // updateEvent runs its write and any propagation to later occurrences in
+    // one transaction, so the mock has to hand the callback a client. Handing
+    // back mockPrisma itself keeps every existing expectation pointing at the
+    // same spies.
+    $transaction: jest.fn((fn: any) => fn(mockPrisma)),
     eventAttendee: {
       createMany: jest.fn().mockResolvedValue({ count: 0 }),
       findMany: jest.fn().mockResolvedValue([]),
@@ -86,6 +92,13 @@ describe('EventsService', () => {
 
   const mockNotifications = {
     notifyMeetingInvitation: jest.fn().mockResolvedValue(undefined),
+    notifyMeetingChanged: jest.fn().mockResolvedValue(undefined),
+  };
+
+  // EventsService reaches for this only when an edit says it applies to later
+  // occurrences; every other path leaves it untouched.
+  const mockSeries = {
+    applyToFutureOccurrences: jest.fn().mockResolvedValue({ updated: 0 }),
   };
 
   const mockQueue = {
@@ -114,6 +127,7 @@ describe('EventsService', () => {
         { provide: AuditService, useValue: mockAudit },
         { provide: CacheService, useValue: mockCache },
         { provide: EventsRepository, useValue: mockRepository },
+        { provide: EventSeriesService, useValue: mockSeries },
         { provide: NotificationsService, useValue: mockNotifications },
         { provide: MailService, useValue: mockMail },
         { provide: getQueueToken('email-queue'), useValue: mockQueue },

@@ -3,6 +3,7 @@ import {
   Get,
   Post,
   Patch,
+  Put,
   Delete,
   Body,
   Param,
@@ -19,6 +20,7 @@ import { SelfRsvpDto } from './dto/self-rsvp.dto';
 import { EventSeriesService } from './event-series.service';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { AllowCoOrganizers } from './decorators/allow-co-organizers.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { CanManageEventGuard } from './guards/can-manage-event.guard';
 
@@ -182,25 +184,63 @@ export class EventsController {
   }
 
   /**
-   * Turns an existing event into the first occurrence of a recurring series.
-   * EventSeriesService was written but never routed, so recurring events were
-   * unreachable over HTTP.
+   * Set how an activity repeats, or replace the rule it already has.
+   *
+   * One idempotent route for both, because "does this activity have a rule
+   * yet" is not a question the caller should have to answer to send one. A
+   * replacement rebuilds only what is still to come; occurrences already held
+   * are never touched.
+   *
+   * POST is kept pointing at the same handler. The two repositories deploy
+   * separately, and a web build still calling POST has to keep working — that
+   * asymmetry has broken this application twice already.
+   *
+   * @AllowCoOrganizers, unlike before: STAFF was named in @Roles while the
+   * guard admitted only the organizer, so a co-organizer was refused by a
+   * route that claimed to accept them.
    */
-  @Post(':id/series')
+  @Put(':id/series')
   @UseGuards(CanManageEventGuard)
+  @AllowCoOrganizers()
   @Roles('SUPER_ADMIN', 'MINISTER', 'MINISTRY_ADMIN', 'STAFF')
-  async createSeries(
+  @HttpCode(200)
+  setSeries(
     @Param('id') id: string,
     @Body() dto: CreateEventSeriesDto,
     @CurrentUser() user: any,
   ) {
-    const baseEvent = await this.eventsService.getOne(id, user);
-    return this.eventSeriesService.createSeries(
-      dto,
-      baseEvent,
-      user.ministryId,
-      user.id,
-    );
+    return this.eventSeriesService.setRule(id, dto, user);
+  }
+
+  /**
+   * The same thing under the verb the current web build sends. A separate
+   * handler rather than a second decorator on the one above: both would write
+   * the same route metadata, so only one verb would actually register.
+   */
+  @Post(':id/series')
+  @UseGuards(CanManageEventGuard)
+  @AllowCoOrganizers()
+  @Roles('SUPER_ADMIN', 'MINISTER', 'MINISTRY_ADMIN', 'STAFF')
+  @HttpCode(200)
+  setSeriesLegacy(
+    @Param('id') id: string,
+    @Body() dto: CreateEventSeriesDto,
+    @CurrentUser() user: any,
+  ) {
+    return this.eventSeriesService.setRule(id, dto, user);
+  }
+
+  /**
+   * Stop an activity repeating. Upcoming occurrences go; ones already held stay
+   * as the standalone records of meetings that happened.
+   */
+  @Delete(':id/series')
+  @UseGuards(CanManageEventGuard)
+  @AllowCoOrganizers()
+  @Roles('SUPER_ADMIN', 'MINISTER', 'MINISTRY_ADMIN', 'STAFF')
+  @HttpCode(200)
+  removeSeries(@Param('id') id: string, @CurrentUser() user: any) {
+    return this.eventSeriesService.removeRule(id, user);
   }
 
   @Post(':id/cancel')

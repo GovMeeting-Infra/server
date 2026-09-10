@@ -14,7 +14,11 @@ import type * as Prisma from "../internal/prismaNamespace"
 
 /**
  * Model EventSeries
+ * The repeat rule, shared by every occurrence generated from it.
  * 
+ * The rule is all that lives here: the occurrences themselves are ordinary
+ * Event rows carrying a seriesId, so anything that can be done to a meeting
+ * can be done to one of them.
  */
 export type EventSeriesModel = runtime.Types.Result.DefaultSelection<Prisma.$EventSeriesPayload>
 
@@ -44,6 +48,7 @@ export type EventSeriesMinAggregateOutputType = {
   count: number | null
   until: Date | null
   createdAt: Date | null
+  updatedAt: Date | null
 }
 
 export type EventSeriesMaxAggregateOutputType = {
@@ -54,6 +59,7 @@ export type EventSeriesMaxAggregateOutputType = {
   count: number | null
   until: Date | null
   createdAt: Date | null
+  updatedAt: Date | null
 }
 
 export type EventSeriesCountAggregateOutputType = {
@@ -64,6 +70,7 @@ export type EventSeriesCountAggregateOutputType = {
   count: number
   until: number
   createdAt: number
+  updatedAt: number
   _all: number
 }
 
@@ -86,6 +93,7 @@ export type EventSeriesMinAggregateInputType = {
   count?: true
   until?: true
   createdAt?: true
+  updatedAt?: true
 }
 
 export type EventSeriesMaxAggregateInputType = {
@@ -96,6 +104,7 @@ export type EventSeriesMaxAggregateInputType = {
   count?: true
   until?: true
   createdAt?: true
+  updatedAt?: true
 }
 
 export type EventSeriesCountAggregateInputType = {
@@ -106,6 +115,7 @@ export type EventSeriesCountAggregateInputType = {
   count?: true
   until?: true
   createdAt?: true
+  updatedAt?: true
   _all?: true
 }
 
@@ -203,6 +213,7 @@ export type EventSeriesGroupByOutputType = {
   count: number | null
   until: Date | null
   createdAt: Date
+  updatedAt: Date
   _count: EventSeriesCountAggregateOutputType | null
   _avg: EventSeriesAvgAggregateOutputType | null
   _sum: EventSeriesSumAggregateOutputType | null
@@ -236,6 +247,7 @@ export type EventSeriesWhereInput = {
   count?: Prisma.IntNullableFilter<"EventSeries"> | number | null
   until?: Prisma.DateTimeNullableFilter<"EventSeries"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"EventSeries"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"EventSeries"> | Date | string
   events?: Prisma.EventListRelationFilter
 }
 
@@ -247,6 +259,7 @@ export type EventSeriesOrderByWithRelationInput = {
   count?: Prisma.SortOrderInput | Prisma.SortOrder
   until?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
   events?: Prisma.EventOrderByRelationAggregateInput
 }
 
@@ -261,6 +274,7 @@ export type EventSeriesWhereUniqueInput = Prisma.AtLeast<{
   count?: Prisma.IntNullableFilter<"EventSeries"> | number | null
   until?: Prisma.DateTimeNullableFilter<"EventSeries"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"EventSeries"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"EventSeries"> | Date | string
   events?: Prisma.EventListRelationFilter
 }, "id">
 
@@ -272,6 +286,7 @@ export type EventSeriesOrderByWithAggregationInput = {
   count?: Prisma.SortOrderInput | Prisma.SortOrder
   until?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
   _count?: Prisma.EventSeriesCountOrderByAggregateInput
   _avg?: Prisma.EventSeriesAvgOrderByAggregateInput
   _max?: Prisma.EventSeriesMaxOrderByAggregateInput
@@ -290,6 +305,7 @@ export type EventSeriesScalarWhereWithAggregatesInput = {
   count?: Prisma.IntNullableWithAggregatesFilter<"EventSeries"> | number | null
   until?: Prisma.DateTimeNullableWithAggregatesFilter<"EventSeries"> | Date | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"EventSeries"> | Date | string
+  updatedAt?: Prisma.DateTimeWithAggregatesFilter<"EventSeries"> | Date | string
 }
 
 export type EventSeriesCreateInput = {
@@ -300,6 +316,7 @@ export type EventSeriesCreateInput = {
   count?: number | null
   until?: Date | string | null
   createdAt?: Date | string
+  updatedAt?: Date | string
   events?: Prisma.EventCreateNestedManyWithoutSeriesInput
 }
 
@@ -311,6 +328,7 @@ export type EventSeriesUncheckedCreateInput = {
   count?: number | null
   until?: Date | string | null
   createdAt?: Date | string
+  updatedAt?: Date | string
   events?: Prisma.EventUncheckedCreateNestedManyWithoutSeriesInput
 }
 
@@ -322,6 +340,7 @@ export type EventSeriesUpdateInput = {
   count?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   until?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   events?: Prisma.EventUpdateManyWithoutSeriesNestedInput
 }
 
@@ -333,6 +352,7 @@ export type EventSeriesUncheckedUpdateInput = {
   count?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   until?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   events?: Prisma.EventUncheckedUpdateManyWithoutSeriesNestedInput
 }
 
@@ -344,6 +364,7 @@ export type EventSeriesCreateManyInput = {
   count?: number | null
   until?: Date | string | null
   createdAt?: Date | string
+  updatedAt?: Date | string
 }
 
 export type EventSeriesUpdateManyMutationInput = {
@@ -354,6 +375,7 @@ export type EventSeriesUpdateManyMutationInput = {
   count?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   until?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type EventSeriesUncheckedUpdateManyInput = {
@@ -364,6 +386,7 @@ export type EventSeriesUncheckedUpdateManyInput = {
   count?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   until?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type EventSeriesNullableScalarRelationFilter = {
@@ -379,6 +402,7 @@ export type EventSeriesCountOrderByAggregateInput = {
   count?: Prisma.SortOrder
   until?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
 }
 
 export type EventSeriesAvgOrderByAggregateInput = {
@@ -394,6 +418,7 @@ export type EventSeriesMaxOrderByAggregateInput = {
   count?: Prisma.SortOrder
   until?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
 }
 
 export type EventSeriesMinOrderByAggregateInput = {
@@ -404,6 +429,7 @@ export type EventSeriesMinOrderByAggregateInput = {
   count?: Prisma.SortOrder
   until?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
 }
 
 export type EventSeriesSumOrderByAggregateInput = {
@@ -443,6 +469,7 @@ export type EventSeriesCreateWithoutEventsInput = {
   count?: number | null
   until?: Date | string | null
   createdAt?: Date | string
+  updatedAt?: Date | string
 }
 
 export type EventSeriesUncheckedCreateWithoutEventsInput = {
@@ -453,6 +480,7 @@ export type EventSeriesUncheckedCreateWithoutEventsInput = {
   count?: number | null
   until?: Date | string | null
   createdAt?: Date | string
+  updatedAt?: Date | string
 }
 
 export type EventSeriesCreateOrConnectWithoutEventsInput = {
@@ -479,6 +507,7 @@ export type EventSeriesUpdateWithoutEventsInput = {
   count?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   until?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type EventSeriesUncheckedUpdateWithoutEventsInput = {
@@ -489,6 +518,7 @@ export type EventSeriesUncheckedUpdateWithoutEventsInput = {
   count?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   until?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 
@@ -530,6 +560,7 @@ export type EventSeriesSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   count?: boolean
   until?: boolean
   createdAt?: boolean
+  updatedAt?: boolean
   events?: boolean | Prisma.EventSeries$eventsArgs<ExtArgs>
   _count?: boolean | Prisma.EventSeriesCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["eventSeries"]>
@@ -542,6 +573,7 @@ export type EventSeriesSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
   count?: boolean
   until?: boolean
   createdAt?: boolean
+  updatedAt?: boolean
 }, ExtArgs["result"]["eventSeries"]>
 
 export type EventSeriesSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -552,6 +584,7 @@ export type EventSeriesSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
   count?: boolean
   until?: boolean
   createdAt?: boolean
+  updatedAt?: boolean
 }, ExtArgs["result"]["eventSeries"]>
 
 export type EventSeriesSelectScalar = {
@@ -562,9 +595,10 @@ export type EventSeriesSelectScalar = {
   count?: boolean
   until?: boolean
   createdAt?: boolean
+  updatedAt?: boolean
 }
 
-export type EventSeriesOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "frequency" | "interval" | "endType" | "count" | "until" | "createdAt", ExtArgs["result"]["eventSeries"]>
+export type EventSeriesOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "frequency" | "interval" | "endType" | "count" | "until" | "createdAt" | "updatedAt", ExtArgs["result"]["eventSeries"]>
 export type EventSeriesInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   events?: boolean | Prisma.EventSeries$eventsArgs<ExtArgs>
   _count?: boolean | Prisma.EventSeriesCountOutputTypeDefaultArgs<ExtArgs>
@@ -580,11 +614,23 @@ export type $EventSeriesPayload<ExtArgs extends runtime.Types.Extensions.Interna
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     frequency: $Enums.Frequency
+    /**
+     * Ignored by WEEKDAYS, which always advances one working day, and doubled
+     * by BIWEEKLY, which is already two weeks. The form hides it for both.
+     */
     interval: number
     endType: $Enums.EndType
+    /**
+     * Total occurrences in the series, counting ones already held — the same
+     * meaning it has when the series is first created.
+     */
     count: number | null
     until: Date | null
     createdAt: Date
+    /**
+     * So a rule that has been changed can be told from one that never was.
+     */
+    updatedAt: Date
   }, ExtArgs["result"]["eventSeries"]>
   composites: {}
 }
@@ -1016,6 +1062,7 @@ export interface EventSeriesFieldRefs {
   readonly count: Prisma.FieldRef<"EventSeries", 'Int'>
   readonly until: Prisma.FieldRef<"EventSeries", 'DateTime'>
   readonly createdAt: Prisma.FieldRef<"EventSeries", 'DateTime'>
+  readonly updatedAt: Prisma.FieldRef<"EventSeries", 'DateTime'>
 }
     
 
