@@ -17,6 +17,7 @@ import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { auth } from './auth.config';
 import { extractToken } from './extract-token';
+import { uidHint, UID_HINT_COOKIE_OPTIONS } from './uid-hint.util';
 import { RateLimitGuard } from '../common/guards/rate-limit.guard';
 import { RateLimit } from '../common/decorators/rate-limit.decorator';
 import { SettingsService, SETTINGS } from '../common/settings/settings.service';
@@ -37,10 +38,22 @@ export class AuthController {
   ) {
     const result = await this.authService.signIn(dto, req.ip || undefined);
 
-    res.setHeader(
-      'Set-Cookie',
+    // Two cookies, set together. The session is HttpOnly and decides
+    // everything; the hint is readable and decides nothing, existing only so
+    // the browser can keep one user's cached pages out of the next user's
+    // hands on a shared device. See uid-hint.util.ts.
+    const cookies = [
       `authToken=${result.token}; Path=/; HttpOnly; Secure; SameSite=Lax`,
-    );
+    ];
+
+    const userId = (result as { user?: { id?: string } }).user?.id;
+    if (userId) {
+      cookies.push(
+        `uidHint=${uidHint(userId)}; Path=/; Secure; SameSite=Lax`,
+      );
+    }
+
+    res.setHeader('Set-Cookie', cookies);
 
     res.json({
       success: true,
@@ -131,6 +144,7 @@ export class AuthController {
       secure: true,
       sameSite: 'lax',
     });
+    res.clearCookie('uidHint', UID_HINT_COOKIE_OPTIONS);
     res.json({ success: true, message: 'Signed out' });
   }
 }

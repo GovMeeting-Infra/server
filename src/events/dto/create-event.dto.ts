@@ -13,6 +13,7 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ExternalAttendeeDto } from './add-attendees.dto';
+import { IsClientId } from '../../common/validators/is-client-id.decorator';
 
 export enum EventTypeEnum {
   MEETING = 'MEETING',
@@ -35,6 +36,18 @@ export enum EventClassificationEnum {
 }
 
 export class CreateEventDto {
+  /**
+   * Optional, and only ever sent by a device replaying a meeting it created
+   * offline.
+   *
+   * Naming the row here is what makes the retry safe. It also makes the address
+   * the client already navigated to — /administrative/events/<id> — the real
+   * one, so a meeting created during an outage keeps its link once it syncs
+   * rather than moving.
+   */
+  @IsClientId()
+  id?: string;
+
   @IsString()
   title: string;
 

@@ -6,6 +6,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { idempotentCreate } from '../common/utils/idempotent-create.util';
 import { AuditService } from '../audit/audit.service';
 import { CacheService } from '../cache/cache.service';
 import { NotificationsService } from '../notifications/notifications.service';
@@ -36,6 +37,7 @@ export class ActionItemsService {
     userId: string,
     ministryId: string,
     systemRole?: string,
+    clientOpId?: string | null,
   ) {
     const minutes = await (this.prisma as any).minutes.findUnique({
       where: { id: minutesId },
@@ -121,21 +123,65 @@ export class ActionItemsService {
       }
     }
 
-    const actionItem = await (this.prisma as any).actionItem.create({
-      data: {
-        minutesId,
-        title: dto.title,
-        description: dto.description,
-        ownerId,
-        dueDate: new Date(dto.dueDate),
-        status: 'TODO',
-        point: dto.point || 'ACTION_POINT',
-        ownerName,
-        ownerEmail,
-        assignedById: userId,
+    /*
+     * Everything after the insert is inside `create` on purpose.
+     *
+     * A replay throws on the primary key before reaching any of it, so a device
+     * retrying a queued item does not re-notify its owner or write a second
+     * audit entry. Which is the point: the owner of an action item recorded
+     * during an outage should hear about it once, when the connection returns,
+     * not once per attempt the queue made.
+     */
+    const actionItem = await idempotentCreate({
+      id: dto.id,
+      label: 'action item',
+      findExisting: (id) =>
+        (this.prisma as any).actionItem.findUnique({
+          where: { id },
+          include: { minutes: { include: { event: true } } },
+        }),
+      canAccessExisting: (existing: any) =>
+        existing?.minutes?.event?.ministryId === ministryId,
+      create: async () => {
+        const created = await (this.prisma as any).actionItem.create({
+          data: {
+            ...(dto.id ? { id: dto.id } : {}),
+            minutesId,
+            title: dto.title,
+            description: dto.description,
+            ownerId,
+            dueDate: new Date(dto.dueDate),
+            status: 'TODO',
+            point: dto.point || 'ACTION_POINT',
+            ownerName,
+            ownerEmail,
+            assignedById: userId,
+          },
+        });
+
+        await this.afterActionItemCreated(
+          created,
+          minutes,
+          ministryId,
+          userId,
+          clientOpId,
+        );
+
+        return created;
       },
     });
 
+    return actionItem;
+  }
+
+  /** The things that must happen once per action item, not once per attempt. */
+  private async afterActionItemCreated(
+    actionItem: any,
+    minutes: any,
+    ministryId: string,
+    userId: string,
+    clientOpId?: string | null,
+  ) {
     await this.audit.log({
       action: 'ACTION_ITEM_CREATED',
       actionCategory: 'ACTION_ITEM_MANAGEMENT',
@@ -146,6 +192,9 @@ export class ActionItemsService {
       ministryId,
       actorId: userId,
       description: `Created action item: ${actionItem.title} for minutes of event: ${minutes.event.title}`,
+      // Ties this row to the device operation that produced it. The column has
+      // been in the schema, unique and always null, since audit was written.
+      requestId: clientOpId ?? undefined,
     });
 
     await this.cache.invalidateAnalytics();
@@ -153,8 +202,6 @@ export class ActionItemsService {
     // Reaches an account holder in-app and by email, and an owner with no
     // account by email alone.
     await this.notifications.notifyActionItemAssigned(actionItem.id);
-
-    return actionItem;
   }
 
   /**

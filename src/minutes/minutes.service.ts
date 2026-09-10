@@ -18,6 +18,12 @@ import {
 import { canReadArchived } from './archive.policy';
 import { CreateMinutesDto } from './dto/create-minutes.dto';
 import { UpdateMinutesDto } from './dto/update-minutes.dto';
+import {
+  detectConflict,
+  describeConflict,
+  type WriteConflict,
+} from '../common/utils/write-conflict.util';
+import type { SyncMeta } from '../common/decorators/sync-meta.decorator';
 
 @Injectable()
 export class MinutesService {
@@ -36,7 +42,9 @@ export class MinutesService {
     eventId: string,
     dto: CreateMinutesDto,
     userId: string,
+    userRole: string,
     ministryId: string,
+    sync?: SyncMeta,
   ) {
     const event = await (this.prisma as any).event.findUnique({
       where: { id: eventId },
@@ -68,6 +76,11 @@ export class MinutesService {
       where: { eventId },
     });
 
+    let overwritten: WriteConflict<{
+      decisions: string[];
+      nextSteps: string[];
+    }> | null = null;
+
     if (!minutes) {
       minutes = await (this.prisma as any).minutes.create({
         data: {
@@ -92,6 +105,30 @@ export class MinutesService {
         description: `Drafted minutes for event: ${event.title}`,
       });
     } else {
+      // Same record, same rules. This branch edits minutes that already exist,
+      // which is exactly what PATCH does — but it used to reach the write with
+      // only the organizer check above, so a POST went through after the edit
+      // window had closed and after the record was archived. The verb the
+      // client happened to pick is not a permission.
+      await this.assertEditable(eventId, userId, userRole, ministryId);
+
+      /*
+       * Conflict reporting belongs here as much as on PATCH.
+       *
+       * A write replayed from a device's queue always arrives as POST — offline
+       * the client cannot know whether the record exists, and this method is
+       * the one that handles both. So putting the overwrite check only on PATCH
+       * would mean the one case it exists for, a save made during an outage,
+       * was the one case that never reported it.
+       */
+      overwritten = detectConflict(sync?.baseUpdatedAt ?? null, minutes.updatedAt)
+        ? describeConflict(
+            minutes.updatedAt,
+            minutes.draftedById ? { id: minutes.draftedById, name: null } : null,
+            await this.currentLists(minutes.id),
+          )
+        : null;
+
       minutes = await (this.prisma as any).minutes.update({
         where: { id: minutes.id },
         data: {
@@ -112,10 +149,43 @@ export class MinutesService {
         ministryId,
         actorId: userId,
         description: `Updated minutes draft for event: ${event.title}`,
+        changes: {
+          after: dto,
+          ...(overwritten ? { before: overwritten.previousContent } : {}),
+        } as unknown as Record<string, unknown>,
+        requestId: sync?.clientOpId ?? undefined,
       });
     }
 
-    return this.getMinutes(eventId);
+    const saved = await this.getMinutes(eventId);
+    return overwritten ? { ...saved, conflict: overwritten } : saved;
+  }
+
+  /**
+   * The two lists as they are right now, in the shape the client sends them.
+   *
+   * Read before a write that might overwrite someone else's, so the response
+   * can carry back what was replaced. A save replaces the whole list rather
+   * than patching it, so without this a co-organiser who saved second has
+   * simply deleted the other's lines with nothing to restore from.
+   */
+  private async currentLists(
+    minutesId: string,
+  ): Promise<{ decisions: string[]; nextSteps: string[] }> {
+    const points = await (this.prisma as any).minutePoint.findMany({
+      where: { minutesId },
+      orderBy: [{ type: 'asc' }, { order: 'asc' }],
+      select: { type: true, text: true },
+    });
+
+    return {
+      decisions: points
+        .filter((p: any) => p.type === 'DECISION')
+        .map((p: any) => p.text),
+      nextSteps: points
+        .filter((p: any) => p.type === 'NEXT_STEP')
+        .map((p: any) => p.text),
+    };
   }
 
   /**
@@ -159,6 +229,7 @@ export class MinutesService {
     userId: string,
     userRole: string,
     ministryId: string,
+    sync?: SyncMeta,
   ) {
     const event = await (this.prisma as any).event.findUnique({
       where: { id: eventId },
@@ -177,25 +248,28 @@ export class MinutesService {
       throw new NotFoundException('Minutes not found');
     }
 
-    // Checked before the generic refusal below so the caller is told the real
-    // reason. An archived record is frozen permanently, which is quite
-    // different from an edit window that a ministry admin can still override.
-    if (minutes.status === 'ARCHIVED') {
-      throw new ForbiddenException(
-        'These minutes have been archived and can no longer be changed',
-      );
-    }
+    await this.assertEditable(eventId, userId, userRole, ministryId);
 
-    const canEdit = await this.canEditMinutes(
-      eventId,
-      userId,
-      userRole,
-      ministryId,
-    );
-
-    if (!canEdit) {
-      throw new ForbiddenException('Edit window expired (2 days after event)');
-    }
+    /*
+     * Last write wins, and says so.
+     *
+     * The client sends the updatedAt it was working from. If the record has
+     * moved since, this write still lands — that is the rule — but the response
+     * carries who changed it and the lines it replaced, so the page can offer
+     * to put them back rather than only announce the loss.
+     *
+     * No header means the caller had no opinion, which is the ordinary online
+     * case and is not the same as "no conflict". It is reported as neither.
+     */
+    const overwritten = detectConflict(sync?.baseUpdatedAt ?? null, minutes.updatedAt)
+      ? describeConflict(
+          minutes.updatedAt,
+          minutes.draftedById
+            ? { id: minutes.draftedById, name: null }
+            : null,
+          await this.currentLists(minutes.id),
+        )
+      : null;
 
     await this.replacePoints(minutes.id, dto);
 
@@ -209,10 +283,18 @@ export class MinutesService {
       ministryId,
       actorId: userId,
       description: `Edited minutes for event: ${event.title}`,
-      changes: dto as unknown as Record<string, unknown>,
+      // `before` alongside `after` when something was overwritten: the activity
+      // log becomes the durable copy of the replaced lines, so they are
+      // recoverable even after the client that was warned has been closed.
+      changes: {
+        after: dto,
+        ...(overwritten ? { before: overwritten.previousContent } : {}),
+      } as unknown as Record<string, unknown>,
+      requestId: sync?.clientOpId ?? undefined,
     });
 
-    return this.getMinutes(eventId);
+    const saved = await this.getMinutes(eventId);
+    return overwritten ? { ...saved, conflict: overwritten } : saved;
   }
 
   async publishMinutes(eventId: string, userId: string, ministryId: string) {
@@ -351,6 +433,52 @@ export class MinutesService {
    * recomputing `endAt + 2 days` in the client would be a second copy of the
    * rule waiting to drift.
    */
+  /**
+   * Refuse a write to an existing record, saying which rule stopped it.
+   *
+   * describeEditPermission already knows every reason; what was missing was one
+   * place that turns a reason into the right refusal, so both write paths had
+   * to remember to ask. updateMinutes asked and draftMinutes did not, which is
+   * how POST became a way around the edit window.
+   *
+   * The reasons are kept distinct on purpose: an archived record is frozen for
+   * everyone permanently, while a closed window is something a minister or a
+   * ministry admin can still override, and a caller told the wrong one will
+   * chase the wrong remedy.
+   */
+  private async assertEditable(
+    eventId: string,
+    userId: string,
+    userRole: string,
+    ministryId: string,
+  ): Promise<void> {
+    const { canEdit, reason } = await this.describeEditPermission(
+      eventId,
+      userId,
+      userRole,
+      ministryId,
+    );
+
+    if (canEdit) return;
+
+    switch (reason) {
+      case 'NOT_FOUND':
+        throw new NotFoundException('Event not found');
+      case 'ARCHIVED':
+        throw new ForbiddenException(
+          'These minutes have been archived and can no longer be changed',
+        );
+      case 'OTHER_MINISTRY':
+        throw new ForbiddenException('Cross-ministry access denied');
+      case 'NOT_ORGANIZER':
+        throw new ForbiddenException('Only organizers can draft minutes');
+      default:
+        throw new ForbiddenException(
+          'Edit window expired (2 days after event)',
+        );
+    }
+  }
+
   async describeEditPermission(
     eventId: string,
     userId: string,

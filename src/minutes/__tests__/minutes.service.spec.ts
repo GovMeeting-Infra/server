@@ -55,6 +55,7 @@ describe('MinutesService', () => {
         update: jest.fn().mockResolvedValue({ id: 'm1', eventId: EVENT_ID }),
       },
       minutePoint: {
+        findMany: jest.fn().mockResolvedValue([]),
         deleteMany: jest.fn().mockImplementation((args: any) => ({
           op: 'delete',
           ...args,
@@ -90,6 +91,7 @@ describe('MinutesService', () => {
         EVENT_ID,
         { decisions: ['Approved the budget', 'Deferred the tender'] },
         ORGANIZER,
+        'STAFF',
         MINISTRY,
       );
 
@@ -115,6 +117,7 @@ describe('MinutesService', () => {
         EVENT_ID,
         { decisions: ['Approved the budget'] },
         ORGANIZER,
+        'STAFF',
         MINISTRY,
       );
 
@@ -131,6 +134,7 @@ describe('MinutesService', () => {
         EVENT_ID,
         { decisions: [] },
         ORGANIZER,
+        'STAFF',
         MINISTRY,
       );
 
@@ -147,6 +151,7 @@ describe('MinutesService', () => {
         EVENT_ID,
         { nextSteps: ['  ', 'Reconvene after the review', ''] },
         ORGANIZER,
+        'STAFF',
         MINISTRY,
       );
 
@@ -166,6 +171,7 @@ describe('MinutesService', () => {
         EVENT_ID,
         { decisions: ['One'], nextSteps: ['Two'] },
         ORGANIZER,
+        'STAFF',
         MINISTRY,
       );
 
@@ -183,6 +189,7 @@ describe('MinutesService', () => {
           EVENT_ID,
           { decisions: ['x'] },
           ORGANIZER,
+          'STAFF',
           MINISTRY,
         ),
       ).rejects.toThrow(BadRequestException);
@@ -194,9 +201,183 @@ describe('MinutesService', () => {
           EVENT_ID,
           { decisions: ['x'] },
           'someone',
+          'STAFF',
           MINISTRY,
         ),
       ).rejects.toThrow(ForbiddenException);
+    });
+  });
+
+  describe('editing an existing record', () => {
+    /** A meeting that ended three days ago: past the two-day window. */
+    const seedClosedWindow = () =>
+      seedEvent({ endAt: new Date(Date.now() - 3 * 24 * 60 * 60_000) });
+
+    it('refuses a POST once the edit window has closed', async () => {
+      // The record already exists, so this is an edit however it is addressed.
+      // POST used to skip the window check entirely and write anyway.
+      seedClosedWindow();
+      seedMinutes();
+
+      await expect(
+        service.draftMinutes(
+          EVENT_ID,
+          { decisions: ['slipped in late'] },
+          ORGANIZER,
+          'STAFF',
+          MINISTRY,
+        ),
+      ).rejects.toThrow(ForbiddenException);
+
+      expect(prisma.$transaction).not.toHaveBeenCalled();
+    });
+
+    it('refuses a POST to an archived record', async () => {
+      seedEvent();
+      seedMinutes({ status: 'ARCHIVED' });
+
+      await expect(
+        service.draftMinutes(
+          EVENT_ID,
+          { decisions: ['reopened'] },
+          ORGANIZER,
+          'STAFF',
+          MINISTRY,
+        ),
+      ).rejects.toThrow(ForbiddenException);
+
+      expect(prisma.$transaction).not.toHaveBeenCalled();
+    });
+
+    it('still lets a ministry admin edit past the window', async () => {
+      seedClosedWindow();
+      seedMinutes();
+
+      await service.draftMinutes(
+        EVENT_ID,
+        { decisions: ['corrected the attendance'] },
+        ORGANIZER,
+        'MINISTRY_ADMIN',
+        MINISTRY,
+      );
+
+      expect(prisma.$transaction).toHaveBeenCalledTimes(1);
+    });
+
+    it('leaves a first draft alone', async () => {
+      // No record yet, so there is nothing to have expired. Creating the
+      // minutes for a meeting that ran long must stay possible.
+      seedClosedWindow();
+      prisma.minutes.findUnique.mockResolvedValue(null);
+
+      await service.draftMinutes(
+        EVENT_ID,
+        { decisions: ['written up afterwards'] },
+        ORGANIZER,
+        'STAFF',
+        MINISTRY,
+      );
+
+      expect(prisma.$transaction).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('overwriting a save made by someone else', () => {
+    const seedForUpdate = (updatedAt: Date) => {
+      seedEvent();
+      seedMinutes({ updatedAt, draftedById: 'u-other' });
+      prisma.minutePoint.findMany.mockResolvedValue([
+        { type: 'DECISION', text: 'The line someone else wrote' },
+        { type: 'NEXT_STEP', text: 'Their follow-up' },
+      ]);
+    };
+
+    const update = (baseUpdatedAt: Date | null) =>
+      service.updateMinutes(
+        EVENT_ID,
+        { decisions: ['My version'] },
+        ORGANIZER,
+        'STAFF',
+        MINISTRY,
+        { baseUpdatedAt, clientOpId: 'op-1' },
+      );
+
+    it('still writes, and hands back the lines it replaced', async () => {
+      // Last write wins is the rule. What must not happen is the loser finding
+      // out only by noticing their lines are missing.
+      const serverUpdatedAt = new Date('2026-09-07T10:05:00.000Z');
+      seedForUpdate(serverUpdatedAt);
+
+      const result: any = await update(new Date('2026-09-07T10:00:00.000Z'));
+
+      expect(prisma.$transaction).toHaveBeenCalledTimes(1);
+      expect(result.conflict).toMatchObject({
+        overwritten: true,
+        previousUpdatedAt: serverUpdatedAt.toISOString(),
+        previousContent: {
+          decisions: ['The line someone else wrote'],
+          nextSteps: ['Their follow-up'],
+        },
+      });
+    });
+
+    it('records the replaced lines in the audit log', async () => {
+      // The durable copy. The client that was warned may be closed long before
+      // anyone tries to recover them.
+      seedForUpdate(new Date('2026-09-07T10:05:00.000Z'));
+
+      await update(new Date('2026-09-07T10:00:00.000Z'));
+
+      const entry = (service as any).audit.log.mock.calls.at(-1)[0];
+      expect(entry.changes.before).toEqual({
+        decisions: ['The line someone else wrote'],
+        nextSteps: ['Their follow-up'],
+      });
+      expect(entry.requestId).toBe('op-1');
+    });
+
+    it('reports nothing when the record has not moved', async () => {
+      const at = new Date('2026-09-07T10:00:00.000Z');
+      seedForUpdate(at);
+
+      const result: any = await update(at);
+
+      expect(result.conflict).toBeUndefined();
+    });
+
+    it('reports an overwrite on POST too, since a queued write always arrives that way', async () => {
+      // Offline the client cannot know whether the record exists, so the sync
+      // path always POSTs. Reporting only on PATCH would miss the one case
+      // this exists for.
+      const serverUpdatedAt = new Date('2026-09-07T10:05:00.000Z');
+      seedForUpdate(serverUpdatedAt);
+
+      const result: any = await service.draftMinutes(
+        EVENT_ID,
+        { decisions: ['My version'] },
+        ORGANIZER,
+        'STAFF',
+        MINISTRY,
+        { baseUpdatedAt: new Date('2026-09-07T10:00:00.000Z'), clientOpId: 'op-2' },
+      );
+
+      expect(result.conflict).toMatchObject({
+        overwritten: true,
+        previousContent: {
+          decisions: ['The line someone else wrote'],
+          nextSteps: ['Their follow-up'],
+        },
+      });
+    });
+
+    it('reports nothing when the client did not say what it read', async () => {
+      // An ordinary online save. Nobody checked, so nothing is claimed either
+      // way — asserting "no conflict" here would be a guess presented as fact.
+      seedForUpdate(new Date('2026-09-07T10:05:00.000Z'));
+
+      const result: any = await update(null);
+
+      expect(result.conflict).toBeUndefined();
     });
   });
 

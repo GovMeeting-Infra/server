@@ -16,6 +16,7 @@ import { MailService } from '../mail/mail.service';
 import { meetingInvitationEmail } from '../mail/templates';
 import { NotificationsService } from '../notifications/notifications.service';
 import { CreateEventDto } from './dto/create-event.dto';
+import { idempotentCreate } from '../common/utils/idempotent-create.util';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { AddAttendeesDto } from './dto/add-attendees.dto';
 import { randomBytes } from 'crypto';
@@ -113,6 +114,7 @@ export class EventsService {
     organizerId: string,
     ministryId: string,
     actorRole?: string,
+    clientOpId?: string | null,
   ) {
     const startAt = new Date(dto.startAt);
     const endAt = new Date(dto.endAt);
@@ -122,6 +124,7 @@ export class EventsService {
     }
 
     const {
+      id: clientId,
       coOrganizerIds,
       ministryId: requestedMinistryId,
       inviteeUserIds,
@@ -196,7 +199,66 @@ export class EventsService {
       }
     }
 
+    /*
+     * The insert and everything that must accompany it exactly once.
+     *
+     * Invitations are the reason this is wrapped rather than left inline. A
+     * device that queued a meeting during an outage retries until it gets an
+     * answer, and an answer can be lost after the row is written — so without
+     * this, reconnecting sends every invitee a second copy of an invitation to
+     * a meeting that may already have happened. The primary key stops the
+     * replay before it reaches any of it.
+     */
+    const event = await idempotentCreate({
+      id: clientId,
+      label: 'event',
+      findExisting: (id) => this.eventsRepository.findOne(id),
+      // The same test a read of this event would apply. Without it, POSTing a
+      // guessed id would hand back another ministry's meeting.
+      canAccessExisting: (existing: any) =>
+        actorRole === 'SUPER_ADMIN' || existing?.ministryId === targetMinistryId,
+      create: () =>
+        this.createEventRecord({
+          clientId,
+          eventData,
+          dto,
+          startAt,
+          endAt,
+          targetMinistryId,
+          organizerId,
+          invitedMinistryIds,
+          coOrganizerIds,
+          inviteeUserIds,
+          inviteeExternals,
+          clientOpId,
+        }),
+    });
+
+    await this.cache.invalidatePattern(`events:*${targetMinistryId}*`);
+    await this.cache.invalidateAnalytics();
+
+    // Re-read so co-organizers are present on the response the client uses to
+    // redirect to the new event.
+    return this.eventsRepository.findOne(event.id);
+  }
+
+  /** The write, plus the notifications and audit that belong to it alone. */
+  private async createEventRecord({
+    clientId,
+    eventData,
+    dto,
+    startAt,
+    endAt,
+    targetMinistryId,
+    organizerId,
+    invitedMinistryIds,
+    coOrganizerIds,
+    inviteeUserIds,
+    inviteeExternals,
+    clientOpId,
+  }: any) {
     const event = await this.eventsRepository.create({
+      ...(clientId ? { id: clientId } : {}),
       ...eventData,
       ...(invitedMinistryIds?.length && {
         invitedMinistries: {
@@ -272,14 +334,12 @@ export class EventsService {
       ministryId: targetMinistryId,
       actorId: organizerId,
       description: `Created event: ${event.title}`,
+      // Ties the record to the device operation that produced it, so a synced
+      // write can be traced back past the connection that carried it.
+      requestId: clientOpId ?? undefined,
     });
 
-    await this.cache.invalidatePattern(`events:*${targetMinistryId}*`);
-    await this.cache.invalidateAnalytics();
-
-    // Re-read so co-organizers are present on the response the client uses to
-    // redirect to the new event.
-    return this.eventsRepository.findOne(event.id);
+    return event;
   }
 
   /** Sortable columns, allow-listed so the query param can't reach arbitrary fields. */

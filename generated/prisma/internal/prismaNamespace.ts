@@ -2318,7 +2318,12 @@ export const AttendanceScalarFieldEnum = {
   withinGeofence: 'withinGeofence',
   mockLocationFlag: 'mockLocationFlag',
   ipAddress: 'ipAddress',
-  userAgent: 'userAgent'
+  userAgent: 'userAgent',
+  capturedOffline: 'capturedOffline',
+  capturedAt: 'capturedAt',
+  syncedAt: 'syncedAt',
+  capturedById: 'capturedById',
+  clockSkewSeconds: 'clockSkewSeconds'
 } as const
 
 export type AttendanceScalarFieldEnum = (typeof AttendanceScalarFieldEnum)[keyof typeof AttendanceScalarFieldEnum]

@@ -283,7 +283,7 @@ describe('AttendanceExportService', () => {
       expect(header).toBe(
         '﻿"Name","Email","Job Title","Organisation","Phone",' +
           '"Checked In At","Method","Walk-in","Signature","Geofence",' +
-          '"GPS Accuracy (m)","Mock Location"',
+          '"GPS Accuracy (m)","Mock Location","Recorded Offline","Synced At"',
       );
     });
 

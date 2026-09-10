@@ -15,6 +15,11 @@ import { CheckInDto } from './dto/check-in.dto';
 import { GuestCheckInDto } from './dto/guest-check-in.dto';
 import { GenerateCheckInCodeDto } from './dto/generate-check-in-code.dto';
 import { ManualCheckInDto } from './dto/manual-check-in.dto';
+import {
+  OfflineRegisterDto,
+  OfflineAttendanceRecordDto,
+} from './dto/offline-register.dto';
+import { clampCapturedAt, toSkewSeconds } from './captured-at.util';
 import { haversineDistance, classifyFix } from './geofence.util';
 import {
   GEOFENCE_RADIUS_METERS,
@@ -573,14 +578,23 @@ export class CheckinService {
       checkInAnchorLng: number | null;
     },
     dto: { lat?: number; lng?: number; gpsAccuracy?: number },
+    options: { gate?: boolean } = {},
   ): GeofenceVerdict {
     const anchored =
       event.checkInAnchorLat !== null && event.checkInAnchorLng !== null;
 
-    // An anchored meeting always gates. Measuring without refusing was a
-    // per-event choice; it is not one any more, because a code cannot be minted
-    // without an anchor in the first place.
-    const gates = anchored;
+    /*
+     * An anchored meeting always gates — except when the reading is being
+     * judged long after it was taken.
+     *
+     * Live, refusing a poor fix is helpful: the person is standing there and
+     * can move, or ask the organizer. Hours later, at sync, refusing means
+     * deleting someone who was in the room and signed for it, with no way for
+     * them to know or put it right. So the offline path measures and records
+     * the verdict without acting on it, and the row carries capturedOffline so
+     * nobody mistakes an unverified reading for a confirmed one.
+     */
+    const gates = anchored && options.gate !== false;
 
     if (!anchored) {
       // No area was captured, so nothing can be verified. null rather than
@@ -791,6 +805,261 @@ export class CheckinService {
   // ==========================================================================
   // Staff-operated
   // ==========================================================================
+
+  /**
+   * Take in a register kept on an organizer's device while it had no signal.
+   *
+   * Not self-service check-in deferred. During an outage an attendee's own
+   * phone cannot load the check-in page at all — it would have to reach the
+   * same server that is unreachable — so the organizer's device becomes the
+   * book everyone signs, and this is how that book arrives.
+   *
+   * Always answers 200 with a verdict per row. A batch that failed as a whole
+   * would be retried as a whole, and the rows that did land the first time
+   * would be recorded twice; and one person's bad data must not strand the
+   * other thirty-nine. DUPLICATE is an ordinary outcome here rather than an
+   * error — someone recorded at the desk may also have scanned for themselves
+   * before the connection dropped.
+   */
+  async syncOfflineRegister(
+    eventId: string,
+    dto: OfflineRegisterDto,
+    staff: { id: string },
+    meta: RequestMeta = {},
+  ) {
+    const event = await (this.prisma as any).event.findUnique({
+      where: { id: eventId },
+      select: {
+        id: true,
+        title: true,
+        status: true,
+        startAt: true,
+        endAt: true,
+        ministryId: true,
+        ...ANCHOR_FIELDS,
+      },
+    });
+
+    if (!event) {
+      throw new NotFoundException('Event not found');
+    }
+    if (event.status === 'CANCELLED') {
+      throw new BadRequestException('This event has been cancelled');
+    }
+
+    const syncedAt = new Date();
+
+    /*
+     * Adopt the device's fix as the fence only if the meeting has none.
+     *
+     * The outage may have begun before anyone generated a code, in which case
+     * there is no anchor and never will be one. Taking the register device's
+     * position is the only reading that was ever available. It is subject to
+     * the same accuracy gate as a live anchor, and it can never move an anchor
+     * that already exists — otherwise syncing would be a way to redraw the
+     * fence after the fact, around wherever suited.
+     */
+    let anchor = {
+      checkInAnchorLat: event.checkInAnchorLat,
+      checkInAnchorLng: event.checkInAnchorLng,
+    };
+
+    if (
+      event.checkInAnchorLat === null &&
+      dto.anchorLat != null &&
+      dto.anchorLng != null &&
+      dto.anchorAccuracy != null &&
+      dto.anchorAccuracy <= ANCHOR_MAX_ACCURACY_METERS
+    ) {
+      await (this.prisma as any).event.update({
+        where: { id: eventId },
+        data: {
+          checkInAnchorLat: dto.anchorLat,
+          checkInAnchorLng: dto.anchorLng,
+          checkInAnchorAccuracy: Math.round(dto.anchorAccuracy),
+          checkInAnchorSetAt: syncedAt,
+          checkInAnchorSetById: staff.id,
+        },
+      });
+      anchor = {
+        checkInAnchorLat: dto.anchorLat,
+        checkInAnchorLng: dto.anchorLng,
+      };
+    }
+
+    const results: Array<{
+      index: number;
+      id: string | null;
+      status: 'RECORDED' | 'DUPLICATE' | 'REJECTED';
+      reason?: string;
+    }> = [];
+
+    for (const [index, record] of dto.records.entries()) {
+      try {
+        const recorded = await this.recordOfflineAttendance(
+          event,
+          anchor,
+          record,
+          staff,
+          syncedAt,
+          meta,
+        );
+        results.push({ index, id: recorded.id, status: recorded.status });
+      } catch (error: any) {
+        // One bad row must not cost the other thirty-nine. Recorded as
+        // rejected with a reason so the device can show which person needs
+        // entering by hand rather than silently dropping them.
+        results.push({
+          index,
+          id: record.id ?? null,
+          status: 'REJECTED',
+          reason:
+            typeof error?.message === 'string'
+              ? error.message
+              : 'Could not be recorded',
+        });
+      }
+    }
+
+    const recorded = results.filter((r) => r.status === 'RECORDED').length;
+    const duplicates = results.filter((r) => r.status === 'DUPLICATE').length;
+    const rejected = results.filter((r) => r.status === 'REJECTED').length;
+
+    // One audit entry for the batch. Forty-two indistinguishable ones would
+    // bury the fact that matters: a device synced a register it had been
+    // holding, and for how long.
+    await this.audit.log({
+      action: 'ATTENDANCE_OFFLINE_SYNCED',
+      actionCategory: 'ATTENDANCE',
+      entityType: 'Event',
+      entityId: event.id,
+      entityName: event.title,
+      status: rejected > 0 ? 'FAILURE' : 'SUCCESS',
+      ministryId: event.ministryId,
+      actorId: staff.id,
+      description: `Synced ${recorded} offline check-in(s) for ${event.title}` +
+        (duplicates ? `; ${duplicates} already recorded` : '') +
+        (rejected ? `; ${rejected} refused` : ''),
+      metadata: { recorded, duplicates, rejected, syncedAt: syncedAt.toISOString() },
+      ipAddress: meta.ipAddress,
+    });
+
+    await this.cache.invalidateAnalytics();
+
+    return { syncedAt: syncedAt.toISOString(), results };
+  }
+
+  /** One row of a synced register. Mirrors manualCheckIn's rules deliberately. */
+  private async recordOfflineAttendance(
+    event: any,
+    anchor: { checkInAnchorLat: number | null; checkInAnchorLng: number | null },
+    record: OfflineAttendanceRecordDto,
+    staff: { id: string },
+    syncedAt: Date,
+    meta: RequestMeta,
+  ): Promise<{ id: string; status: 'RECORDED' | 'DUPLICATE' }> {
+    const email = (record.email ?? record.guestEmail ?? '').trim().toLowerCase();
+    const name = record.signedName.trim();
+
+    // Same rule as the desk path: an authorized organizer is vouching in
+    // person, so an email belonging to an account links to that account rather
+    // than being stranded as an unrelated guest row.
+    const target = email
+      ? await (this.prisma as any).user.findFirst({
+          where: { email, active: true, deletedAt: null },
+          select: { id: true, phone: true },
+        })
+      : null;
+
+    const existing = await (this.prisma as any).attendance.findFirst({
+      where: target
+        ? { eventId: event.id, userId: target.id }
+        : { eventId: event.id, guestEmail: email || undefined },
+      select: { id: true },
+    });
+
+    if (existing) {
+      // Ordinary, not an error: they were recorded at the desk and also
+      // managed to scan for themselves before the connection went.
+      return { id: existing.id, status: 'DUPLICATE' };
+    }
+
+    const invite = email
+      ? await (this.prisma as any).eventAttendee.findFirst({
+          where: {
+            eventId: event.id,
+            OR: [
+              { externalEmail: { equals: email, mode: 'insensitive' } },
+              { user: { email: { equals: email, mode: 'insensitive' } } },
+            ],
+          },
+          select: { id: true },
+        })
+      : null;
+
+    // Measured, never gated. See the comment on resolveGeofence: refusing a
+    // reading hours after it was taken deletes someone who was present.
+    const verdict = this.resolveGeofence(
+      anchor as any,
+      {
+        lat: record.lat,
+        lng: record.lng,
+        gpsAccuracy: record.gpsAccuracy,
+      },
+      { gate: false },
+    );
+
+    const timing = clampCapturedAt(record.capturedAt, event, syncedAt);
+
+    try {
+      const attendance = await (this.prisma as any).attendance.create({
+        data: {
+          ...(record.id ? { id: record.id } : {}),
+          eventId: event.id,
+          userId: target?.id ?? null,
+          guestName: target ? null : record.guestName ?? name,
+          guestEmail: target ? null : email || null,
+          guestTitle: target ? null : record.guestTitle ?? null,
+          guestOrganisation: target ? null : record.guestOrganisation ?? null,
+          guestPhone: target?.phone?.trim() || record.guestPhone || null,
+          isWalkIn: !invite,
+          signedName: name,
+          // Whatever was actually captured. Null where the register took no
+          // signature, which is the same as a desk-recorded walk-in today.
+          signature: record.signature ?? null,
+          // MANUAL, because that is what happened: a member of staff vouched
+          // for this person in person. capturedOffline carries the other fact.
+          checkInMethod: 'MANUAL',
+          withinGeofence: verdict.withinGeofence,
+          mockLocationFlag: verdict.mockLocationFlag,
+          lat: record.lat != null ? this.encryption.encrypt(String(record.lat)) : null,
+          lng: record.lng != null ? this.encryption.encrypt(String(record.lng)) : null,
+          gpsAccuracy:
+            record.gpsAccuracy != null ? Math.round(record.gpsAccuracy) : null,
+          checkInAt: timing.checkInAt,
+          capturedAt: timing.capturedAt,
+          capturedOffline: true,
+          capturedById: staff.id,
+          clockSkewSeconds: toSkewSeconds(record.clockSkewMs),
+          syncedAt,
+          // The syncing device's, not the attendee's. Recorded as what it is:
+          // where the register was sent from, not where anyone stood.
+          ipAddress: meta.ipAddress ?? null,
+          userAgent: meta.userAgent ?? null,
+        },
+      });
+
+      return { id: attendance.id, status: 'RECORDED' };
+    } catch (error: any) {
+      // The unique indexes are the real guarantee, and a client-minted id makes
+      // a replayed batch collide on the primary key. Either way this row is
+      // already recorded, which is success arriving twice.
+      if (error?.code === 'P2002') {
+        return { id: record.id ?? '', status: 'DUPLICATE' };
+      }
+      throw error;
+    }
+  }
 
   async manualCheckIn(
     eventId: string,
