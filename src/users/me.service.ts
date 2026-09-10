@@ -267,6 +267,9 @@ export class MeService {
             email: true,
             name: true,
             jobTitle: true,
+            // Personal data the user typed into their own profile, so its
+            // absence from their own export was the one omission that mattered.
+            phone: true,
             image: true,
             systemRole: true,
             active: true,
