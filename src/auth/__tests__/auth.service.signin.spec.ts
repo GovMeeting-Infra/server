@@ -171,6 +171,7 @@ describe('AuthService.getSession — revocation', () => {
       systemRole: 'STAFF',
       jobTitle: 'Director',
       phone: '+232 76 000 111',
+      image: 'https://res.cloudinary.com/demo/image/upload/v1/avatars/a.jpg',
       ministryId: 'min-moh',
       active: true,
       deletedAt: null,
@@ -226,6 +227,27 @@ describe('AuthService.getSession — revocation', () => {
 
     await expect(service.getSession('tok')).resolves.toMatchObject({
       phone: null,
+    });
+  });
+
+  /**
+   * Same omission as `phone` above, with the same silent result: the avatar in
+   * the top bar reads this object, so with no image on it everybody got the
+   * fallback initial no matter how many had uploaded a photograph.
+   */
+  it('carries the photograph the top-bar avatar renders', async () => {
+    prisma.session.findUnique.mockResolvedValue(sessionFor({}));
+
+    await expect(service.getSession('tok')).resolves.toMatchObject({
+      image: 'https://res.cloudinary.com/demo/image/upload/v1/avatars/a.jpg',
+    });
+  });
+
+  it('leaves the photograph null when nobody uploaded one', async () => {
+    prisma.session.findUnique.mockResolvedValue(sessionFor({ image: null }));
+
+    await expect(service.getSession('tok')).resolves.toMatchObject({
+      image: null,
     });
   });
 
