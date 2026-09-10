@@ -268,6 +268,10 @@ model Event {
   @@index([startAt])
   @@index([isPublic])
   @@index([status])
+  // Every recurrence operation filters on the series and then partitions it on
+  // startAt — which occurrences have happened, which are still to come. There
+  // was no index on seriesId at all, on the largest table in the schema.
+  @@index([seriesId, startAt])
 }
 
 enum EventType {
@@ -296,14 +300,25 @@ enum EventStatus {
   CANCELLED
 }
 
+/// The repeat rule, shared by every occurrence generated from it.
+///
+/// The rule is all that lives here: the occurrences themselves are ordinary
+/// Event rows carrying a seriesId, so anything that can be done to a meeting
+/// can be done to one of them.
 model EventSeries {
   id        String    @id @default(cuid())
   frequency Frequency
+  /// Ignored by WEEKDAYS, which always advances one working day, and doubled
+  /// by BIWEEKLY, which is already two weeks. The form hides it for both.
   interval  Int       @default(1)
   endType   EndType   @default(COUNT)
+  /// Total occurrences in the series, counting ones already held — the same
+  /// meaning it has when the series is first created.
   count     Int?
   until     DateTime?
   createdAt DateTime  @default(now())
+  /// So a rule that has been changed can be told from one that never was.
+  updatedAt DateTime  @updatedAt @default(now())
 
   events Event[]
 }

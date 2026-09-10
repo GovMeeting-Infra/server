@@ -91,7 +91,11 @@ export type UserPreferences = Prisma.UserPreferencesModel
 export type Event = Prisma.EventModel
 /**
  * Model EventSeries
+ * The repeat rule, shared by every occurrence generated from it.
  * 
+ * The rule is all that lives here: the occurrences themselves are ordinary
+ * Event rows carrying a seriesId, so anything that can be done to a meeting
+ * can be done to one of them.
  */
 export type EventSeries = Prisma.EventSeriesModel
 /**

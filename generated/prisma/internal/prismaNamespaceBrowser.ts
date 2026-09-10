@@ -252,7 +252,8 @@ export const EventSeriesScalarFieldEnum = {
   endType: 'endType',
   count: 'count',
   until: 'until',
-  createdAt: 'createdAt'
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 } as const
 
 export type EventSeriesScalarFieldEnum = (typeof EventSeriesScalarFieldEnum)[keyof typeof EventSeriesScalarFieldEnum]

@@ -12,6 +12,8 @@ import { PrismaService } from '../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
 import { CacheService } from '../cache/cache.service';
 import { EventsRepository } from './events.repository';
+import { assertCanEditEvent } from './event-access';
+import { EventSeriesService } from './event-series.service';
 import { MailService } from '../mail/mail.service';
 import { meetingInvitationEmail } from '../mail/templates';
 import { NotificationsService } from '../notifications/notifications.service';
@@ -33,6 +35,7 @@ export class EventsService {
     private audit: AuditService,
     private cache: CacheService,
     private eventsRepository: EventsRepository,
+    private eventSeries: EventSeriesService,
     private notifications: NotificationsService,
     private mail: MailService,
     @InjectQueue('email-queue') private emailQueue: Queue,
@@ -625,23 +628,15 @@ export class EventsService {
     );
 
     // Editing is wider than deleting: co-organizers and ministry-level admins
-    // can amend an event they did not create.
-    const isCoOrganizer = event.coOrganizers?.some(
-      (c: any) => c.userId === actorId,
-    );
-    const isMinistryAdmin = [
-      'MINISTER',
-      'MINISTRY_ADMIN',
-      'SUPER_ADMIN',
-    ].includes(actorRole ?? '');
+    // can amend an event they did not create. Shared with the recurrence
+    // service, which edits these same rows and must not answer differently.
+    assertCanEditEvent(event, actorId, actorRole);
 
-    if (event.organizerId !== actorId && !isCoOrganizer && !isMinistryAdmin) {
-      throw new ForbiddenException(
-        'Only the organizer, a co-organizer or a ministry admin can update this event',
-      );
-    }
-
-    const updateData: any = { ...dto };
+    // applyTo says how far the edit reaches, not what to store — it is not a
+    // column, so it has to come out before the spread or Prisma rejects the
+    // write for an unknown argument.
+    const { applyTo, ...fields } = dto as any;
+    const updateData: any = { ...fields };
 
     if (dto.startAt || dto.endAt) {
       const startAt = dto.startAt ? new Date(dto.startAt) : event.startAt;
@@ -655,7 +650,42 @@ export class EventsService {
       updateData.endAt = endAt;
     }
 
-    const updated = await this.eventsRepository.update(id, updateData);
+    // Reaching past this occurrence is refused loudly rather than ignored: a
+    // client asking to change a series that does not exist has a bug worth
+    // seeing.
+    const reachesForward = applyTo === 'FUTURE';
+    if (reachesForward && !event.seriesId) {
+      throw new BadRequestException('This activity does not repeat');
+    }
+
+    // One transaction, so a propagation that turns out to be impossible — a
+    // time shift that would reorder the series — does not leave this occurrence
+    // moved and the rest behind.
+    const { updated, propagatedTo } = await (this.prisma as any).$transaction(
+      async (tx: any) => {
+        const updated = await this.eventsRepository.update(id, updateData, tx);
+
+        if (!reachesForward) return { updated, propagatedTo: 0 };
+
+        const { updated: propagatedTo } =
+          await this.eventSeries.applyToFutureOccurrences(
+            tx,
+            {
+              id,
+              seriesId: event.seriesId,
+              startAt: updated.startAt,
+              endAt: updated.endAt,
+            },
+            { startAt: event.startAt, endAt: event.endAt },
+            // The dates are handled as a shift per occurrence, so they must not
+            // also be stamped verbatim across the series.
+            (({ startAt, endAt, ...rest }) => rest)(updateData),
+          );
+
+        return { updated, propagatedTo };
+      },
+      { timeout: 30_000 },
+    );
 
     await this.audit.log({
       action: 'EVENT_UPDATED',
@@ -667,7 +697,10 @@ export class EventsService {
       ministryId,
       actorId,
       description: `Updated event: ${event.title}`,
-      changes: dto as unknown as Record<string, unknown>,
+      changes: fields as unknown as Record<string, unknown>,
+      // One entry for the whole edit rather than one per occurrence, with the
+      // reach recorded on it.
+      metadata: { applyTo: applyTo ?? 'THIS', propagatedTo },
     });
 
     await this.cache.invalidatePattern(`events:*${ministryId}*`);
@@ -680,6 +713,10 @@ export class EventsService {
     const venueMoved = updated.venueName !== event.venueName;
 
     if (startMoved || venueMoved) {
+      // Once for the edit, never once per occurrence. Every occurrence now
+      // carries the same invitees, so notifying each one would turn a single
+      // change of time into an email per invitee per meeting — hundreds, for
+      // one edit.
       await this.notifications.notifyMeetingChanged(id, {
         cancelled: false,
         previousStartAt: startMoved ? event.startAt : null,
@@ -687,7 +724,7 @@ export class EventsService {
       });
     }
 
-    return updated;
+    return { ...updated, propagatedTo };
   }
 
   async deleteEvent(

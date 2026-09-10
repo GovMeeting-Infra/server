@@ -76,8 +76,15 @@ export class EventsRepository {
     return { data, total };
   }
 
-  async update(id: string, data: any) {
-    return (this.prisma as any).event.update({
+  /**
+   * `tx` so an update that has to happen alongside others — editing one
+   * occurrence and shifting the rest of its series — shares their transaction
+   * and their rollback. Going straight to the client instead would also lose
+   * the anchor omission above, quietly putting the check-in coordinates into
+   * the response.
+   */
+  async update(id: string, data: any, tx?: any) {
+    return ((tx ?? this.prisma) as any).event.update({
       where: { id },
       data,
       omit: OMIT_ANCHOR,
