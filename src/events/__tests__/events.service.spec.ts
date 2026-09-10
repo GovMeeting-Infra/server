@@ -68,13 +68,20 @@ describe('EventsService', () => {
   // module failed to compile and every test in the file errored. The email
   // queue is the newer dependency, added when event creation started sending
   // invitations.
+  /**
+   * findOne's default stands in for any event in ministry-1. Tests that need a
+   * particular shape override it and put this back afterwards — clearAllMocks
+   * resets call history but keeps implementations, so an override left in
+   * place would silently reshape every test that runs after it.
+   */
+  const defaultFindOne = (id: string) => ({ id, ministryId: 'ministry-1' });
+
   const mockRepository = {
-    findOne: jest.fn().mockImplementation((id: string) => ({
-      id,
-      ministryId: 'ministry-1',
-    })),
+    findOne: jest.fn().mockImplementation(defaultFindOne),
     findMany: jest.fn().mockResolvedValue({ data: [], total: 0 }),
     create: jest.fn().mockResolvedValue({ id: 'event-1' }),
+    update: jest.fn().mockResolvedValue({ id: 'event-1' }),
+    delete: jest.fn().mockResolvedValue(undefined),
   };
 
   const mockNotifications = {
@@ -179,6 +186,169 @@ describe('EventsService', () => {
       await expect(
         service.createEvent(dto, 'user-1', 'ministry-1'),
       ).rejects.toThrow(BadRequestException);
+    });
+  });
+
+  /**
+   * Who owns a public activity, and who is allowed to wave it onto the public
+   * calendar.
+   *
+   * These were created ownerless, on the reasoning that a public activity
+   * belongs to the ministry rather than a person. Nothing then tied one to the
+   * person who wrote it — the Event row has no creator column — so a member of
+   * staff would submit an activity for approval and find they could not correct
+   * a typo in it, while an administrator who had only approved it was the sole
+   * account that could touch it.
+   *
+   * The creator organizes it now. The pair of tests that matter are that this
+   * did not also hand them the approval: publishing is the review step, and an
+   * organizer who can approve their own activity is no review at all.
+   */
+  describe('public activities — ownership and approval', () => {
+    afterEach(() => {
+      mockRepository.findOne.mockImplementation(defaultFindOne);
+      mockRepository.create.mockResolvedValue({ id: 'event-1' });
+    });
+
+    const publicDto = () =>
+      ({
+        title: 'Digital Skills Training',
+        startAt: new Date('2026-08-01T10:00:00'),
+        endAt: new Date('2026-08-01T12:00:00'),
+        venueName: 'Miatta Conference Centre',
+        isPublic: true,
+        // Deliberately none: a public activity is exempt from needing a
+        // deputy, so this is the shape the form actually submits.
+      }) as any;
+
+    /** The data handed to the repository, whatever else creation did. */
+    const createdWith = () => mockRepository.create.mock.calls[0][0];
+
+    it('organizes a public activity under whoever wrote it', async () => {
+      mockRepository.create.mockResolvedValue({ id: 'event-1' });
+
+      await service.createEvent(publicDto(), 'staff-1', 'ministry-1', 'STAFF');
+
+      expect(createdWith().organizerId).toBe('staff-1');
+    });
+
+    it('still holds it as a draft for approval', async () => {
+      mockRepository.create.mockResolvedValue({ id: 'event-1' });
+
+      await service.createEvent(publicDto(), 'staff-1', 'ministry-1', 'STAFF');
+
+      // Owning it must not shortcut the review: an internal meeting is live
+      // from creation, a public activity waits.
+      expect(createdWith().status).toBe('DRAFT');
+      expect(createdWith().publishedAt).toBeNull();
+    });
+
+    it('does not make a public activity need a co-organizer', async () => {
+      mockRepository.create.mockResolvedValue({ id: 'event-1' });
+
+      await expect(
+        service.createEvent(publicDto(), 'staff-1', 'ministry-1', 'STAFF'),
+      ).resolves.toBeDefined();
+    });
+
+    it('refuses to let the organizer publish their own activity', async () => {
+      mockRepository.findOne.mockResolvedValue({
+        id: 'event-1',
+        ministryId: 'ministry-1',
+        organizerId: 'staff-1',
+        isPublic: true,
+        status: 'DRAFT',
+      });
+
+      await expect(
+        service.publishEvent('event-1', 'staff-1', 'ministry-1', 'STAFF'),
+      ).rejects.toThrow(ForbiddenException);
+
+      expect(mockRepository.update).not.toHaveBeenCalled();
+    });
+
+    it('lets a ministry admin publish someone else\'s activity', async () => {
+      mockRepository.findOne.mockResolvedValue({
+        id: 'event-1',
+        ministryId: 'ministry-1',
+        organizerId: 'staff-1',
+        isPublic: true,
+        status: 'DRAFT',
+      });
+      mockRepository.update.mockResolvedValue({
+        id: 'event-1',
+        status: 'PUBLISHED',
+      });
+
+      await service.publishEvent(
+        'event-1',
+        'admin-1',
+        'ministry-1',
+        'MINISTRY_ADMIN',
+      );
+
+      expect(mockRepository.update).toHaveBeenCalledWith(
+        'event-1',
+        expect.objectContaining({ status: 'PUBLISHED' }),
+      );
+    });
+
+    it('leaves the organizer in place when it is published', async () => {
+      mockRepository.findOne.mockResolvedValue({
+        id: 'event-1',
+        ministryId: 'ministry-1',
+        organizerId: 'staff-1',
+        isPublic: true,
+        status: 'DRAFT',
+      });
+      mockRepository.update.mockResolvedValue({ id: 'event-1' });
+
+      await service.publishEvent(
+        'event-1',
+        'admin-1',
+        'ministry-1',
+        'MINISTRY_ADMIN',
+      );
+
+      // Approving is not taking over. The write must carry the status and the
+      // timestamp and nothing about who owns the activity.
+      expect(mockRepository.update.mock.calls[0][1]).not.toHaveProperty(
+        'organizerId',
+      );
+    });
+
+    it('lets an admin take a published activity back down', async () => {
+      mockRepository.findOne.mockResolvedValue({
+        id: 'event-1',
+        ministryId: 'ministry-1',
+        organizerId: 'staff-1',
+        isPublic: true,
+        status: 'PUBLISHED',
+      });
+
+      // The counterpart of approving it. Without this an administrator could
+      // put an activity on the public calendar and then be unable to remove
+      // it, leaving the member of staff who wrote it as the only account that
+      // could.
+      await expect(
+        service.deleteEvent('event-1', 'admin-1', 'ministry-1', 'MINISTRY_ADMIN'),
+      ).resolves.not.toThrow();
+    });
+
+    it('keeps an internal meeting private to its organizer', async () => {
+      mockRepository.findOne.mockResolvedValue({
+        id: 'event-2',
+        ministryId: 'ministry-1',
+        organizerId: 'staff-1',
+        isPublic: false,
+        status: 'PUBLISHED',
+      });
+
+      // The allowance above is scoped to public activities. Someone else's
+      // internal meeting stays theirs, which is the rule it must not erode.
+      await expect(
+        service.deleteEvent('event-2', 'admin-1', 'ministry-1', 'MINISTRY_ADMIN'),
+      ).rejects.toThrow(ForbiddenException);
     });
   });
 

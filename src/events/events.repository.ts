@@ -60,6 +60,11 @@ export class EventsRepository {
         omit: OMIT_ANCHOR,
         include: {
           organizer: { select: { id: true, name: true } },
+          // Just the ids, so a list card can tell whether the person reading it
+          // may edit the event. Without this the card showed an Edit link on
+          // every event to everyone, and the refusal only arrived on the page
+          // it led to.
+          coOrganizers: { select: { userId: true } },
           // attendances alongside attendees so a list row can say how many of
           // the invited have actually checked in, without a second request.
           _count: { select: { attendees: true, attendances: true } },

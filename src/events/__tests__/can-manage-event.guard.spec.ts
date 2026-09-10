@@ -11,8 +11,12 @@ const MINISTRY = 'ministry-health';
 const ORGANIZED_EVENT = {
   organizerId: 'organizer-1',
   ministryId: MINISTRY,
+  isPublic: false,
   coOrganizers: [{ userId: 'co-1' }],
 };
+
+/** The same, but on the public calendar — which its ministry's admins own. */
+const PUBLIC_ACTIVITY = { ...ORGANIZED_EVENT, isPublic: true };
 
 function contextFor(user: any) {
   return {
@@ -115,6 +119,54 @@ describe('CanManageEventGuard', () => {
           contextFor({ ...minister, systemRole: 'MINISTRY_ADMIN' }),
         ),
       ).resolves.toBe(true);
+    });
+  });
+
+  /**
+   * Public activities used to be created with no organizer, and the branch
+   * below was written for that: ministry admins could manage them because
+   * nobody else could. They have an organizer now — the member of staff who
+   * wrote it — so keying off a null organizer would have quietly locked out
+   * the administrators who approve them. Approving something onto the public
+   * calendar and then being unable to take it down is not a workable rule.
+   */
+  describe('public activities', () => {
+    const admin = {
+      id: 'admin-1',
+      systemRole: 'MINISTRY_ADMIN',
+      ministryId: MINISTRY,
+    };
+
+    it('lets a ministry admin manage one somebody else organizes', async () => {
+      prisma.event.findUnique.mockResolvedValue(PUBLIC_ACTIVITY);
+      withMetadata([]);
+      await expect(guard.canActivate(contextFor(admin))).resolves.toBe(true);
+    });
+
+    it('refuses a ministry admin from another ministry', async () => {
+      prisma.event.findUnique.mockResolvedValue(PUBLIC_ACTIVITY);
+      withMetadata([]);
+      await expect(
+        guard.canActivate(contextFor({ ...admin, ministryId: 'ministry-finance' })),
+      ).rejects.toThrow(ForbiddenException);
+    });
+
+    // The line this must not cross. Widening admins onto public activities is
+    // about the public calendar, not about someone's own diary.
+    it('still refuses a ministry admin an internal meeting', async () => {
+      prisma.event.findUnique.mockResolvedValue(ORGANIZED_EVENT);
+      withMetadata([]);
+      await expect(guard.canActivate(contextFor(admin))).rejects.toThrow(
+        ForbiddenException,
+      );
+    });
+
+    it('refuses an unrelated staff member one', async () => {
+      prisma.event.findUnique.mockResolvedValue(PUBLIC_ACTIVITY);
+      withMetadata([]);
+      await expect(
+        guard.canActivate(contextFor({ id: 'nobody', systemRole: 'STAFF' })),
+      ).rejects.toThrow(ForbiddenException);
     });
   });
 
