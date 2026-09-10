@@ -267,7 +267,7 @@ describe('EventsService', () => {
       expect(mockRepository.update).not.toHaveBeenCalled();
     });
 
-    it('lets a ministry admin publish someone else\'s activity', async () => {
+    it("lets a ministry admin publish someone else's activity", async () => {
       mockRepository.findOne.mockResolvedValue({
         id: 'event-1',
         ministryId: 'ministry-1',
@@ -331,7 +331,12 @@ describe('EventsService', () => {
       // it, leaving the member of staff who wrote it as the only account that
       // could.
       await expect(
-        service.deleteEvent('event-1', 'admin-1', 'ministry-1', 'MINISTRY_ADMIN'),
+        service.deleteEvent(
+          'event-1',
+          'admin-1',
+          'ministry-1',
+          'MINISTRY_ADMIN',
+        ),
       ).resolves.not.toThrow();
     });
 
@@ -347,7 +352,12 @@ describe('EventsService', () => {
       // The allowance above is scoped to public activities. Someone else's
       // internal meeting stays theirs, which is the rule it must not erode.
       await expect(
-        service.deleteEvent('event-2', 'admin-1', 'ministry-1', 'MINISTRY_ADMIN'),
+        service.deleteEvent(
+          'event-2',
+          'admin-1',
+          'ministry-1',
+          'MINISTRY_ADMIN',
+        ),
       ).rejects.toThrow(ForbiddenException);
     });
   });
