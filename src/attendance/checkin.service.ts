@@ -447,8 +447,11 @@ export class CheckinService {
       // here is a name and a signature on whatever phone someone has in a
       // corridor, and it stays that way — but the attendance row has always had
       // a phone column that only guests ever filled, so every staff row showed
-      // a dash. The session carries the whole user record, so this costs no
-      // extra query. Undefined when they have not set one, which keeps it null.
+      // a dash. Undefined when they have not set one, which keeps it null.
+      //
+      // This reads the session projection built in AuthService.getSession,
+      // which lists its fields one by one — `phone` has to be among them or
+      // this is silently always undefined, which is exactly what it was.
       guestPhone: user.phone?.trim() || undefined,
     });
   }

@@ -158,9 +158,20 @@ export class EventsController {
     );
   }
 
+  /**
+   * Approval. The person who wrote the activity organizes it, so the one thing
+   * they must not do is wave it onto the public calendar themselves — hence no
+   * STAFF here.
+   *
+   * No CanManageEventGuard, for the same reason as the PATCH above: that guard
+   * asks whether you manage this event, and the answer for an approver is no.
+   * It let ministry admins through only while public activities had no
+   * organizer at all; now that they have one, it would refuse the very people
+   * approval exists for. publishEvent does the authorization itself — the
+   * roles above, plus the ministry scope every event route enforces.
+   */
   @Post(':id/publish')
-  @UseGuards(CanManageEventGuard)
-  @Roles('SUPER_ADMIN', 'MINISTER', 'MINISTRY_ADMIN', 'STAFF')
+  @Roles('SUPER_ADMIN', 'MINISTER', 'MINISTRY_ADMIN')
   publish(@Param('id') id: string, @CurrentUser() user: any) {
     return this.eventsService.publishEvent(
       id,

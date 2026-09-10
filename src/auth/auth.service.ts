@@ -330,12 +330,19 @@ export class AuthService {
         });
       }
 
+      // A hand-picked projection rather than the whole row, so anything a
+      // caller needs has to be listed here. `phone` was not, which is why
+      // CheckinService.checkIn — reading req.user.phone on the strength of a
+      // comment saying the session carries the whole user record — stamped
+      // null onto every staff attendance row while the desk path, which asks
+      // the database, stamped the number. Same person, different door.
       return {
         id: session.user.id,
         email: session.user.email,
         name: session.user.name,
         systemRole: session.user.systemRole,
         jobTitle: session.user.jobTitle,
+        phone: session.user.phone,
         ministryId: session.user.ministryId,
       };
     } catch (error) {

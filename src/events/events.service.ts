@@ -213,10 +213,20 @@ export class EventsService {
       status: dto.isPublic ? 'DRAFT' : 'PUBLISHED',
       publishedAt: dto.isPublic ? null : new Date(),
       ministryId: targetMinistryId,
-      // Public activities belong to the ministry rather than a person, so they
-      // are created without an organizer. Management of those falls back to
-      // ministry admins — see assertCanAdminister below.
-      organizerId: dto.isPublic ? null : organizerId,
+      // Whoever wrote it owns it, public or not.
+      //
+      // Public activities used to be created ownerless, on the reasoning that
+      // they belong to the ministry rather than a person. Nothing then linked
+      // them to the person who wrote them: the Event row has no creator
+      // column, so the only record was an audit line staff cannot read. A
+      // member of staff would submit an activity for approval and find they
+      // could not correct a typo in it afterwards, while an administrator who
+      // had done nothing but approve it was the only account that could.
+      //
+      // Approval survives this — it lives in the DRAFT status above, and
+      // publishEvent is what clears it. That is now restricted to
+      // administrators regardless of who organizes the activity.
+      organizerId,
       scope: eventData.scope ?? (dto.isPublic ? 'TEAM' : undefined),
       classification:
         eventData.classification ?? (dto.isPublic ? 'PUBLIC' : undefined),
@@ -349,6 +359,13 @@ export class EventsService {
     // A ministry-level admin still only inherits an event nobody owns. An
     // organizer's own meeting stays theirs.
     if (event.organizerId === null && isAdmin) return;
+
+    // Public activities are the exception, because an administrator decides
+    // whether one appears on the public calendar at all. Having approved it,
+    // they must be able to take it down again — otherwise the only accounts
+    // that could remove something the ministry published would be the member
+    // of staff who wrote it. Their own internal meetings stay private to them.
+    if (event.isPublic && isAdmin) return;
 
     throw new ForbiddenException(
       event.organizerId === null
@@ -725,7 +742,19 @@ export class EventsService {
       { systemRole: actorRole ?? '', ministryId },
       event.ministryId,
     );
-    this.assertCanAdminister(event, actorId, actorRole, 'publish');
+
+    // Deliberately not assertCanAdminister, which lets the organizer through.
+    //
+    // Publishing is the approval: a member of staff writes a public activity
+    // and somebody senior decides it goes on the public calendar. Now that the
+    // creator organizes their own activity, allowing the organizer here would
+    // let them approve themselves and the review step would quietly cease to
+    // exist. Everything else about the activity stays theirs.
+    if (!EventsService.ADMIN_ROLES.includes(actorRole ?? '')) {
+      throw new ForbiddenException(
+        'Only a ministry admin can publish an activity to the public calendar',
+      );
+    }
 
     // Publishing is what puts an activity on the public calendar. Internal
     // meetings are live from creation and have no such step, so accepting this

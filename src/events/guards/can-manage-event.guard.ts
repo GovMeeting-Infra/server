@@ -43,6 +43,7 @@ export class CanManageEventGuard implements CanActivate {
       select: {
         organizerId: true,
         ministryId: true,
+        isPublic: true,
         ...(allowCoOrganizers && {
           coOrganizers: { select: { userId: true } },
         }),
@@ -79,11 +80,16 @@ export class CanManageEventGuard implements CanActivate {
       return true;
     }
 
-    // Public activities have no organizer, so an identity check alone would
-    // lock everyone out of them. Ministry admins can manage those, within
-    // their own ministry.
+    // Ministry admins manage the public activities of their own ministry
+    // whoever organizes them, because they are the ones who decide whether one
+    // goes on the public calendar. Without this they could approve an activity
+    // and then be unable to touch it — the member of staff who wrote it would
+    // be the only account that could take it down.
+    //
+    // The organizerId === null half is what this used to be, and stays for the
+    // events created before public activities had an organizer at all.
     if (
-      event.organizerId === null &&
+      (event.isPublic || event.organizerId === null) &&
       ['MINISTER', 'MINISTRY_ADMIN'].includes(user.systemRole) &&
       event.ministryId === user.ministryId
     ) {

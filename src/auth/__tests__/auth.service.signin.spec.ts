@@ -170,6 +170,7 @@ describe('AuthService.getSession — revocation', () => {
       name: 'Aminata',
       systemRole: 'STAFF',
       jobTitle: 'Director',
+      phone: '+232 76 000 111',
       ministryId: 'min-moh',
       active: true,
       deletedAt: null,
@@ -201,6 +202,30 @@ describe('AuthService.getSession — revocation', () => {
     await expect(service.getSession('tok')).resolves.toMatchObject({
       id: 'user-1',
       ministryId: 'min-moh',
+    });
+  });
+
+  /**
+   * The projection below is hand-listed, so a field is only present because
+   * someone remembered it. `phone` was not, and CheckinService.checkIn copies
+   * the number off exactly this object — so every staff attendance row taken
+   * from a scanned QR code stored null, while the desk path, which asks the
+   * database, stored the number. The same person got a phone or a dash
+   * depending on which door they came through.
+   */
+  it('carries the phone number the attendance row is stamped from', async () => {
+    prisma.session.findUnique.mockResolvedValue(sessionFor({}));
+
+    await expect(service.getSession('tok')).resolves.toMatchObject({
+      phone: '+232 76 000 111',
+    });
+  });
+
+  it('leaves the phone null when the user never set one', async () => {
+    prisma.session.findUnique.mockResolvedValue(sessionFor({ phone: null }));
+
+    await expect(service.getSession('tok')).resolves.toMatchObject({
+      phone: null,
     });
   });
 
