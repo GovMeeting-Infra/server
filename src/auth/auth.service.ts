@@ -331,11 +331,17 @@ export class AuthService {
       }
 
       // A hand-picked projection rather than the whole row, so anything a
-      // caller needs has to be listed here. `phone` was not, which is why
-      // CheckinService.checkIn — reading req.user.phone on the strength of a
-      // comment saying the session carries the whole user record — stamped
-      // null onto every staff attendance row while the desk path, which asks
-      // the database, stamped the number. Same person, different door.
+      // caller needs has to be listed here — and twice now something has been
+      // missing from it and failed silently rather than loudly.
+      //
+      // `phone` was absent, so CheckinService.checkIn stamped null onto every
+      // staff attendance row while the desk path, which asks the database,
+      // stamped the number: same person, different door. `image` was absent,
+      // so the avatar in the top bar had no photograph to show and fell back
+      // to an initial for everybody, however many people had uploaded one.
+      //
+      // Anything added here reaches the browser through GET /auth/session, so
+      // keep it to what the interface needs to render the signed-in user.
       return {
         id: session.user.id,
         email: session.user.email,
@@ -343,6 +349,7 @@ export class AuthService {
         systemRole: session.user.systemRole,
         jobTitle: session.user.jobTitle,
         phone: session.user.phone,
+        image: session.user.image,
         ministryId: session.user.ministryId,
       };
     } catch (error) {
