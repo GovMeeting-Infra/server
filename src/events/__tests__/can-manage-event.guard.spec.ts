@@ -147,7 +147,9 @@ describe('CanManageEventGuard', () => {
       prisma.event.findUnique.mockResolvedValue(PUBLIC_ACTIVITY);
       withMetadata([]);
       await expect(
-        guard.canActivate(contextFor({ ...admin, ministryId: 'ministry-finance' })),
+        guard.canActivate(
+          contextFor({ ...admin, ministryId: 'ministry-finance' }),
+        ),
       ).rejects.toThrow(ForbiddenException);
     });
 
