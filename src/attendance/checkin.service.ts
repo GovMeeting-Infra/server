@@ -15,6 +15,7 @@ import { CheckInDto } from './dto/check-in.dto';
 import { GuestCheckInDto } from './dto/guest-check-in.dto';
 import { GenerateCheckInCodeDto } from './dto/generate-check-in-code.dto';
 import { ManualCheckInDto } from './dto/manual-check-in.dto';
+import { UpdateCheckInDto } from './dto/update-check-in.dto';
 import { haversineDistance, classifyFix } from './geofence.util';
 import {
   GEOFENCE_RADIUS_METERS,
@@ -843,6 +844,25 @@ export class CheckinService {
       select: { id: true, phone: true },
     });
 
+    // Insisted on for a visitor, not for a colleague. Whose details these are
+    // is the difference: an account already carries a job title and a ministry,
+    // so making an organizer retype them at a desk with a queue buys nothing —
+    // while a visitor's are recorded nowhere else, and an attendance record
+    // that cannot say which organisation was in the room is not much of one.
+    if (!target) {
+      const missing = [
+        !dto.guestTitle?.trim() && 'job title',
+        !dto.guestOrganisation?.trim() && 'organisation',
+        !dto.guestPhone?.trim() && 'phone number',
+      ].filter(Boolean);
+
+      if (missing.length > 0) {
+        throw new BadRequestException(
+          `${email} does not belong to an account, so this is a visitor. Add their ${missing.join(', ')} to record who was in the room.`,
+        );
+      }
+    }
+
     // findFirst, not findUnique on the compound key: userId is nullable, so the
     // compound-unique input no longer accepts it cleanly. Which of the two
     // unique indexes applies depends on whether this resolved to an account.
@@ -878,15 +898,21 @@ export class CheckinService {
           userId: target?.id ?? null,
           guestName: target ? null : name,
           guestEmail: target ? null : email,
-          // An organizer recording someone at the desk has no reason to know
-          // their number, but if the person has an account we already do.
-          guestPhone: target?.phone?.trim() || null,
+          guestTitle: dto.guestTitle?.trim() || null,
+          guestOrganisation: dto.guestOrganisation?.trim() || null,
+          // What was typed at the desk wins, because the person is standing
+          // there and the account may be out of date. Falling back to the
+          // account is what stops a colleague's row showing a dash for a number
+          // the platform already holds.
+          guestPhone: dto.guestPhone?.trim() || target?.phone?.trim() || null,
           isWalkIn: !invite,
           signedName: name,
           // Null, not '': nobody signed. An empty string already means
           // "captured then erased" in UsersService.anonymize, and reusing it
           // would make a desk record indistinguishable from a redacted one.
-          signature: null,
+          // A signature is offered at the desk but never required — an
+          // organizer vouching in person is the point of this path.
+          signature: dto.signature?.trim() || null,
           checkInMethod: 'MANUAL',
           // Staff vouched for them in person; there is no location reading to
           // judge, so this is recorded as unverified rather than true.
@@ -933,6 +959,121 @@ export class CheckinService {
     await this.cache.invalidateAnalyticsFor(event.ministryId);
 
     return attendance;
+  }
+
+  /**
+   * Correct a check-in already on the register.
+   *
+   * Only who the person is. When they arrived, how they checked in and whether
+   * the location was verified are not in UpdateCheckInDto at all, so they
+   * cannot be written here — a register that can be backdated is not evidence
+   * of anything, and the whole reason attendance is worth keeping is that it
+   * records what happened rather than what somebody later typed.
+   *
+   * Before this existed the only way to fix a name mistyped at a busy desk was
+   * to delete the row and record it again, which moved the arrival time to
+   * whenever the correction was made and left an audit trail saying somebody
+   * had been removed from the meeting.
+   */
+  async updateCheckIn(
+    eventId: string,
+    attendanceId: string,
+    dto: UpdateCheckInDto,
+    actorId: string,
+    ministryId: string,
+  ) {
+    const attendance = await (this.prisma as any).attendance.findFirst({
+      where: { id: attendanceId, eventId },
+      include: { event: { select: { title: true } } },
+    });
+
+    if (!attendance) {
+      throw new NotFoundException('Check-in record not found for this event');
+    }
+
+    const data: Record<string, unknown> = {};
+    const changes: Record<string, { from: unknown; to: unknown }> = {};
+
+    const set = (field: string, value: unknown) => {
+      if (value === undefined || value === attendance[field]) return;
+      data[field] = value;
+      // Not the signature itself — the blob must not leave the server, and an
+      // audit entry is not the place for a copy of somebody's mark.
+      changes[field] =
+        field === 'signature'
+          ? { from: attendance.signature ? 'present' : 'none', to: 'replaced' }
+          : { from: attendance[field], to: value };
+    };
+
+    set('signedName', dto.signedName?.trim());
+    set('guestTitle', dto.guestTitle?.trim());
+    set('guestOrganisation', dto.guestOrganisation?.trim());
+    set('guestPhone', dto.guestPhone?.trim());
+    set('signature', dto.signature?.trim());
+
+    // On a row filed against an account the name and email belong to that
+    // account. Rewriting them here would file this attendance against a
+    // different person with nothing recording that it happened, so it is
+    // refused rather than quietly re-linked.
+    if (dto.guestName !== undefined || dto.guestEmail !== undefined) {
+      if (attendance.userId) {
+        throw new BadRequestException(
+          'This check-in is filed against a staff account, so its name and email come from that account. Remove the check-in and record it again to file it against someone else.',
+        );
+      }
+      set('guestName', dto.guestName?.trim());
+      set('guestEmail', dto.guestEmail?.trim().toLowerCase());
+    }
+
+    if (Object.keys(data).length === 0) {
+      return attendance;
+    }
+
+    let updated;
+    try {
+      updated = await (this.prisma as any).attendance.update({
+        where: { id: attendanceId },
+        data,
+      });
+    } catch (error: any) {
+      // (eventId, guestEmail) is unique, so correcting an address to one
+      // already on this register is a real collision rather than a 500.
+      if (error?.code === 'P2002') {
+        throw new ConflictException(
+          'Someone is already checked in to this meeting with that email.',
+        );
+      }
+      throw error;
+    }
+
+    await this.audit.log({
+      action: 'ATTENDANCE_UPDATED',
+      actionCategory: 'ATTENDANCE',
+      entityType: 'Attendance',
+      entityId: attendanceId,
+      entityName: updated.signedName,
+      status: 'SUCCESS',
+      ministryId,
+      actorId,
+      description: `Corrected the check-in for ${attendance.signedName} at: ${attendance.event.title}`,
+      changes,
+    });
+
+    await this.cache.invalidateAnalyticsFor(ministryId);
+
+    // Same shape the list returns, so the table can drop it straight in
+    // without the signature blob travelling with it.
+    const { signature, ...row } = updated;
+    return {
+      ...row,
+      signatureState:
+        signature === null || signature === undefined
+          ? ('NONE' as const)
+          : signature === ''
+            ? ('ERASED' as const)
+            : ('SIGNED' as const),
+      hasSignature: !!signature,
+    };
   }
 
   async removeCheckIn(

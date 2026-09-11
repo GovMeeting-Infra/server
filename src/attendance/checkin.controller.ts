@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Post,
+  Patch,
   Delete,
   Body,
   Param,
@@ -17,6 +18,7 @@ import { CheckInDto } from './dto/check-in.dto';
 import { GuestCheckInDto } from './dto/guest-check-in.dto';
 import { GenerateCheckInCodeDto } from './dto/generate-check-in-code.dto';
 import { ManualCheckInDto } from './dto/manual-check-in.dto';
+import { UpdateCheckInDto } from './dto/update-check-in.dto';
 import { RSVPDto } from './dto/rsvp.dto';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -221,6 +223,34 @@ export class CheckinController {
   @Roles(...CODE_ROLES)
   async getCheckIns(@Param('eventId') eventId: string) {
     return this.checkinService.listCheckIns(eventId);
+  }
+
+  /**
+   * Correct a check-in already on the register — a name mistyped at a desk with
+   * a queue behind it, or details taken down afterwards.
+   *
+   * Same people as deleting one, for the same reason: amending an attendance
+   * record is not oversight, so ministers get no blanket pass. What may be
+   * changed is who the person is; when they arrived and how they checked in are
+   * not in UpdateCheckInDto at all, so they cannot be written through it.
+   */
+  @Patch('events/:eventId/checkins/:attendanceId')
+  @UseGuards(RolesGuard, CanManageEventGuard)
+  @AllowCoOrganizers()
+  @Roles('SUPER_ADMIN', 'MINISTRY_ADMIN', 'STAFF')
+  async updateCheckIn(
+    @Param('eventId') eventId: string,
+    @Param('attendanceId') attendanceId: string,
+    @Body() dto: UpdateCheckInDto,
+    @CurrentUser() user: any,
+  ) {
+    return this.checkinService.updateCheckIn(
+      eventId,
+      attendanceId,
+      dto,
+      user.id,
+      user.ministryId,
+    );
   }
 
   /**
