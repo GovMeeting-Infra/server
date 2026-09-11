@@ -65,7 +65,7 @@ export class CheckinController {
     return this.checkinService.getCheckInCode(eventId);
   }
 
-  /** Generate or rotate the code, and capture the check-in area. */
+  /** Generate the code, or replace it, and capture the check-in area. */
   @Post('checkin-code/:eventId')
   @UseGuards(RolesGuard, CanManageEventGuard)
   @AllowCoOrganizers()
