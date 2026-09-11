@@ -2,15 +2,6 @@ import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { randomBytes } from 'crypto';
 
-/** How long a scannable token stays valid. */
-const TOKEN_TTL_MS = 5 * 60 * 1000;
-
-/**
- * Reuse an existing token only while it has comfortably more life than this.
- * Handing back a token about to expire means the attendee's scan dies mid-form.
- */
-const REUSE_MIN_REMAINING_MS = 60 * 1000;
-
 @Injectable()
 export class QRTokenService {
   private logger = new Logger('QRTokenService');
@@ -37,21 +28,32 @@ export class QRTokenService {
   }
 
   /**
-   * Return the live token, minting a fresh one when there is none, when the
-   * current one is nearly dead, or when `force` is set. Only ever reached from
-   * an explicit POST.
+   * The event's code, minting one the first time and whenever `force` is set.
+   *
+   * One code per meeting. It used to last five minutes and be replaced over and
+   * over, which put the organizer in charge of a clock: anybody who arrived
+   * while the screen showed a dead code could not get in, and somebody had to
+   * be watching the countdown for that not to happen. The fence is what keeps a
+   * photographed code from being useful elsewhere — an attendee has to be
+   * inside the check-in area — so expiring the code every five minutes was
+   * buying very little and costing exactly the people it was meant to admit.
+   *
+   * `expiresAt` is the meeting's own end, which is the moment check-in closes
+   * anyway: resolveOpenEvent refuses a scan once endAt has passed, whatever the
+   * token says. The token's expiry is now the same line rather than a second,
+   * stricter one behind it.
    */
   async ensureActiveToken(
     eventId: string,
+    expiresAt: Date,
     opts: { force?: boolean } = {},
     tx?: any,
   ): Promise<{ token: string; expiresAt: Date }> {
     const db = tx ?? this.prisma;
 
     if (!opts.force) {
-      const cutoff = new Date(Date.now() + REUSE_MIN_REMAINING_MS);
       const existing = await db.qRToken.findFirst({
-        where: { eventId, expiresAt: { gt: cutoff } },
+        where: { eventId, expiresAt: { gt: new Date() } },
         orderBy: { expiresAt: 'desc' },
       });
       if (existing) {
@@ -59,16 +61,16 @@ export class QRTokenService {
       }
     }
 
-    return this.mintToken(eventId, db);
+    return this.mintToken(eventId, expiresAt, db);
   }
 
   async mintToken(
     eventId: string,
+    expiresAt: Date,
     tx?: any,
   ): Promise<{ token: string; expiresAt: Date }> {
     const db = tx ?? this.prisma;
     const token = randomBytes(24).toString('base64url');
-    const expiresAt = new Date(Date.now() + TOKEN_TTL_MS);
 
     const qrToken = await db.qRToken.create({
       data: { eventId, token, expiresAt, rotatedAt: new Date() },

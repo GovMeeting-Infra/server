@@ -68,8 +68,11 @@ export class CheckinService {
   // ==========================================================================
 
   /**
-   * Mint or rotate a check-in code, capturing the check-in area from the
+   * Issue the meeting's check-in code, capturing the check-in area from the
    * organizer's own coordinates the first time.
+   *
+   * One code per meeting, valid until the meeting ends. Calling this again
+   * hands back the same code unless `rotate` asks for a replacement.
    *
    * The anchor is the whole point of this flow: venue lat/lng were almost never
    * filled in, so anchoring to the person generating the code is the only way
@@ -163,8 +166,8 @@ export class CheckinService {
         checkInAnchorSetById: null,
       };
     }
-    // Not capturing: incoming coordinates are ignored entirely, so a rotating
-    // token can never drag the fence along with the organizer.
+    // Not capturing: incoming coordinates are ignored entirely, so replacing a
+    // code can never drag the fence along with the organizer.
 
     const { token, expiresAt, updated } = await (
       this.prisma as any
@@ -186,8 +189,12 @@ export class CheckinService {
           },
         });
       }
+      // The code lives as long as the meeting does. Check-in already stops at
+      // endAt regardless of the token, so anything shorter is a second clock
+      // that only ever turns people away early.
       const minted = await this.qrToken.ensureActiveToken(
         eventId,
+        event.endAt,
         { force: dto.rotate === true },
         tx,
       );

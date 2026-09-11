@@ -25,13 +25,20 @@ export class GenerateCheckInCodeDto {
   /**
    * Re-capture the check-in area from this request's coordinates. Without it a
    * request that carries coordinates for an already-anchored event is ignored,
-   * so the fence cannot drift as tokens rotate.
+   * so the fence cannot drift when a code is replaced from somewhere else in
+   * the building.
    */
   @IsOptional()
   @IsBoolean()
   resetAnchor?: boolean;
 
-  /** Mint a fresh token even though the current one is still valid. */
+  /**
+   * Replace the code, revoking the one on screen.
+   *
+   * A deliberate act, not a schedule: a code lasts as long as the meeting, and
+   * this exists for when one has been photographed and passed around rather
+   * than as something that happens on a timer.
+   */
   @IsOptional()
   @IsBoolean()
   rotate?: boolean;
