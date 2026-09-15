@@ -137,7 +137,12 @@ export class EventsService {
     // becomes unmanageable the moment that person is unavailable — only
     // ministry admins could touch it. Public activities are exempt: they have
     // no organizer at all and already fall to ministry admins by design.
-    if (!dto.isPublic && !coOrganizerIds?.length) {
+    // The organizer naming themselves does not count. The form never offers
+    // it, but a request that did would pass with nobody else able to act.
+    if (
+      !dto.isPublic &&
+      !coOrganizerIds?.some((id) => id && id !== organizerId)
+    ) {
       throw new BadRequestException(
         'An internal meeting needs at least one co-organizer',
       );

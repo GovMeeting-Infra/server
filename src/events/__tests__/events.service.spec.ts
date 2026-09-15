@@ -209,6 +209,48 @@ describe('EventsService', () => {
   });
 
   /**
+   * An internal meeting has to have someone besides its organizer who can act
+   * on it. Public activities fall to ministry admins and are exempt.
+   */
+  describe('requiring a co-organizer', () => {
+    const internalDto = (coOrganizerIds?: string[]) =>
+      ({
+        title: 'Budget review',
+        startAt: new Date('2026-08-01T10:00:00'),
+        endAt: new Date('2026-08-01T12:00:00'),
+        venueName: 'Room 4',
+        type: 'MEETING',
+        coOrganizerIds,
+      }) as CreateEventDto;
+
+    it('refuses an internal meeting with no co-organizer', async () => {
+      await expect(
+        service.createEvent(internalDto(), 'user-1', 'ministry-1'),
+      ).rejects.toThrow('needs at least one co-organizer');
+      expect(mockRepository.create).not.toHaveBeenCalled();
+    });
+
+    it('refuses an internal meeting whose only co-organizer is the organizer', async () => {
+      await expect(
+        service.createEvent(internalDto(['user-1']), 'user-1', 'ministry-1'),
+      ).rejects.toThrow('needs at least one co-organizer');
+      expect(mockRepository.create).not.toHaveBeenCalled();
+    });
+
+    it('accepts an internal meeting with a co-organizer besides the organizer', async () => {
+      mockRepository.create.mockResolvedValueOnce({ id: 'event-1' });
+
+      await expect(
+        service.createEvent(
+          internalDto(['user-1', 'user-2']),
+          'user-1',
+          'ministry-1',
+        ),
+      ).resolves.toBeDefined();
+    });
+  });
+
+  /**
    * Being made a co-organizer used to go unannounced by either route — named on
    * the form, or added from the event page afterwards.
    */
