@@ -4,6 +4,7 @@ import {
   actionItemReminderEmail,
   meetingInvitationEmail,
   meetingReminderEmail,
+  coOrganizerAddedEmail,
 } from '../templates';
 
 const LINK = 'http://localhost:3000/set-password?token=abc123';
@@ -179,5 +180,44 @@ describe('meetingReminderEmail', () => {
       venueName: null,
     });
     expect(fromString.text).toContain('2026');
+  });
+});
+
+describe('coOrganizerAddedEmail', () => {
+  const base = {
+    name: 'Fatmata',
+    eventTitle: 'Budget review',
+    startAt: new Date('2026-09-18T09:00:00Z'),
+    venueName: 'Room 4',
+    eventUrl: 'http://localhost:3000/administrative/events/e1',
+  };
+
+  it('says who made them a co-organizer, and links to the meeting', () => {
+    const body = coOrganizerAddedEmail({ ...base, addedByName: 'Aminata' });
+
+    expect(body.subject).toBe('You are a co-organizer: Budget review');
+    expect(body.text).toContain(
+      'Fatmata, Aminata has made you a co-organizer of Budget review.',
+    );
+    expect(body.text).toContain('Where: Room 4');
+    expect(body.html).toContain(base.eventUrl);
+  });
+
+  it('still reads when nobody is named as having added them', () => {
+    const body = coOrganizerAddedEmail({ ...base, addedByName: null });
+
+    expect(body.text).toContain(
+      'Fatmata, you have been made a co-organizer of Budget review.',
+    );
+  });
+
+  it('escapes the meeting title in the HTML', () => {
+    const body = coOrganizerAddedEmail({
+      ...base,
+      eventTitle: '<b>Review</b>',
+    });
+
+    expect(body.html).not.toContain('<b>Review</b>');
+    expect(body.html).toContain('&lt;b&gt;Review&lt;/b&gt;');
   });
 });

@@ -22,11 +22,18 @@ describe('NotificationsService', () => {
       notification: { createMany: jest.fn().mockResolvedValue({ count: 0 }) },
       event: { findUnique: jest.fn() },
       actionItem: { findUnique: jest.fn() },
+      user: {
+        findMany: jest.fn().mockResolvedValue([]),
+        findUnique: jest.fn().mockResolvedValue(null),
+      },
     };
     // Assignment now queues an email as well as writing in-app. enqueueEmail
     // swallows failures, so without a real double the suite would pass while
     // silently exercising nothing.
-    queue = { add: jest.fn().mockResolvedValue(undefined) };
+    queue = {
+      add: jest.fn().mockResolvedValue(undefined),
+      addBulk: jest.fn().mockResolvedValue(undefined),
+    };
     service = new NotificationsService(prisma, queue);
   });
 
@@ -169,6 +176,66 @@ describe('NotificationsService', () => {
     it('does nothing when invited with an empty user list', async () => {
       await service.notifyMeetingInvitation('e1', []);
       expect(prisma.event.findUnique).not.toHaveBeenCalled();
+    });
+  });
+
+  // Nothing told a person they had been made a co-organizer; they found out by
+  // noticing an Edit button on a meeting nobody had said they were running.
+  describe('notifyCoOrganizerAdded', () => {
+    beforeEach(() => {
+      prisma.event.findUnique.mockResolvedValue({
+        title: 'Budget review',
+        startAt: new Date('2026-09-18T09:00:00Z'),
+        venueName: 'Room 4',
+        ministryId: 'm1',
+      });
+      prisma.user.findMany.mockResolvedValue([
+        { id: 'u2', name: 'Fatmata Sesay', email: 'fatmata@gov.sl' },
+      ]);
+      prisma.user.findUnique.mockResolvedValue({ name: 'Aminata Kamara' });
+    });
+
+    it('writes an in-app notification and queues an email for each new co-organizer', async () => {
+      await service.notifyCoOrganizerAdded('e1', ['u2'], 'u1');
+
+      expect(prisma.notification.createMany).toHaveBeenCalledWith({
+        data: [
+          expect.objectContaining({
+            userId: 'u2',
+            type: 'COORGANIZER_ADDED',
+            link: '/administrative/events/e1',
+          }),
+        ],
+      });
+      expect(queue.addBulk).toHaveBeenCalledWith([
+        expect.objectContaining({
+          name: 'send-coorganizer-added',
+          data: {
+            eventId: 'e1',
+            email: 'fatmata@gov.sl',
+            name: 'Fatmata Sesay',
+            addedByName: 'Aminata Kamara',
+          },
+        }),
+      ]);
+    });
+
+    it('does not tell the person who did the adding', async () => {
+      await service.notifyCoOrganizerAdded('e1', ['u1'], 'u1');
+
+      expect(prisma.event.findUnique).not.toHaveBeenCalled();
+      expect(prisma.notification.createMany).not.toHaveBeenCalled();
+      expect(queue.addBulk).not.toHaveBeenCalled();
+    });
+
+    // The co-organizer is already saved by the time this runs, so a failed
+    // announcement must not surface as an error on the request that saved it.
+    it('does not throw when the lookup fails', async () => {
+      prisma.event.findUnique.mockRejectedValue(new Error('db down'));
+
+      await expect(
+        service.notifyCoOrganizerAdded('e1', ['u2'], 'u1'),
+      ).resolves.toBeUndefined();
     });
   });
 });

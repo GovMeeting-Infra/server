@@ -133,13 +133,15 @@ export class EventsService {
       ...eventData
     } = dto;
 
-    // An internal meeting is owned by one person, so without a deputy it
-    // becomes unmanageable the moment that person is unavailable — only
-    // ministry admins could touch it. Public activities are exempt: they have
-    // no organizer at all and already fall to ministry admins by design.
-    if (!dto.isPublic && !coOrganizerIds?.length) {
+    // An activity is owned by one person, so without a deputy it becomes
+    // unmanageable the moment that person is unavailable. That now holds for
+    // public activities too: since the creator organizes one, it has the same
+    // single point of failure an internal meeting has.
+    // The organizer naming themselves does not count. The form never offers
+    // it, but a request that did would pass with nobody else able to act.
+    if (!coOrganizerIds?.some((id) => id && id !== organizerId)) {
       throw new BadRequestException(
-        'An internal meeting needs at least one co-organizer',
+        'An activity needs at least one co-organizer besides its organizer',
       );
     }
 
@@ -240,6 +242,20 @@ export class EventsService {
         data: coOrganizerIds.map((userId) => ({ eventId: event.id, userId })),
         skipDuplicates: true,
       });
+
+      // Told, in-app and by email. Nothing did this before, so a colleague
+      // named on the form found out only by noticing an Edit button.
+      //
+      // Not yet for a public activity. It is a draft until an admin approves
+      // it, and may never be approved; its co-organizers are told when
+      // publishEvent puts it on the calendar.
+      if (!dto.isPublic) {
+        await this.notifications.notifyCoOrganizerAdded(
+          event.id,
+          coOrganizerIds,
+          organizerId,
+        );
+      }
     }
 
     // Invitees supplied with the event save a second round trip from the form.
@@ -822,6 +838,17 @@ export class EventsService {
     await this.cache.invalidatePattern(`events:*${ministryId}*`);
     await this.cache.invalidateAnalytics();
 
+    // Its co-organizers were not told while it waited as a draft. Only on the
+    // publish that actually approves it, so publishing again does not repeat
+    // the message. Credited to the organizer, who is the one that named them.
+    if (event.status !== 'PUBLISHED') {
+      await this.notifications.notifyCoOrganizerAdded(
+        id,
+        (event.coOrganizers ?? []).map((c: any) => c.userId),
+        event.organizerId,
+      );
+    }
+
     return updated;
   }
 
@@ -928,6 +955,16 @@ export class EventsService {
       actorId,
       description: `Added co-organizer to event: ${event.title}`,
     });
+
+    // A public activity still waiting for approval holds its announcements
+    // until publishEvent, the same as the ones named when it was created.
+    if (!event.isPublic || event.status === 'PUBLISHED') {
+      await this.notifications.notifyCoOrganizerAdded(
+        eventId,
+        [userId],
+        actorId,
+      );
+    }
 
     return coOrganizer;
   }

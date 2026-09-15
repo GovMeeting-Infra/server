@@ -11,6 +11,7 @@ import {
   actionItemOverdueEmail,
   actionItemReminderEmail,
   actionItemUnassignedEmail,
+  coOrganizerAddedEmail,
   meetingChangedEmail,
   meetingInvitationEmail,
   meetingReminderEmail,
@@ -87,6 +88,12 @@ interface MeetingChangedPayload extends PersonPayload {
   cancelled: boolean;
   previousStartAt: string | null;
   previousVenueName: string | null;
+}
+
+interface CoOrganizerAddedPayload extends PersonPayload {
+  eventId: string;
+  /** Who did the adding, resolved by the producer. Null if unknown. */
+  addedByName: string | null;
 }
 
 interface MinutesPublishedPayload {
@@ -169,6 +176,8 @@ export class EmailProcessor extends WorkerHost {
         return this.sendActionItemUnassigned(job);
       case 'send-meeting-changed':
         return this.sendMeetingChanged(job);
+      case 'send-coorganizer-added':
+        return this.sendCoOrganizerAdded(job);
       default:
         throw new Error(`Unknown job type: ${job.name}`);
     }
@@ -365,6 +374,44 @@ export class EmailProcessor extends WorkerHost {
         title: item.title,
         newOwnerName,
         eventTitle: item.minutes?.event?.title ?? null,
+      }),
+    );
+
+    if (!result.sent) throw new Error(result.error ?? 'Send failed');
+    return { sent: 1 };
+  }
+
+  /** Made a co-organizer. One job per person, prepared by the producer. */
+  private async sendCoOrganizerAdded(job: Job<CoOrganizerAddedPayload>) {
+    const { eventId, email, name, addedByName } = job.data;
+
+    const event = await (this.prisma as any).event.findUnique({
+      where: { id: eventId },
+      select: { title: true, startAt: true, venueName: true, status: true },
+    });
+
+    if (!event) return { sent: 0, error: 'Event not found' };
+
+    // Called off between the adding and the send: the cancellation notice is
+    // the message that matters now, not an invitation to help run it.
+    if (event.status === 'CANCELLED') {
+      return { sent: 0, error: 'Event cancelled' };
+    }
+
+    const base =
+      process.env.WEB_URL ??
+      process.env.NEXT_PUBLIC_WEB_URL ??
+      'http://localhost:3000';
+
+    const result = await this.mail.send(
+      email,
+      coOrganizerAddedEmail({
+        name,
+        eventTitle: event.title,
+        startAt: event.startAt,
+        venueName: event.venueName,
+        addedByName,
+        eventUrl: `${base}/administrative/events/${eventId}`,
       }),
     );
 
