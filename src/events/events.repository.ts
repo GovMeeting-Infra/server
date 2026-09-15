@@ -45,7 +45,17 @@ export class EventsRepository {
           include: { user: { select: { id: true, name: true, email: true } } },
         },
         minutes: true,
-        series: true,
+        // The other dates too, so the page can say where this meeting sits in
+        // its series and link to the ones either side. Bounded by
+        // MAX_OCCURRENCES, and three small columns each.
+        series: {
+          include: {
+            events: {
+              select: { id: true, startAt: true, status: true },
+              orderBy: { startAt: 'asc' },
+            },
+          },
+        },
       },
     });
   }
