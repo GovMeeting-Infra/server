@@ -41,7 +41,11 @@ describe('EventsService', () => {
     ministry: {
       findUnique: jest.fn().mockResolvedValue({ name: 'Ministry of Health' }),
     },
-    eventCoOrganizer: { createMany: jest.fn().mockResolvedValue({ count: 1 }) },
+    eventCoOrganizer: {
+      createMany: jest.fn().mockResolvedValue({ count: 1 }),
+      findFirst: jest.fn().mockResolvedValue(null),
+      create: jest.fn().mockResolvedValue({ id: 'co-1' }),
+    },
     // updateEvent runs its write and any propagation to later occurrences in
     // one transaction, so the mock has to hand the callback a client. Handing
     // back mockPrisma itself keeps every existing expectation pointing at the
@@ -93,6 +97,7 @@ describe('EventsService', () => {
   const mockNotifications = {
     notifyMeetingInvitation: jest.fn().mockResolvedValue(undefined),
     notifyMeetingChanged: jest.fn().mockResolvedValue(undefined),
+    notifyCoOrganizerAdded: jest.fn().mockResolvedValue(undefined),
   };
 
   // EventsService reaches for this only when an edit says it applies to later
@@ -200,6 +205,79 @@ describe('EventsService', () => {
       await expect(
         service.createEvent(dto, 'user-1', 'ministry-1'),
       ).rejects.toThrow(BadRequestException);
+    });
+  });
+
+  /**
+   * Being made a co-organizer used to go unannounced by either route — named on
+   * the form, or added from the event page afterwards.
+   */
+  describe('co-organizer notifications', () => {
+    it('announces co-organizers named when the event is created', async () => {
+      mockRepository.create.mockResolvedValue({
+        id: 'event-1',
+        organizerId: 'user-1',
+        ministryId: 'ministry-1',
+        isPublic: false,
+      });
+
+      await service.createEvent(
+        {
+          title: 'Budget review',
+          startAt: new Date('2026-08-01T10:00:00'),
+          endAt: new Date('2026-08-01T12:00:00'),
+          venueName: 'Room 4',
+          type: 'MEETING',
+          coOrganizerIds: ['user-2'],
+        } as CreateEventDto,
+        'user-1',
+        'ministry-1',
+      );
+
+      expect(mockNotifications.notifyCoOrganizerAdded).toHaveBeenCalledWith(
+        'event-1',
+        ['user-2'],
+        'user-1',
+      );
+    });
+
+    it('announces a co-organizer added afterwards', async () => {
+      mockPrisma.eventCoOrganizer.findFirst.mockResolvedValueOnce(null);
+      mockPrisma.eventCoOrganizer.create.mockResolvedValueOnce({
+        id: 'co-1',
+        user: { id: 'user-2', name: 'Fatmata Sesay', email: 'f@gov.sl' },
+      });
+
+      await service.addCoOrganizer(
+        'event-1',
+        'user-2',
+        'admin-1',
+        'ministry-1',
+        'SUPER_ADMIN',
+      );
+
+      expect(mockNotifications.notifyCoOrganizerAdded).toHaveBeenCalledWith(
+        'event-1',
+        ['user-2'],
+        'admin-1',
+      );
+    });
+
+    it('announces nothing when the person is already a co-organizer', async () => {
+      mockPrisma.eventCoOrganizer.findFirst.mockResolvedValueOnce({
+        id: 'co-1',
+      });
+
+      await expect(
+        service.addCoOrganizer(
+          'event-1',
+          'user-2',
+          'admin-1',
+          'ministry-1',
+          'SUPER_ADMIN',
+        ),
+      ).rejects.toThrow('already a co-organizer');
+      expect(mockNotifications.notifyCoOrganizerAdded).not.toHaveBeenCalled();
     });
   });
 

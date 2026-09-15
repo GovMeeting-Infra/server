@@ -240,6 +240,14 @@ export class EventsService {
         data: coOrganizerIds.map((userId) => ({ eventId: event.id, userId })),
         skipDuplicates: true,
       });
+
+      // Told, in-app and by email. Nothing did this before, so a colleague
+      // named on the form found out only by noticing an Edit button.
+      await this.notifications.notifyCoOrganizerAdded(
+        event.id,
+        coOrganizerIds,
+        organizerId,
+      );
     }
 
     // Invitees supplied with the event save a second round trip from the form.
@@ -928,6 +936,8 @@ export class EventsService {
       actorId,
       description: `Added co-organizer to event: ${event.title}`,
     });
+
+    await this.notifications.notifyCoOrganizerAdded(eventId, [userId], actorId);
 
     return coOrganizer;
   }

@@ -783,6 +783,90 @@ export class NotificationsService {
     );
   }
 
+  /**
+   * Tell people they have been made a co-organizer, in-app and by email.
+   *
+   * Nothing did before, so a colleague named on the form, or added later, found
+   * out only by noticing an Edit button on a meeting nobody had told them they
+   * were running. Whoever did the adding is not told about their own action.
+   *
+   * Never throws, like the rest of this class: the co-organizer is already
+   * saved, and failing to announce it must not turn that into an error.
+   */
+  async notifyCoOrganizerAdded(
+    eventId: string,
+    userIds: string[],
+    addedById?: string | null,
+  ) {
+    const recipientIds = [...new Set(userIds)].filter(
+      (id) => id && id !== addedById,
+    );
+    if (recipientIds.length === 0) return;
+
+    try {
+      const event = await (this.prisma as any).event.findUnique({
+        where: { id: eventId },
+        select: {
+          title: true,
+          startAt: true,
+          venueName: true,
+          ministryId: true,
+        },
+      });
+
+      if (!event) return;
+
+      const [users, addedBy] = await Promise.all([
+        (this.prisma as any).user.findMany({
+          where: { id: { in: recipientIds } },
+          select: { id: true, name: true, email: true },
+        }),
+        addedById
+          ? (this.prisma as any).user.findUnique({
+              where: { id: addedById },
+              select: { name: true },
+            })
+          : Promise.resolve(null),
+      ]);
+
+      if (users.length === 0) return;
+
+      const addedByName: string | null = addedBy?.name ?? null;
+      const whenAndWhere = event.venueName
+        ? `${onDateAtTime(event.startAt)}, ${event.venueName}`
+        : onDateAtTime(event.startAt);
+
+      await this.notifyMany(
+        users.map((u: any) => ({ userId: u.id, ministryId: event.ministryId })),
+        {
+          type: 'COORGANIZER_ADDED',
+          title: `You are a co-organizer: ${event.title}`,
+          body: `${addedByName ? `${addedByName} added you. ` : ''}${whenAndWhere}. You can now edit and cancel it.`,
+          link: `/administrative/events/${eventId}`,
+          entityType: 'Event',
+          entityId: eventId,
+        },
+      );
+
+      await this.enqueueEmails(
+        users
+          .filter((u: any) => u.email)
+          .map((u: any) => ({
+            name: 'send-coorganizer-added',
+            data: { eventId, email: u.email, name: u.name, addedByName },
+            // Stamped, because someone removed and added again has been given
+            // the role again and should hear about it again.
+            jobId: `coorganizer-added:${eventId}:${u.id}:${Date.now()}`,
+          })),
+      );
+    } catch (error) {
+      this.logger.error(
+        `Failed to announce co-organizers for event ${eventId}`,
+        error,
+      );
+    }
+  }
+
   async notifyMeetingReminder(eventId: string, userId: string) {
     const event = await (this.prisma as any).event.findUnique({
       where: { id: eventId },

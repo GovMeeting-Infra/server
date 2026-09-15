@@ -17,7 +17,8 @@ export type NotificationType =
   | 'MEETING_INVITATION'
   | 'MEETING_CHANGED'
   | 'MEETING_CANCELLED'
-  | 'MEETING_REMINDER';
+  | 'MEETING_REMINDER'
+  | 'COORGANIZER_ADDED';
 
 /** Category toggles on UserPreferences. */
 export type PreferenceKey =
@@ -37,6 +38,7 @@ export const PREFERENCE_FOR: Record<NotificationType, PreferenceKey> = {
   MEETING_CHANGED: 'meetingReminders',
   MEETING_CANCELLED: 'meetingReminders',
   MEETING_REMINDER: 'meetingReminders',
+  COORGANIZER_ADDED: 'meetingReminders',
 };
 
 export interface NotificationPreferences {

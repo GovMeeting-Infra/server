@@ -855,6 +855,67 @@ export function meetingInvitationEmail({
   };
 }
 
+/**
+ * Named a co-organizer. Nothing used to say so: the first a person knew of it
+ * was an Edit button appearing on a meeting nobody had told them they ran.
+ */
+export function coOrganizerAddedEmail({
+  name,
+  eventTitle,
+  startAt,
+  venueName,
+  addedByName,
+  eventUrl,
+}: {
+  name: string;
+  eventTitle: string;
+  startAt: Date | string;
+  venueName?: string | null;
+  addedByName?: string | null;
+  eventUrl: string;
+}): EmailBody {
+  const when = formatDateTime(startAt);
+  const intro = addedByName
+    ? `${name}, ${addedByName} has made you a co-organizer of ${eventTitle}.`
+    : `${name}, you have been made a co-organizer of ${eventTitle}.`;
+  const footnote =
+    'As a co-organizer you can edit and cancel this meeting alongside its organizer.';
+
+  const rows = [
+    `<p style="margin:0 0 6px;color:#0f172a;font-size:15px;font-weight:600;">${escapeHtml(eventTitle)}</p>`,
+    `<p style="margin:0;color:#64748b;font-size:13px;">When: ${escapeHtml(when)}</p>`,
+    venueName
+      ? `<p style="margin:6px 0 0;color:#64748b;font-size:13px;">Where: ${escapeHtml(venueName)}</p>`
+      : '',
+  ].join('');
+
+  return {
+    subject: `You are a co-organizer: ${eventTitle}`,
+    html: layout({
+      heading: 'You are now a co-organizer',
+      intro,
+      bodyHtml: `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:8px 0;background-color:#edf3fd;border:1px solid #c9d9f2;border-radius:12px;">
+        <tr><td style="padding:16px 18px;">${rows}</td></tr>
+      </table>`,
+      actionLabel: 'Open the meeting',
+      actionUrl: eventUrl,
+      footnote,
+    }),
+    text: [
+      intro,
+      '',
+      eventTitle,
+      `When: ${when}`,
+      venueName ? `Where: ${venueName}` : '',
+      '',
+      `Open the meeting: ${eventUrl}`,
+      footnote,
+    ]
+      .filter(Boolean)
+      .join('\n'),
+  };
+}
+
 export function meetingReminderEmail({
   name,
   eventTitle,
