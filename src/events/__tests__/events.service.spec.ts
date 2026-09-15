@@ -209,10 +209,28 @@ describe('EventsService', () => {
   });
 
   /**
-   * An internal meeting has to have someone besides its organizer who can act
-   * on it. Public activities fall to ministry admins and are exempt.
+   * An activity has to have someone besides its organizer who can act on it,
+   * internal or public.
    */
   describe('requiring a co-organizer', () => {
+    it('refuses a public activity with no co-organizer', async () => {
+      await expect(
+        service.createEvent(
+          {
+            title: 'Digital Skills Training',
+            startAt: new Date('2026-08-01T10:00:00'),
+            endAt: new Date('2026-08-01T12:00:00'),
+            venueName: 'Miatta Conference Centre',
+            isPublic: true,
+          } as CreateEventDto,
+          'staff-1',
+          'ministry-1',
+          'STAFF',
+        ),
+      ).rejects.toThrow('needs at least one co-organizer');
+      expect(mockRepository.create).not.toHaveBeenCalled();
+    });
+
     const internalDto = (coOrganizerIds?: string[]) =>
       ({
         title: 'Budget review',
@@ -321,6 +339,114 @@ describe('EventsService', () => {
       ).rejects.toThrow('already a co-organizer');
       expect(mockNotifications.notifyCoOrganizerAdded).not.toHaveBeenCalled();
     });
+
+    // A public activity is a draft until an admin approves it, and may never
+    // be. Its co-organizers hear about it when it is published, not before.
+    describe('public activities', () => {
+      const draftPublic = (overrides: Record<string, unknown> = {}) => ({
+        id: 'event-1',
+        ministryId: 'ministry-1',
+        organizerId: 'staff-1',
+        isPublic: true,
+        status: 'DRAFT',
+        coOrganizers: [{ userId: 'user-2' }, { userId: 'user-3' }],
+        ...overrides,
+      });
+
+      it('announces nobody when the activity is created', async () => {
+        mockRepository.create.mockResolvedValueOnce(draftPublic());
+
+        await service.createEvent(
+          {
+            title: 'Digital Skills Training',
+            startAt: new Date('2026-08-01T10:00:00'),
+            endAt: new Date('2026-08-01T12:00:00'),
+            venueName: 'Miatta Conference Centre',
+            isPublic: true,
+            coOrganizerIds: ['user-2'],
+          } as CreateEventDto,
+          'staff-1',
+          'ministry-1',
+          'STAFF',
+        );
+
+        expect(mockNotifications.notifyCoOrganizerAdded).not.toHaveBeenCalled();
+      });
+
+      it('holds a co-organizer added while it is still a draft', async () => {
+        mockRepository.findOne.mockResolvedValueOnce(draftPublic());
+        mockPrisma.eventCoOrganizer.findFirst.mockResolvedValueOnce(null);
+        mockPrisma.eventCoOrganizer.create.mockResolvedValueOnce({
+          id: 'co-2',
+        });
+
+        await service.addCoOrganizer(
+          'event-1',
+          'user-4',
+          'admin-1',
+          'ministry-1',
+          'SUPER_ADMIN',
+        );
+
+        expect(mockNotifications.notifyCoOrganizerAdded).not.toHaveBeenCalled();
+      });
+
+      it('announces a co-organizer added once it is published straight away', async () => {
+        mockRepository.findOne.mockResolvedValueOnce(
+          draftPublic({ status: 'PUBLISHED' }),
+        );
+        mockPrisma.eventCoOrganizer.findFirst.mockResolvedValueOnce(null);
+        mockPrisma.eventCoOrganizer.create.mockResolvedValueOnce({
+          id: 'co-2',
+        });
+
+        await service.addCoOrganizer(
+          'event-1',
+          'user-4',
+          'admin-1',
+          'ministry-1',
+          'SUPER_ADMIN',
+        );
+
+        expect(mockNotifications.notifyCoOrganizerAdded).toHaveBeenCalledWith(
+          'event-1',
+          ['user-4'],
+          'admin-1',
+        );
+      });
+
+      it('announces every co-organizer when an admin publishes it', async () => {
+        mockRepository.findOne.mockResolvedValueOnce(draftPublic());
+
+        await service.publishEvent(
+          'event-1',
+          'admin-1',
+          'ministry-1',
+          'MINISTRY_ADMIN',
+        );
+
+        expect(mockNotifications.notifyCoOrganizerAdded).toHaveBeenCalledWith(
+          'event-1',
+          ['user-2', 'user-3'],
+          'staff-1',
+        );
+      });
+
+      it('does not announce again when it was already published', async () => {
+        mockRepository.findOne.mockResolvedValueOnce(
+          draftPublic({ status: 'PUBLISHED' }),
+        );
+
+        await service.publishEvent(
+          'event-1',
+          'admin-1',
+          'ministry-1',
+          'MINISTRY_ADMIN',
+        );
+
+        expect(mockNotifications.notifyCoOrganizerAdded).not.toHaveBeenCalled();
+      });
+    });
   });
 
   /**
@@ -351,8 +477,8 @@ describe('EventsService', () => {
         endAt: new Date('2026-08-01T12:00:00'),
         venueName: 'Miatta Conference Centre',
         isPublic: true,
-        // Deliberately none: a public activity is exempt from needing a
-        // deputy, so this is the shape the form actually submits.
+        // Required for public activities too now, like internal meetings.
+        coOrganizerIds: ['user-2'],
       }) as any;
 
     /** The data handed to the repository, whatever else creation did. */
@@ -377,7 +503,7 @@ describe('EventsService', () => {
       expect(createdWith().publishedAt).toBeNull();
     });
 
-    it('does not make a public activity need a co-organizer', async () => {
+    it('accepts a public activity that names a co-organizer', async () => {
       mockRepository.create.mockResolvedValue({ id: 'event-1' });
 
       await expect(
