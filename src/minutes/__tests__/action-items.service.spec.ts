@@ -43,6 +43,7 @@ describe('ActionItemsService — permissions', () => {
       actionItem: {
         findUnique: jest.fn(),
         update: jest.fn().mockResolvedValue({ id: ITEM }),
+        delete: jest.fn().mockResolvedValue({ id: ITEM }),
       },
       actionItemAssistant: {
         upsert: jest.fn().mockResolvedValue({}),
@@ -284,6 +285,68 @@ describe('ActionItemsService — permissions', () => {
       await expect(
         service.addAssistant(ITEM, OWNER, RAISER, MINISTRY, 'STAFF'),
       ).rejects.toThrow(/already owns/);
+    });
+  });
+
+  /**
+   * Deleting leaves no record, so it belongs to whoever created the item and
+   * nobody else. Everyone else closes work by marking it done or cancelled.
+   */
+  describe('deleting', () => {
+    it('lets the person who created it delete it', async () => {
+      seedItem();
+
+      await expect(
+        service.deleteActionItem(ITEM, RAISER, MINISTRY, 'STAFF'),
+      ).resolves.toEqual({ id: ITEM, deleted: true });
+      expect(prisma.actionItem.delete).toHaveBeenCalledWith({
+        where: { id: ITEM },
+      });
+    });
+
+    it('does not let the owner delete it', async () => {
+      seedItem();
+
+      await expect(
+        service.deleteActionItem(ITEM, OWNER, MINISTRY, 'STAFF'),
+      ).rejects.toThrow(ForbiddenException);
+      expect(prisma.actionItem.delete).not.toHaveBeenCalled();
+    });
+
+    it('does not let an assistant delete it', async () => {
+      seedItem();
+
+      await expect(
+        service.deleteActionItem(ITEM, HELPER, MINISTRY, 'STAFF'),
+      ).rejects.toThrow(ForbiddenException);
+      expect(prisma.actionItem.delete).not.toHaveBeenCalled();
+    });
+
+    it("does not let a ministry admin delete someone else's item", async () => {
+      seedItem();
+
+      await expect(
+        service.deleteActionItem(ITEM, STRANGER, MINISTRY, 'MINISTRY_ADMIN'),
+      ).rejects.toThrow(ForbiddenException);
+      expect(prisma.actionItem.delete).not.toHaveBeenCalled();
+    });
+
+    it('lets nobody delete an item with no recorded creator', async () => {
+      seedItem({ assignedById: null });
+
+      await expect(
+        service.deleteActionItem(ITEM, RAISER, MINISTRY, 'STAFF'),
+      ).rejects.toThrow(ForbiddenException);
+      expect(prisma.actionItem.delete).not.toHaveBeenCalled();
+    });
+
+    it('refuses the creator acting from another ministry', async () => {
+      seedItem();
+
+      await expect(
+        service.deleteActionItem(ITEM, RAISER, 'min-other', 'STAFF'),
+      ).rejects.toThrow(ForbiddenException);
+      expect(prisma.actionItem.delete).not.toHaveBeenCalled();
     });
   });
 });

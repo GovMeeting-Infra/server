@@ -623,6 +623,60 @@ export class ActionItemsService {
     return this.getActionItem(actionItemId);
   }
 
+  /**
+   * Delete an action item, for good.
+   *
+   * Only whoever created it. They decided the work was needed, so they can
+   * decide it was a mistake. Everyone else closes work by marking it done or
+   * cancelled, which keeps a record of what happened; a delete keeps none, so
+   * an admin tidying the board does not get to use it either.
+   */
+  async deleteActionItem(
+    actionItemId: string,
+    userId: string,
+    ministryId: string,
+    systemRole?: string,
+  ) {
+    const item = await (this.prisma as any).actionItem.findUnique({
+      where: { id: actionItemId },
+      include: { minutes: { include: { event: true } } },
+    });
+
+    if (!item) throw new NotFoundException('Action item not found');
+
+    assertSameMinistry(
+      { systemRole: systemRole ?? '', ministryId },
+      item.minutes.event.ministryId,
+    );
+
+    if (!item.assignedById || item.assignedById !== userId) {
+      throw new ForbiddenException(
+        'Only the person who created this action item can delete it',
+      );
+    }
+
+    // Its helpers go with it: ActionItemAssistant cascades on delete.
+    await (this.prisma as any).actionItem.delete({
+      where: { id: actionItemId },
+    });
+
+    await this.audit.log({
+      action: 'ACTION_ITEM_DELETED',
+      actionCategory: 'ACTION_ITEM_MANAGEMENT',
+      entityType: 'ActionItem',
+      entityId: actionItemId,
+      entityName: item.title,
+      status: 'SUCCESS',
+      ministryId,
+      actorId: userId,
+      description: `Deleted action item: ${item.title}`,
+    });
+
+    await this.cache.invalidateAnalytics();
+
+    return { id: actionItemId, deleted: true };
+  }
+
   async listDueSoon(ministryId: string, hoursAhead = 24) {
     const now = new Date();
     const futureDate = new Date(now.getTime() + hoursAhead * 60 * 60 * 1000);

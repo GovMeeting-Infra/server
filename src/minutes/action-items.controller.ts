@@ -88,4 +88,19 @@ export class ActionItemsController {
       user.systemRole,
     );
   }
+
+  /** Delete an action item. Only the person who created it may. */
+  @Delete(':actionItemId')
+  @Roles('SUPER_ADMIN', 'MINISTER', 'MINISTRY_ADMIN', 'STAFF')
+  remove(
+    @Param('actionItemId') actionItemId: string,
+    @CurrentUser() user: any,
+  ) {
+    return this.actionItemsService.deleteActionItem(
+      actionItemId,
+      user.id,
+      user.ministryId,
+      user.systemRole,
+    );
+  }
 }
