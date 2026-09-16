@@ -183,6 +183,16 @@ export class ActionItemsService {
   }
 
   /** Roles that may move any action item within their ministry. */
+  /**
+   * How long finished work stays on the task board after it was closed.
+   *
+   * The board answers "what is outstanding", and Done grew without limit, so
+   * within a few months the answer was buried under a year of finished tasks.
+   * Nothing is deleted at the end of the week: the item stays in the minutes
+   * it came from and in the reports built off it.
+   */
+  static readonly DONE_VISIBLE_DAYS = 7;
+
   private static readonly ADMIN_ROLES = [
     'SUPER_ADMIN',
     'MINISTER',
@@ -452,12 +462,41 @@ export class ActionItemsService {
   ) {
     const scope = ministryScope(user);
 
+    // Finished work leaves the board a week after it was closed, so Done stops
+    // growing without limit and stays a record of the recent past. Nothing is
+    // deleted: the item remains in the minutes it came from, which is the
+    // permanent record, and in the reports built off it.
+    const doneCutoff = new Date(
+      Date.now() - ActionItemsService.DONE_VISIBLE_DAYS * 24 * 60 * 60 * 1000,
+    );
+
     return await (this.prisma as any).actionItem.findMany({
       where: {
         // Action items have no ministry of their own; they inherit it from the
         // event their minutes belong to.
         minutes: { event: scope },
         ...(ownerId && { ownerId }),
+        OR: [
+          {
+            status: {
+              notIn: [
+                ActionItemStatusEnum.COMPLETED,
+                ActionItemStatusEnum.CANCELLED,
+              ],
+            },
+          },
+          {
+            status: ActionItemStatusEnum.COMPLETED,
+            completedAt: { gte: doneCutoff },
+          },
+          // Cancelled carries no completedAt — updateStatus clears it for
+          // every status but COMPLETED — so it ages out by when it was last
+          // touched, which is when somebody cancelled it.
+          {
+            status: ActionItemStatusEnum.CANCELLED,
+            updatedAt: { gte: doneCutoff },
+          },
+        ],
       },
       include: {
         owner: { select: { id: true, name: true, email: true } },

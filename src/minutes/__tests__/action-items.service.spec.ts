@@ -44,6 +44,7 @@ describe('ActionItemsService — permissions', () => {
         findUnique: jest.fn(),
         update: jest.fn().mockResolvedValue({ id: ITEM }),
         delete: jest.fn().mockResolvedValue({ id: ITEM }),
+        findMany: jest.fn().mockResolvedValue([]),
       },
       actionItemAssistant: {
         upsert: jest.fn().mockResolvedValue({}),
@@ -347,6 +348,53 @@ describe('ActionItemsService — permissions', () => {
         service.deleteActionItem(ITEM, RAISER, 'min-other', 'STAFF'),
       ).rejects.toThrow(ForbiddenException);
       expect(prisma.actionItem.delete).not.toHaveBeenCalled();
+    });
+  });
+
+  /**
+   * The board answers "what is outstanding". Done used to grow without limit,
+   * so a year of finished work sat under the question.
+   */
+  describe('the board list', () => {
+    const whereOf = () => prisma.actionItem.findMany.mock.calls[0][0].where;
+
+    const list = () =>
+      service.listForMinistry({
+        id: RAISER,
+        systemRole: 'STAFF',
+        ministryId: MINISTRY,
+      });
+
+    it('keeps finished work for a week and no longer', async () => {
+      await list();
+
+      const completed = whereOf().OR.find(
+        (clause: any) => clause.status === 'COMPLETED',
+      );
+      const ageInDays =
+        (Date.now() - (completed.completedAt.gte as Date).getTime()) /
+        86_400_000;
+
+      expect(ageInDays).toBeCloseTo(ActionItemsService.DONE_VISIBLE_DAYS, 1);
+    });
+
+    // Cancelled carries no completedAt, so it ages out by when it was touched.
+    it('ages cancelled work out by when it was last changed', async () => {
+      await list();
+
+      const cancelled = whereOf().OR.find(
+        (clause: any) => clause.status === 'CANCELLED',
+      );
+
+      expect(cancelled.updatedAt.gte).toBeInstanceOf(Date);
+    });
+
+    it('leaves outstanding work alone however old it is', async () => {
+      await list();
+
+      expect(whereOf().OR).toContainEqual({
+        status: { notIn: ['COMPLETED', 'CANCELLED'] },
+      });
     });
   });
 });
