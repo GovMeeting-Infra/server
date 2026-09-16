@@ -183,6 +183,16 @@ export class ActionItemsService {
   }
 
   /** Roles that may move any action item within their ministry. */
+  /**
+   * How long finished work stays on the task board after it was closed.
+   *
+   * The board answers "what is outstanding", and Done grew without limit, so
+   * within a few months the answer was buried under a year of finished tasks.
+   * Nothing is deleted at the end of the week: the item stays in the minutes
+   * it came from and in the reports built off it.
+   */
+  static readonly DONE_VISIBLE_DAYS = 7;
+
   private static readonly ADMIN_ROLES = [
     'SUPER_ADMIN',
     'MINISTER',
@@ -452,12 +462,41 @@ export class ActionItemsService {
   ) {
     const scope = ministryScope(user);
 
+    // Finished work leaves the board a week after it was closed, so Done stops
+    // growing without limit and stays a record of the recent past. Nothing is
+    // deleted: the item remains in the minutes it came from, which is the
+    // permanent record, and in the reports built off it.
+    const doneCutoff = new Date(
+      Date.now() - ActionItemsService.DONE_VISIBLE_DAYS * 24 * 60 * 60 * 1000,
+    );
+
     return await (this.prisma as any).actionItem.findMany({
       where: {
         // Action items have no ministry of their own; they inherit it from the
         // event their minutes belong to.
         minutes: { event: scope },
         ...(ownerId && { ownerId }),
+        OR: [
+          {
+            status: {
+              notIn: [
+                ActionItemStatusEnum.COMPLETED,
+                ActionItemStatusEnum.CANCELLED,
+              ],
+            },
+          },
+          {
+            status: ActionItemStatusEnum.COMPLETED,
+            completedAt: { gte: doneCutoff },
+          },
+          // Cancelled carries no completedAt — updateStatus clears it for
+          // every status but COMPLETED — so it ages out by when it was last
+          // touched, which is when somebody cancelled it.
+          {
+            status: ActionItemStatusEnum.CANCELLED,
+            updatedAt: { gte: doneCutoff },
+          },
+        ],
       },
       include: {
         owner: { select: { id: true, name: true, email: true } },
@@ -621,6 +660,60 @@ export class ActionItemsService {
     });
 
     return this.getActionItem(actionItemId);
+  }
+
+  /**
+   * Delete an action item, for good.
+   *
+   * Only whoever created it. They decided the work was needed, so they can
+   * decide it was a mistake. Everyone else closes work by marking it done or
+   * cancelled, which keeps a record of what happened; a delete keeps none, so
+   * an admin tidying the board does not get to use it either.
+   */
+  async deleteActionItem(
+    actionItemId: string,
+    userId: string,
+    ministryId: string,
+    systemRole?: string,
+  ) {
+    const item = await (this.prisma as any).actionItem.findUnique({
+      where: { id: actionItemId },
+      include: { minutes: { include: { event: true } } },
+    });
+
+    if (!item) throw new NotFoundException('Action item not found');
+
+    assertSameMinistry(
+      { systemRole: systemRole ?? '', ministryId },
+      item.minutes.event.ministryId,
+    );
+
+    if (!item.assignedById || item.assignedById !== userId) {
+      throw new ForbiddenException(
+        'Only the person who created this action item can delete it',
+      );
+    }
+
+    // Its helpers go with it: ActionItemAssistant cascades on delete.
+    await (this.prisma as any).actionItem.delete({
+      where: { id: actionItemId },
+    });
+
+    await this.audit.log({
+      action: 'ACTION_ITEM_DELETED',
+      actionCategory: 'ACTION_ITEM_MANAGEMENT',
+      entityType: 'ActionItem',
+      entityId: actionItemId,
+      entityName: item.title,
+      status: 'SUCCESS',
+      ministryId,
+      actorId: userId,
+      description: `Deleted action item: ${item.title}`,
+    });
+
+    await this.cache.invalidateAnalytics();
+
+    return { id: actionItemId, deleted: true };
   }
 
   async listDueSoon(ministryId: string, hoursAhead = 24) {

@@ -43,6 +43,8 @@ describe('ActionItemsService — permissions', () => {
       actionItem: {
         findUnique: jest.fn(),
         update: jest.fn().mockResolvedValue({ id: ITEM }),
+        delete: jest.fn().mockResolvedValue({ id: ITEM }),
+        findMany: jest.fn().mockResolvedValue([]),
       },
       actionItemAssistant: {
         upsert: jest.fn().mockResolvedValue({}),
@@ -284,6 +286,115 @@ describe('ActionItemsService — permissions', () => {
       await expect(
         service.addAssistant(ITEM, OWNER, RAISER, MINISTRY, 'STAFF'),
       ).rejects.toThrow(/already owns/);
+    });
+  });
+
+  /**
+   * Deleting leaves no record, so it belongs to whoever created the item and
+   * nobody else. Everyone else closes work by marking it done or cancelled.
+   */
+  describe('deleting', () => {
+    it('lets the person who created it delete it', async () => {
+      seedItem();
+
+      await expect(
+        service.deleteActionItem(ITEM, RAISER, MINISTRY, 'STAFF'),
+      ).resolves.toEqual({ id: ITEM, deleted: true });
+      expect(prisma.actionItem.delete).toHaveBeenCalledWith({
+        where: { id: ITEM },
+      });
+    });
+
+    it('does not let the owner delete it', async () => {
+      seedItem();
+
+      await expect(
+        service.deleteActionItem(ITEM, OWNER, MINISTRY, 'STAFF'),
+      ).rejects.toThrow(ForbiddenException);
+      expect(prisma.actionItem.delete).not.toHaveBeenCalled();
+    });
+
+    it('does not let an assistant delete it', async () => {
+      seedItem();
+
+      await expect(
+        service.deleteActionItem(ITEM, HELPER, MINISTRY, 'STAFF'),
+      ).rejects.toThrow(ForbiddenException);
+      expect(prisma.actionItem.delete).not.toHaveBeenCalled();
+    });
+
+    it("does not let a ministry admin delete someone else's item", async () => {
+      seedItem();
+
+      await expect(
+        service.deleteActionItem(ITEM, STRANGER, MINISTRY, 'MINISTRY_ADMIN'),
+      ).rejects.toThrow(ForbiddenException);
+      expect(prisma.actionItem.delete).not.toHaveBeenCalled();
+    });
+
+    it('lets nobody delete an item with no recorded creator', async () => {
+      seedItem({ assignedById: null });
+
+      await expect(
+        service.deleteActionItem(ITEM, RAISER, MINISTRY, 'STAFF'),
+      ).rejects.toThrow(ForbiddenException);
+      expect(prisma.actionItem.delete).not.toHaveBeenCalled();
+    });
+
+    it('refuses the creator acting from another ministry', async () => {
+      seedItem();
+
+      await expect(
+        service.deleteActionItem(ITEM, RAISER, 'min-other', 'STAFF'),
+      ).rejects.toThrow(ForbiddenException);
+      expect(prisma.actionItem.delete).not.toHaveBeenCalled();
+    });
+  });
+
+  /**
+   * The board answers "what is outstanding". Done used to grow without limit,
+   * so a year of finished work sat under the question.
+   */
+  describe('the board list', () => {
+    const whereOf = () => prisma.actionItem.findMany.mock.calls[0][0].where;
+
+    const list = () =>
+      service.listForMinistry({
+        id: RAISER,
+        systemRole: 'STAFF',
+        ministryId: MINISTRY,
+      });
+
+    it('keeps finished work for a week and no longer', async () => {
+      await list();
+
+      const completed = whereOf().OR.find(
+        (clause: any) => clause.status === 'COMPLETED',
+      );
+      const ageInDays =
+        (Date.now() - (completed.completedAt.gte as Date).getTime()) /
+        86_400_000;
+
+      expect(ageInDays).toBeCloseTo(ActionItemsService.DONE_VISIBLE_DAYS, 1);
+    });
+
+    // Cancelled carries no completedAt, so it ages out by when it was touched.
+    it('ages cancelled work out by when it was last changed', async () => {
+      await list();
+
+      const cancelled = whereOf().OR.find(
+        (clause: any) => clause.status === 'CANCELLED',
+      );
+
+      expect(cancelled.updatedAt.gte).toBeInstanceOf(Date);
+    });
+
+    it('leaves outstanding work alone however old it is', async () => {
+      await list();
+
+      expect(whereOf().OR).toContainEqual({
+        status: { notIn: ['COMPLETED', 'CANCELLED'] },
+      });
     });
   });
 });
