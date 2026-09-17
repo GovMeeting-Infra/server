@@ -169,6 +169,22 @@ export type ActionItem = Prisma.ActionItemModel
  */
 export type ActionItemAssistant = Prisma.ActionItemAssistantModel
 /**
+ * Model PushSubscription
+ * One browser's push endpoint, as handed over by PushManager.subscribe().
+ * 
+ * A row is a DEVICE-AND-BROWSER, not a person: the same user signing in on a
+ * phone and a laptop produces two, and clearing site data produces a third
+ * while the first is still on file. That is why endpoint is the unique key
+ * rather than userId — the push service issues it, and it is the only thing
+ * that identifies the same subscription twice.
+ * 
+ * Rows die by being pruned, not by being tidied. When the push service answers
+ * 404 or 410 the subscription is gone for good and PushService deletes it;
+ * without that this table only ever grows, and every send retries against
+ * endpoints that will never answer again.
+ */
+export type PushSubscription = Prisma.PushSubscriptionModel
+/**
  * Model Notification
  * 
  */

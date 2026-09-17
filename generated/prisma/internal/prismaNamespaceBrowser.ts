@@ -69,6 +69,7 @@ export const ModelName = {
   MinutesAccessToken: 'MinutesAccessToken',
   ActionItem: 'ActionItem',
   ActionItemAssistant: 'ActionItemAssistant',
+  PushSubscription: 'PushSubscription',
   Notification: 'Notification',
   EmailSuppression: 'EmailSuppression',
   AuditLog: 'AuditLog',
@@ -194,6 +195,7 @@ export const UserPreferencesScalarFieldEnum = {
   minutesNotifications: 'minutesNotifications',
   meetingReminders: 'meetingReminders',
   actionItemNotifications: 'actionItemNotifications',
+  pushNotifications: 'pushNotifications',
   theme: 'theme',
   compactMode: 'compactMode',
   sessionTimeout: 'sessionTimeout',
@@ -398,6 +400,20 @@ export const ActionItemAssistantScalarFieldEnum = {
 } as const
 
 export type ActionItemAssistantScalarFieldEnum = (typeof ActionItemAssistantScalarFieldEnum)[keyof typeof ActionItemAssistantScalarFieldEnum]
+
+
+export const PushSubscriptionScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  endpoint: 'endpoint',
+  p256dh: 'p256dh',
+  auth: 'auth',
+  userAgent: 'userAgent',
+  createdAt: 'createdAt',
+  lastUsedAt: 'lastUsedAt'
+} as const
+
+export type PushSubscriptionScalarFieldEnum = (typeof PushSubscriptionScalarFieldEnum)[keyof typeof PushSubscriptionScalarFieldEnum]
 
 
 export const NotificationScalarFieldEnum = {

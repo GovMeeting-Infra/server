@@ -43,6 +43,8 @@ export const PREFERENCE_FOR: Record<NotificationType, PreferenceKey> = {
 
 export interface NotificationPreferences {
   emailNotifications: boolean;
+  /** Master switch for browser push, as emailNotifications is for email. */
+  pushNotifications: boolean;
   minutesNotifications: boolean;
   actionItemNotifications: boolean;
   meetingReminders: boolean;
@@ -58,6 +60,11 @@ export interface NotificationPreferences {
  */
 export const DEFAULT_PREFERENCES: NotificationPreferences = {
   emailNotifications: true,
+  // The one that does NOT mirror the others, and matches the schema. Push also
+  // needs the browser's own permission, which is granted per device from the
+  // profile page — nobody arrives already subscribed, so defaulting this true
+  // would record a preference no one expressed.
+  pushNotifications: false,
   minutesNotifications: true,
   actionItemNotifications: true,
   meetingReminders: true,

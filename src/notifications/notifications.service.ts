@@ -138,6 +138,7 @@ export class NotificationsService {
   constructor(
     private prisma: PrismaService,
     @InjectQueue('email-queue') private emailQueue: Queue,
+    @InjectQueue('push-queue') private pushQueue: Queue,
   ) {}
 
   /**
@@ -201,6 +202,7 @@ export class NotificationsService {
       select: {
         userId: true,
         emailNotifications: true,
+        pushNotifications: true,
         minutesNotifications: true,
         actionItemNotifications: true,
         meetingReminders: true,
@@ -233,6 +235,76 @@ export class NotificationsService {
       prefs.emailNotifications !== false &&
       prefs[PREFERENCE_FOR[type]] !== false
     );
+  }
+
+  /**
+   * Whether this user wants a push of this kind, on any device.
+   *
+   * Two gates like wantsEmail, but the master switch is tested for `true`
+   * rather than `!== false`. The others default to on and mean "unless you said
+   * otherwise"; this one defaults to off, because a push also needs the
+   * browser's permission and nobody is subscribed until they ask to be. Reading
+   * an absent preference as consent would be reading silence as a yes.
+   */
+  async wantsPush(userId: string, type: NotificationType): Promise<boolean> {
+    const lookup = await this.preferencesFor([userId]);
+    const prefs = lookup(userId);
+    return (
+      prefs.pushNotifications === true &&
+      prefs[PREFERENCE_FOR[type]] !== false
+    );
+  }
+
+  /**
+   * Queues a push for each recipient who wants one.
+   *
+   * Queued rather than sent inline: delivery is one HTTPS request per device to
+   * a push service we do not control, and publishing minutes fans out across
+   * every attendee. Doing that inside the request would put the slowest push
+   * service in the world between an organiser and their save button.
+   */
+  private async enqueuePush(
+    recipients: Recipient[],
+    payload: Omit<NotificationInput, 'userId' | 'ministryId'>,
+  ): Promise<void> {
+    if (recipients.length === 0) return;
+
+    try {
+      const lookup = await this.preferencesFor(recipients.map((r) => r.userId));
+      const wanted = recipients.filter((r) => {
+        const prefs = lookup(r.userId);
+        return (
+          prefs.pushNotifications === true &&
+          prefs[PREFERENCE_FOR[payload.type]] !== false
+        );
+      });
+      if (wanted.length === 0) return;
+
+      await this.pushQueue.addBulk(
+        wanted.map((r) => ({
+          name: 'push',
+          data: {
+            userId: r.userId,
+            title: payload.title,
+            body: payload.body,
+            link: payload.link ?? null,
+            // Collapses to one alert per subject per person, so a meeting
+            // whose reminder is raised twice does not buzz twice.
+            tag: `${payload.type}:${payload.entityId ?? ''}`,
+          },
+          opts: {
+            // Same stable-id reasoning as the email queue.
+            jobId: `push:${payload.type}:${payload.entityId ?? 'none'}:${r.userId}`,
+            removeOnComplete: { age: 2 * 60 * 60 },
+            removeOnFail: { age: 2 * 60 * 60 },
+          },
+        })),
+      );
+    } catch (error) {
+      // Same contract as the email path: Redis being unreachable must not fail
+      // the thing that raised the notification.
+      this.logger.error(`Failed to queue ${payload.type} pushes`, error);
+    }
   }
 
   // ==========================================================================
@@ -294,6 +366,11 @@ export class NotificationsService {
           })),
         });
       }
+
+      // After the in-app rows, and gated by preference where those are not:
+      // an unread row waits to be found, but a push interrupts somebody, so
+      // this is the one channel that has to be asked for.
+      await this.enqueuePush(wanted, payload);
 
       const suppressed = recipients.length - wanted.length;
       if (suppressed > 0) {
