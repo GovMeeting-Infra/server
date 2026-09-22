@@ -67,6 +67,8 @@ export const ModelName = {
   Minutes: 'Minutes',
   MinutePoint: 'MinutePoint',
   MinutesAccessToken: 'MinutesAccessToken',
+  Transcript: 'Transcript',
+  TranscriptSegment: 'TranscriptSegment',
   ActionItem: 'ActionItem',
   ActionItemAssistant: 'ActionItemAssistant',
   Notification: 'Notification',
@@ -362,6 +364,39 @@ export const MinutesAccessTokenScalarFieldEnum = {
 } as const
 
 export type MinutesAccessTokenScalarFieldEnum = (typeof MinutesAccessTokenScalarFieldEnum)[keyof typeof MinutesAccessTokenScalarFieldEnum]
+
+
+export const TranscriptScalarFieldEnum = {
+  id: 'id',
+  eventId: 'eventId',
+  status: 'status',
+  provider: 'provider',
+  startedById: 'startedById',
+  startedAt: 'startedAt',
+  endedAt: 'endedAt',
+  durationSec: 'durationSec',
+  aiDraftStatus: 'aiDraftStatus',
+  aiDraft: 'aiDraft',
+  aiDraftError: 'aiDraftError',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type TranscriptScalarFieldEnum = (typeof TranscriptScalarFieldEnum)[keyof typeof TranscriptScalarFieldEnum]
+
+
+export const TranscriptSegmentScalarFieldEnum = {
+  id: 'id',
+  transcriptId: 'transcriptId',
+  order: 'order',
+  speaker: 'speaker',
+  text: 'text',
+  startMs: 'startMs',
+  endMs: 'endMs',
+  createdAt: 'createdAt'
+} as const
+
+export type TranscriptSegmentScalarFieldEnum = (typeof TranscriptSegmentScalarFieldEnum)[keyof typeof TranscriptSegmentScalarFieldEnum]
 
 
 export const ActionItemScalarFieldEnum = {

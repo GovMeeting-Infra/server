@@ -262,6 +262,7 @@ model Event {
   attendees         EventAttendee[]
   attendances       Attendance[]
   minutes           Minutes?
+  transcript        Transcript?
   qrTokens          QRToken[]
 
   @@index([ministryId])
@@ -550,6 +551,71 @@ enum MinutesStatus {
   DRAFT
   PUBLISHED
   ARCHIVED
+}
+
+/**
+ * What was said in a meeting, as text. Never the sound of it.
+ * Audio is streamed from the organizer's browser through this server to the
+ * speech-to-text provider and exists only as frames in flight: nothing here or
+ * at the provider (mip_opt_out) ever stores it. What survives is the text below.
+ *
+ * aiDraft holds suggested decisions, next steps and action items. They are kept
+ * here rather than written into Minutes because the minutes editor replaces its
+ * lists wholesale on every save — the organizer adopts a suggestion, and only
+ * then does it become part of the record.
+ */
+model Transcript {
+  id            String           @id @default(cuid())
+  eventId       String           @unique
+  status        TranscriptStatus @default(RECORDING)
+  provider      String
+  // Audit breadcrumb only, like checkInAnchorSetById.
+  startedById   String
+  startedAt     DateTime         @default(now())
+  endedAt       DateTime?
+  durationSec   Int              @default(0)
+  aiDraftStatus AiDraftStatus?
+  aiDraft       Json?
+  aiDraftError  String?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  event    Event               @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  segments TranscriptSegment[]
+
+  @@index([status])
+}
+
+/**
+ * One finalised utterance. text is encrypted at rest with DATA_ENCRYPTION_KEY.
+ * startMs/endMs are measured from Transcript.startedAt, so a recording that is
+ * stopped and resumed keeps one timeline with a visible gap.
+ */
+model TranscriptSegment {
+  id           String   @id @default(cuid())
+  transcriptId String
+  order        Int
+  speaker      Int?
+  text         String   @db.Text
+  startMs      Int
+  endMs        Int
+  createdAt    DateTime @default(now())
+
+  transcript Transcript @relation(fields: [transcriptId], references: [id], onDelete: Cascade)
+
+  @@index([transcriptId, order])
+}
+
+enum TranscriptStatus {
+  RECORDING
+  COMPLETE
+  FAILED
+}
+
+enum AiDraftStatus {
+  PENDING
+  READY
+  FAILED
 }
 
 model ActionItem {

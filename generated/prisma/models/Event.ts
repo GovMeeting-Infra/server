@@ -460,6 +460,7 @@ export type EventWhereInput = {
   attendees?: Prisma.EventAttendeeListRelationFilter
   attendances?: Prisma.AttendanceListRelationFilter
   minutes?: Prisma.XOR<Prisma.MinutesNullableScalarRelationFilter, Prisma.MinutesWhereInput> | null
+  transcript?: Prisma.XOR<Prisma.TranscriptNullableScalarRelationFilter, Prisma.TranscriptWhereInput> | null
   qrTokens?: Prisma.QRTokenListRelationFilter
 }
 
@@ -504,6 +505,7 @@ export type EventOrderByWithRelationInput = {
   attendees?: Prisma.EventAttendeeOrderByRelationAggregateInput
   attendances?: Prisma.AttendanceOrderByRelationAggregateInput
   minutes?: Prisma.MinutesOrderByWithRelationInput
+  transcript?: Prisma.TranscriptOrderByWithRelationInput
   qrTokens?: Prisma.QRTokenOrderByRelationAggregateInput
 }
 
@@ -551,6 +553,7 @@ export type EventWhereUniqueInput = Prisma.AtLeast<{
   attendees?: Prisma.EventAttendeeListRelationFilter
   attendances?: Prisma.AttendanceListRelationFilter
   minutes?: Prisma.XOR<Prisma.MinutesNullableScalarRelationFilter, Prisma.MinutesWhereInput> | null
+  transcript?: Prisma.XOR<Prisma.TranscriptNullableScalarRelationFilter, Prisma.TranscriptWhereInput> | null
   qrTokens?: Prisma.QRTokenListRelationFilter
 }, "id">
 
@@ -670,6 +673,7 @@ export type EventCreateInput = {
   attendees?: Prisma.EventAttendeeCreateNestedManyWithoutEventInput
   attendances?: Prisma.AttendanceCreateNestedManyWithoutEventInput
   minutes?: Prisma.MinutesCreateNestedOneWithoutEventInput
+  transcript?: Prisma.TranscriptCreateNestedOneWithoutEventInput
   qrTokens?: Prisma.QRTokenCreateNestedManyWithoutEventInput
 }
 
@@ -711,6 +715,7 @@ export type EventUncheckedCreateInput = {
   attendees?: Prisma.EventAttendeeUncheckedCreateNestedManyWithoutEventInput
   attendances?: Prisma.AttendanceUncheckedCreateNestedManyWithoutEventInput
   minutes?: Prisma.MinutesUncheckedCreateNestedOneWithoutEventInput
+  transcript?: Prisma.TranscriptUncheckedCreateNestedOneWithoutEventInput
   qrTokens?: Prisma.QRTokenUncheckedCreateNestedManyWithoutEventInput
 }
 
@@ -752,6 +757,7 @@ export type EventUpdateInput = {
   attendees?: Prisma.EventAttendeeUpdateManyWithoutEventNestedInput
   attendances?: Prisma.AttendanceUpdateManyWithoutEventNestedInput
   minutes?: Prisma.MinutesUpdateOneWithoutEventNestedInput
+  transcript?: Prisma.TranscriptUpdateOneWithoutEventNestedInput
   qrTokens?: Prisma.QRTokenUpdateManyWithoutEventNestedInput
 }
 
@@ -793,6 +799,7 @@ export type EventUncheckedUpdateInput = {
   attendees?: Prisma.EventAttendeeUncheckedUpdateManyWithoutEventNestedInput
   attendances?: Prisma.AttendanceUncheckedUpdateManyWithoutEventNestedInput
   minutes?: Prisma.MinutesUncheckedUpdateOneWithoutEventNestedInput
+  transcript?: Prisma.TranscriptUncheckedUpdateOneWithoutEventNestedInput
   qrTokens?: Prisma.QRTokenUncheckedUpdateManyWithoutEventNestedInput
 }
 
@@ -1302,6 +1309,20 @@ export type EventUpdateOneRequiredWithoutMinutesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.EventUpdateToOneWithWhereWithoutMinutesInput, Prisma.EventUpdateWithoutMinutesInput>, Prisma.EventUncheckedUpdateWithoutMinutesInput>
 }
 
+export type EventCreateNestedOneWithoutTranscriptInput = {
+  create?: Prisma.XOR<Prisma.EventCreateWithoutTranscriptInput, Prisma.EventUncheckedCreateWithoutTranscriptInput>
+  connectOrCreate?: Prisma.EventCreateOrConnectWithoutTranscriptInput
+  connect?: Prisma.EventWhereUniqueInput
+}
+
+export type EventUpdateOneRequiredWithoutTranscriptNestedInput = {
+  create?: Prisma.XOR<Prisma.EventCreateWithoutTranscriptInput, Prisma.EventUncheckedCreateWithoutTranscriptInput>
+  connectOrCreate?: Prisma.EventCreateOrConnectWithoutTranscriptInput
+  upsert?: Prisma.EventUpsertWithoutTranscriptInput
+  connect?: Prisma.EventWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.EventUpdateToOneWithWhereWithoutTranscriptInput, Prisma.EventUpdateWithoutTranscriptInput>, Prisma.EventUncheckedUpdateWithoutTranscriptInput>
+}
+
 export type EventCreateWithoutOrganizerInput = {
   id?: string
   title: string
@@ -1339,6 +1360,7 @@ export type EventCreateWithoutOrganizerInput = {
   attendees?: Prisma.EventAttendeeCreateNestedManyWithoutEventInput
   attendances?: Prisma.AttendanceCreateNestedManyWithoutEventInput
   minutes?: Prisma.MinutesCreateNestedOneWithoutEventInput
+  transcript?: Prisma.TranscriptCreateNestedOneWithoutEventInput
   qrTokens?: Prisma.QRTokenCreateNestedManyWithoutEventInput
 }
 
@@ -1379,6 +1401,7 @@ export type EventUncheckedCreateWithoutOrganizerInput = {
   attendees?: Prisma.EventAttendeeUncheckedCreateNestedManyWithoutEventInput
   attendances?: Prisma.AttendanceUncheckedCreateNestedManyWithoutEventInput
   minutes?: Prisma.MinutesUncheckedCreateNestedOneWithoutEventInput
+  transcript?: Prisma.TranscriptUncheckedCreateNestedOneWithoutEventInput
   qrTokens?: Prisma.QRTokenUncheckedCreateNestedManyWithoutEventInput
 }
 
@@ -1483,6 +1506,7 @@ export type EventCreateWithoutMinistryInput = {
   attendees?: Prisma.EventAttendeeCreateNestedManyWithoutEventInput
   attendances?: Prisma.AttendanceCreateNestedManyWithoutEventInput
   minutes?: Prisma.MinutesCreateNestedOneWithoutEventInput
+  transcript?: Prisma.TranscriptCreateNestedOneWithoutEventInput
   qrTokens?: Prisma.QRTokenCreateNestedManyWithoutEventInput
 }
 
@@ -1523,6 +1547,7 @@ export type EventUncheckedCreateWithoutMinistryInput = {
   attendees?: Prisma.EventAttendeeUncheckedCreateNestedManyWithoutEventInput
   attendances?: Prisma.AttendanceUncheckedCreateNestedManyWithoutEventInput
   minutes?: Prisma.MinutesUncheckedCreateNestedOneWithoutEventInput
+  transcript?: Prisma.TranscriptUncheckedCreateNestedOneWithoutEventInput
   qrTokens?: Prisma.QRTokenUncheckedCreateNestedManyWithoutEventInput
 }
 
@@ -1573,6 +1598,7 @@ export type EventCreateWithoutInvitedMinistriesInput = {
   attendees?: Prisma.EventAttendeeCreateNestedManyWithoutEventInput
   attendances?: Prisma.AttendanceCreateNestedManyWithoutEventInput
   minutes?: Prisma.MinutesCreateNestedOneWithoutEventInput
+  transcript?: Prisma.TranscriptCreateNestedOneWithoutEventInput
   qrTokens?: Prisma.QRTokenCreateNestedManyWithoutEventInput
 }
 
@@ -1613,6 +1639,7 @@ export type EventUncheckedCreateWithoutInvitedMinistriesInput = {
   attendees?: Prisma.EventAttendeeUncheckedCreateNestedManyWithoutEventInput
   attendances?: Prisma.AttendanceUncheckedCreateNestedManyWithoutEventInput
   minutes?: Prisma.MinutesUncheckedCreateNestedOneWithoutEventInput
+  transcript?: Prisma.TranscriptUncheckedCreateNestedOneWithoutEventInput
   qrTokens?: Prisma.QRTokenUncheckedCreateNestedManyWithoutEventInput
 }
 
@@ -1690,6 +1717,7 @@ export type EventCreateWithoutSeriesInput = {
   attendees?: Prisma.EventAttendeeCreateNestedManyWithoutEventInput
   attendances?: Prisma.AttendanceCreateNestedManyWithoutEventInput
   minutes?: Prisma.MinutesCreateNestedOneWithoutEventInput
+  transcript?: Prisma.TranscriptCreateNestedOneWithoutEventInput
   qrTokens?: Prisma.QRTokenCreateNestedManyWithoutEventInput
 }
 
@@ -1730,6 +1758,7 @@ export type EventUncheckedCreateWithoutSeriesInput = {
   attendees?: Prisma.EventAttendeeUncheckedCreateNestedManyWithoutEventInput
   attendances?: Prisma.AttendanceUncheckedCreateNestedManyWithoutEventInput
   minutes?: Prisma.MinutesUncheckedCreateNestedOneWithoutEventInput
+  transcript?: Prisma.TranscriptUncheckedCreateNestedOneWithoutEventInput
   qrTokens?: Prisma.QRTokenUncheckedCreateNestedManyWithoutEventInput
 }
 
@@ -1796,6 +1825,7 @@ export type EventCreateWithoutCoOrganizersInput = {
   attendees?: Prisma.EventAttendeeCreateNestedManyWithoutEventInput
   attendances?: Prisma.AttendanceCreateNestedManyWithoutEventInput
   minutes?: Prisma.MinutesCreateNestedOneWithoutEventInput
+  transcript?: Prisma.TranscriptCreateNestedOneWithoutEventInput
   qrTokens?: Prisma.QRTokenCreateNestedManyWithoutEventInput
 }
 
@@ -1836,6 +1866,7 @@ export type EventUncheckedCreateWithoutCoOrganizersInput = {
   attendees?: Prisma.EventAttendeeUncheckedCreateNestedManyWithoutEventInput
   attendances?: Prisma.AttendanceUncheckedCreateNestedManyWithoutEventInput
   minutes?: Prisma.MinutesUncheckedCreateNestedOneWithoutEventInput
+  transcript?: Prisma.TranscriptUncheckedCreateNestedOneWithoutEventInput
   qrTokens?: Prisma.QRTokenUncheckedCreateNestedManyWithoutEventInput
 }
 
@@ -1892,6 +1923,7 @@ export type EventUpdateWithoutCoOrganizersInput = {
   attendees?: Prisma.EventAttendeeUpdateManyWithoutEventNestedInput
   attendances?: Prisma.AttendanceUpdateManyWithoutEventNestedInput
   minutes?: Prisma.MinutesUpdateOneWithoutEventNestedInput
+  transcript?: Prisma.TranscriptUpdateOneWithoutEventNestedInput
   qrTokens?: Prisma.QRTokenUpdateManyWithoutEventNestedInput
 }
 
@@ -1932,6 +1964,7 @@ export type EventUncheckedUpdateWithoutCoOrganizersInput = {
   attendees?: Prisma.EventAttendeeUncheckedUpdateManyWithoutEventNestedInput
   attendances?: Prisma.AttendanceUncheckedUpdateManyWithoutEventNestedInput
   minutes?: Prisma.MinutesUncheckedUpdateOneWithoutEventNestedInput
+  transcript?: Prisma.TranscriptUncheckedUpdateOneWithoutEventNestedInput
   qrTokens?: Prisma.QRTokenUncheckedUpdateManyWithoutEventNestedInput
 }
 
@@ -1972,6 +2005,7 @@ export type EventCreateWithoutAttendeesInput = {
   coOrganizers?: Prisma.EventCoOrganizerCreateNestedManyWithoutEventInput
   attendances?: Prisma.AttendanceCreateNestedManyWithoutEventInput
   minutes?: Prisma.MinutesCreateNestedOneWithoutEventInput
+  transcript?: Prisma.TranscriptCreateNestedOneWithoutEventInput
   qrTokens?: Prisma.QRTokenCreateNestedManyWithoutEventInput
 }
 
@@ -2012,6 +2046,7 @@ export type EventUncheckedCreateWithoutAttendeesInput = {
   coOrganizers?: Prisma.EventCoOrganizerUncheckedCreateNestedManyWithoutEventInput
   attendances?: Prisma.AttendanceUncheckedCreateNestedManyWithoutEventInput
   minutes?: Prisma.MinutesUncheckedCreateNestedOneWithoutEventInput
+  transcript?: Prisma.TranscriptUncheckedCreateNestedOneWithoutEventInput
   qrTokens?: Prisma.QRTokenUncheckedCreateNestedManyWithoutEventInput
 }
 
@@ -2068,6 +2103,7 @@ export type EventUpdateWithoutAttendeesInput = {
   coOrganizers?: Prisma.EventCoOrganizerUpdateManyWithoutEventNestedInput
   attendances?: Prisma.AttendanceUpdateManyWithoutEventNestedInput
   minutes?: Prisma.MinutesUpdateOneWithoutEventNestedInput
+  transcript?: Prisma.TranscriptUpdateOneWithoutEventNestedInput
   qrTokens?: Prisma.QRTokenUpdateManyWithoutEventNestedInput
 }
 
@@ -2108,6 +2144,7 @@ export type EventUncheckedUpdateWithoutAttendeesInput = {
   coOrganizers?: Prisma.EventCoOrganizerUncheckedUpdateManyWithoutEventNestedInput
   attendances?: Prisma.AttendanceUncheckedUpdateManyWithoutEventNestedInput
   minutes?: Prisma.MinutesUncheckedUpdateOneWithoutEventNestedInput
+  transcript?: Prisma.TranscriptUncheckedUpdateOneWithoutEventNestedInput
   qrTokens?: Prisma.QRTokenUncheckedUpdateManyWithoutEventNestedInput
 }
 
@@ -2148,6 +2185,7 @@ export type EventCreateWithoutAttendancesInput = {
   coOrganizers?: Prisma.EventCoOrganizerCreateNestedManyWithoutEventInput
   attendees?: Prisma.EventAttendeeCreateNestedManyWithoutEventInput
   minutes?: Prisma.MinutesCreateNestedOneWithoutEventInput
+  transcript?: Prisma.TranscriptCreateNestedOneWithoutEventInput
   qrTokens?: Prisma.QRTokenCreateNestedManyWithoutEventInput
 }
 
@@ -2188,6 +2226,7 @@ export type EventUncheckedCreateWithoutAttendancesInput = {
   coOrganizers?: Prisma.EventCoOrganizerUncheckedCreateNestedManyWithoutEventInput
   attendees?: Prisma.EventAttendeeUncheckedCreateNestedManyWithoutEventInput
   minutes?: Prisma.MinutesUncheckedCreateNestedOneWithoutEventInput
+  transcript?: Prisma.TranscriptUncheckedCreateNestedOneWithoutEventInput
   qrTokens?: Prisma.QRTokenUncheckedCreateNestedManyWithoutEventInput
 }
 
@@ -2244,6 +2283,7 @@ export type EventUpdateWithoutAttendancesInput = {
   coOrganizers?: Prisma.EventCoOrganizerUpdateManyWithoutEventNestedInput
   attendees?: Prisma.EventAttendeeUpdateManyWithoutEventNestedInput
   minutes?: Prisma.MinutesUpdateOneWithoutEventNestedInput
+  transcript?: Prisma.TranscriptUpdateOneWithoutEventNestedInput
   qrTokens?: Prisma.QRTokenUpdateManyWithoutEventNestedInput
 }
 
@@ -2284,6 +2324,7 @@ export type EventUncheckedUpdateWithoutAttendancesInput = {
   coOrganizers?: Prisma.EventCoOrganizerUncheckedUpdateManyWithoutEventNestedInput
   attendees?: Prisma.EventAttendeeUncheckedUpdateManyWithoutEventNestedInput
   minutes?: Prisma.MinutesUncheckedUpdateOneWithoutEventNestedInput
+  transcript?: Prisma.TranscriptUncheckedUpdateOneWithoutEventNestedInput
   qrTokens?: Prisma.QRTokenUncheckedUpdateManyWithoutEventNestedInput
 }
 
@@ -2325,6 +2366,7 @@ export type EventCreateWithoutQrTokensInput = {
   attendees?: Prisma.EventAttendeeCreateNestedManyWithoutEventInput
   attendances?: Prisma.AttendanceCreateNestedManyWithoutEventInput
   minutes?: Prisma.MinutesCreateNestedOneWithoutEventInput
+  transcript?: Prisma.TranscriptCreateNestedOneWithoutEventInput
 }
 
 export type EventUncheckedCreateWithoutQrTokensInput = {
@@ -2365,6 +2407,7 @@ export type EventUncheckedCreateWithoutQrTokensInput = {
   attendees?: Prisma.EventAttendeeUncheckedCreateNestedManyWithoutEventInput
   attendances?: Prisma.AttendanceUncheckedCreateNestedManyWithoutEventInput
   minutes?: Prisma.MinutesUncheckedCreateNestedOneWithoutEventInput
+  transcript?: Prisma.TranscriptUncheckedCreateNestedOneWithoutEventInput
 }
 
 export type EventCreateOrConnectWithoutQrTokensInput = {
@@ -2421,6 +2464,7 @@ export type EventUpdateWithoutQrTokensInput = {
   attendees?: Prisma.EventAttendeeUpdateManyWithoutEventNestedInput
   attendances?: Prisma.AttendanceUpdateManyWithoutEventNestedInput
   minutes?: Prisma.MinutesUpdateOneWithoutEventNestedInput
+  transcript?: Prisma.TranscriptUpdateOneWithoutEventNestedInput
 }
 
 export type EventUncheckedUpdateWithoutQrTokensInput = {
@@ -2461,6 +2505,7 @@ export type EventUncheckedUpdateWithoutQrTokensInput = {
   attendees?: Prisma.EventAttendeeUncheckedUpdateManyWithoutEventNestedInput
   attendances?: Prisma.AttendanceUncheckedUpdateManyWithoutEventNestedInput
   minutes?: Prisma.MinutesUncheckedUpdateOneWithoutEventNestedInput
+  transcript?: Prisma.TranscriptUncheckedUpdateOneWithoutEventNestedInput
 }
 
 export type EventCreateWithoutMinutesInput = {
@@ -2500,6 +2545,7 @@ export type EventCreateWithoutMinutesInput = {
   coOrganizers?: Prisma.EventCoOrganizerCreateNestedManyWithoutEventInput
   attendees?: Prisma.EventAttendeeCreateNestedManyWithoutEventInput
   attendances?: Prisma.AttendanceCreateNestedManyWithoutEventInput
+  transcript?: Prisma.TranscriptCreateNestedOneWithoutEventInput
   qrTokens?: Prisma.QRTokenCreateNestedManyWithoutEventInput
 }
 
@@ -2540,6 +2586,7 @@ export type EventUncheckedCreateWithoutMinutesInput = {
   coOrganizers?: Prisma.EventCoOrganizerUncheckedCreateNestedManyWithoutEventInput
   attendees?: Prisma.EventAttendeeUncheckedCreateNestedManyWithoutEventInput
   attendances?: Prisma.AttendanceUncheckedCreateNestedManyWithoutEventInput
+  transcript?: Prisma.TranscriptUncheckedCreateNestedOneWithoutEventInput
   qrTokens?: Prisma.QRTokenUncheckedCreateNestedManyWithoutEventInput
 }
 
@@ -2596,6 +2643,7 @@ export type EventUpdateWithoutMinutesInput = {
   coOrganizers?: Prisma.EventCoOrganizerUpdateManyWithoutEventNestedInput
   attendees?: Prisma.EventAttendeeUpdateManyWithoutEventNestedInput
   attendances?: Prisma.AttendanceUpdateManyWithoutEventNestedInput
+  transcript?: Prisma.TranscriptUpdateOneWithoutEventNestedInput
   qrTokens?: Prisma.QRTokenUpdateManyWithoutEventNestedInput
 }
 
@@ -2636,6 +2684,187 @@ export type EventUncheckedUpdateWithoutMinutesInput = {
   coOrganizers?: Prisma.EventCoOrganizerUncheckedUpdateManyWithoutEventNestedInput
   attendees?: Prisma.EventAttendeeUncheckedUpdateManyWithoutEventNestedInput
   attendances?: Prisma.AttendanceUncheckedUpdateManyWithoutEventNestedInput
+  transcript?: Prisma.TranscriptUncheckedUpdateOneWithoutEventNestedInput
+  qrTokens?: Prisma.QRTokenUncheckedUpdateManyWithoutEventNestedInput
+}
+
+export type EventCreateWithoutTranscriptInput = {
+  id?: string
+  title: string
+  description?: string | null
+  isPublic?: boolean
+  type?: $Enums.EventType
+  scope?: $Enums.EventScope | null
+  classification?: $Enums.EventClassification | null
+  colorCategory?: string | null
+  startAt: Date | string
+  endAt: Date | string
+  venueName?: string | null
+  venueLat?: number | null
+  venueLng?: number | null
+  geofenceRadius?: number
+  checkInAnchorLat?: number | null
+  checkInAnchorLng?: number | null
+  checkInAnchorAccuracy?: number | null
+  checkInAnchorSetAt?: Date | string | null
+  checkInAnchorSetById?: string | null
+  allowGuestCheckIn?: boolean
+  requireGeofence?: boolean
+  bannerImage?: string | null
+  contactEmail?: string | null
+  contactPhone?: string | null
+  externalUrl?: string | null
+  status?: $Enums.EventStatus
+  publishedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  ministry: Prisma.MinistryCreateNestedOneWithoutEventsInput
+  invitedMinistries?: Prisma.MinistryCreateNestedManyWithoutInvitedToEventsInput
+  organizer?: Prisma.UserCreateNestedOneWithoutOrganizedEventsInput
+  series?: Prisma.EventSeriesCreateNestedOneWithoutEventsInput
+  coOrganizers?: Prisma.EventCoOrganizerCreateNestedManyWithoutEventInput
+  attendees?: Prisma.EventAttendeeCreateNestedManyWithoutEventInput
+  attendances?: Prisma.AttendanceCreateNestedManyWithoutEventInput
+  minutes?: Prisma.MinutesCreateNestedOneWithoutEventInput
+  qrTokens?: Prisma.QRTokenCreateNestedManyWithoutEventInput
+}
+
+export type EventUncheckedCreateWithoutTranscriptInput = {
+  id?: string
+  title: string
+  description?: string | null
+  isPublic?: boolean
+  type?: $Enums.EventType
+  scope?: $Enums.EventScope | null
+  classification?: $Enums.EventClassification | null
+  colorCategory?: string | null
+  startAt: Date | string
+  endAt: Date | string
+  venueName?: string | null
+  venueLat?: number | null
+  venueLng?: number | null
+  geofenceRadius?: number
+  checkInAnchorLat?: number | null
+  checkInAnchorLng?: number | null
+  checkInAnchorAccuracy?: number | null
+  checkInAnchorSetAt?: Date | string | null
+  checkInAnchorSetById?: string | null
+  allowGuestCheckIn?: boolean
+  requireGeofence?: boolean
+  bannerImage?: string | null
+  contactEmail?: string | null
+  contactPhone?: string | null
+  externalUrl?: string | null
+  status?: $Enums.EventStatus
+  publishedAt?: Date | string | null
+  ministryId: string
+  organizerId?: string | null
+  seriesId?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  invitedMinistries?: Prisma.MinistryUncheckedCreateNestedManyWithoutInvitedToEventsInput
+  coOrganizers?: Prisma.EventCoOrganizerUncheckedCreateNestedManyWithoutEventInput
+  attendees?: Prisma.EventAttendeeUncheckedCreateNestedManyWithoutEventInput
+  attendances?: Prisma.AttendanceUncheckedCreateNestedManyWithoutEventInput
+  minutes?: Prisma.MinutesUncheckedCreateNestedOneWithoutEventInput
+  qrTokens?: Prisma.QRTokenUncheckedCreateNestedManyWithoutEventInput
+}
+
+export type EventCreateOrConnectWithoutTranscriptInput = {
+  where: Prisma.EventWhereUniqueInput
+  create: Prisma.XOR<Prisma.EventCreateWithoutTranscriptInput, Prisma.EventUncheckedCreateWithoutTranscriptInput>
+}
+
+export type EventUpsertWithoutTranscriptInput = {
+  update: Prisma.XOR<Prisma.EventUpdateWithoutTranscriptInput, Prisma.EventUncheckedUpdateWithoutTranscriptInput>
+  create: Prisma.XOR<Prisma.EventCreateWithoutTranscriptInput, Prisma.EventUncheckedCreateWithoutTranscriptInput>
+  where?: Prisma.EventWhereInput
+}
+
+export type EventUpdateToOneWithWhereWithoutTranscriptInput = {
+  where?: Prisma.EventWhereInput
+  data: Prisma.XOR<Prisma.EventUpdateWithoutTranscriptInput, Prisma.EventUncheckedUpdateWithoutTranscriptInput>
+}
+
+export type EventUpdateWithoutTranscriptInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isPublic?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  type?: Prisma.EnumEventTypeFieldUpdateOperationsInput | $Enums.EventType
+  scope?: Prisma.NullableEnumEventScopeFieldUpdateOperationsInput | $Enums.EventScope | null
+  classification?: Prisma.NullableEnumEventClassificationFieldUpdateOperationsInput | $Enums.EventClassification | null
+  colorCategory?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  startAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  endAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  venueName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  venueLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  venueLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  geofenceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  checkInAnchorLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  checkInAnchorLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  checkInAnchorAccuracy?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  checkInAnchorSetAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  checkInAnchorSetById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  allowGuestCheckIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireGeofence?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  externalUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumEventStatusFieldUpdateOperationsInput | $Enums.EventStatus
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  ministry?: Prisma.MinistryUpdateOneRequiredWithoutEventsNestedInput
+  invitedMinistries?: Prisma.MinistryUpdateManyWithoutInvitedToEventsNestedInput
+  organizer?: Prisma.UserUpdateOneWithoutOrganizedEventsNestedInput
+  series?: Prisma.EventSeriesUpdateOneWithoutEventsNestedInput
+  coOrganizers?: Prisma.EventCoOrganizerUpdateManyWithoutEventNestedInput
+  attendees?: Prisma.EventAttendeeUpdateManyWithoutEventNestedInput
+  attendances?: Prisma.AttendanceUpdateManyWithoutEventNestedInput
+  minutes?: Prisma.MinutesUpdateOneWithoutEventNestedInput
+  qrTokens?: Prisma.QRTokenUpdateManyWithoutEventNestedInput
+}
+
+export type EventUncheckedUpdateWithoutTranscriptInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isPublic?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  type?: Prisma.EnumEventTypeFieldUpdateOperationsInput | $Enums.EventType
+  scope?: Prisma.NullableEnumEventScopeFieldUpdateOperationsInput | $Enums.EventScope | null
+  classification?: Prisma.NullableEnumEventClassificationFieldUpdateOperationsInput | $Enums.EventClassification | null
+  colorCategory?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  startAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  endAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  venueName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  venueLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  venueLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  geofenceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  checkInAnchorLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  checkInAnchorLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  checkInAnchorAccuracy?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  checkInAnchorSetAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  checkInAnchorSetById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  allowGuestCheckIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireGeofence?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  externalUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumEventStatusFieldUpdateOperationsInput | $Enums.EventStatus
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  ministryId?: Prisma.StringFieldUpdateOperationsInput | string
+  organizerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  seriesId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  invitedMinistries?: Prisma.MinistryUncheckedUpdateManyWithoutInvitedToEventsNestedInput
+  coOrganizers?: Prisma.EventCoOrganizerUncheckedUpdateManyWithoutEventNestedInput
+  attendees?: Prisma.EventAttendeeUncheckedUpdateManyWithoutEventNestedInput
+  attendances?: Prisma.AttendanceUncheckedUpdateManyWithoutEventNestedInput
+  minutes?: Prisma.MinutesUncheckedUpdateOneWithoutEventNestedInput
   qrTokens?: Prisma.QRTokenUncheckedUpdateManyWithoutEventNestedInput
 }
 
@@ -2710,6 +2939,7 @@ export type EventUpdateWithoutOrganizerInput = {
   attendees?: Prisma.EventAttendeeUpdateManyWithoutEventNestedInput
   attendances?: Prisma.AttendanceUpdateManyWithoutEventNestedInput
   minutes?: Prisma.MinutesUpdateOneWithoutEventNestedInput
+  transcript?: Prisma.TranscriptUpdateOneWithoutEventNestedInput
   qrTokens?: Prisma.QRTokenUpdateManyWithoutEventNestedInput
 }
 
@@ -2750,6 +2980,7 @@ export type EventUncheckedUpdateWithoutOrganizerInput = {
   attendees?: Prisma.EventAttendeeUncheckedUpdateManyWithoutEventNestedInput
   attendances?: Prisma.AttendanceUncheckedUpdateManyWithoutEventNestedInput
   minutes?: Prisma.MinutesUncheckedUpdateOneWithoutEventNestedInput
+  transcript?: Prisma.TranscriptUncheckedUpdateOneWithoutEventNestedInput
   qrTokens?: Prisma.QRTokenUncheckedUpdateManyWithoutEventNestedInput
 }
 
@@ -2858,6 +3089,7 @@ export type EventUpdateWithoutMinistryInput = {
   attendees?: Prisma.EventAttendeeUpdateManyWithoutEventNestedInput
   attendances?: Prisma.AttendanceUpdateManyWithoutEventNestedInput
   minutes?: Prisma.MinutesUpdateOneWithoutEventNestedInput
+  transcript?: Prisma.TranscriptUpdateOneWithoutEventNestedInput
   qrTokens?: Prisma.QRTokenUpdateManyWithoutEventNestedInput
 }
 
@@ -2898,6 +3130,7 @@ export type EventUncheckedUpdateWithoutMinistryInput = {
   attendees?: Prisma.EventAttendeeUncheckedUpdateManyWithoutEventNestedInput
   attendances?: Prisma.AttendanceUncheckedUpdateManyWithoutEventNestedInput
   minutes?: Prisma.MinutesUncheckedUpdateOneWithoutEventNestedInput
+  transcript?: Prisma.TranscriptUncheckedUpdateOneWithoutEventNestedInput
   qrTokens?: Prisma.QRTokenUncheckedUpdateManyWithoutEventNestedInput
 }
 
@@ -2972,6 +3205,7 @@ export type EventUpdateWithoutInvitedMinistriesInput = {
   attendees?: Prisma.EventAttendeeUpdateManyWithoutEventNestedInput
   attendances?: Prisma.AttendanceUpdateManyWithoutEventNestedInput
   minutes?: Prisma.MinutesUpdateOneWithoutEventNestedInput
+  transcript?: Prisma.TranscriptUpdateOneWithoutEventNestedInput
   qrTokens?: Prisma.QRTokenUpdateManyWithoutEventNestedInput
 }
 
@@ -3012,6 +3246,7 @@ export type EventUncheckedUpdateWithoutInvitedMinistriesInput = {
   attendees?: Prisma.EventAttendeeUncheckedUpdateManyWithoutEventNestedInput
   attendances?: Prisma.AttendanceUncheckedUpdateManyWithoutEventNestedInput
   minutes?: Prisma.MinutesUncheckedUpdateOneWithoutEventNestedInput
+  transcript?: Prisma.TranscriptUncheckedUpdateOneWithoutEventNestedInput
   qrTokens?: Prisma.QRTokenUncheckedUpdateManyWithoutEventNestedInput
 }
 
@@ -3121,6 +3356,7 @@ export type EventUpdateWithoutSeriesInput = {
   attendees?: Prisma.EventAttendeeUpdateManyWithoutEventNestedInput
   attendances?: Prisma.AttendanceUpdateManyWithoutEventNestedInput
   minutes?: Prisma.MinutesUpdateOneWithoutEventNestedInput
+  transcript?: Prisma.TranscriptUpdateOneWithoutEventNestedInput
   qrTokens?: Prisma.QRTokenUpdateManyWithoutEventNestedInput
 }
 
@@ -3161,6 +3397,7 @@ export type EventUncheckedUpdateWithoutSeriesInput = {
   attendees?: Prisma.EventAttendeeUncheckedUpdateManyWithoutEventNestedInput
   attendances?: Prisma.AttendanceUncheckedUpdateManyWithoutEventNestedInput
   minutes?: Prisma.MinutesUncheckedUpdateOneWithoutEventNestedInput
+  transcript?: Prisma.TranscriptUncheckedUpdateOneWithoutEventNestedInput
   qrTokens?: Prisma.QRTokenUncheckedUpdateManyWithoutEventNestedInput
 }
 
@@ -3306,6 +3543,7 @@ export type EventSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   attendees?: boolean | Prisma.Event$attendeesArgs<ExtArgs>
   attendances?: boolean | Prisma.Event$attendancesArgs<ExtArgs>
   minutes?: boolean | Prisma.Event$minutesArgs<ExtArgs>
+  transcript?: boolean | Prisma.Event$transcriptArgs<ExtArgs>
   qrTokens?: boolean | Prisma.Event$qrTokensArgs<ExtArgs>
   _count?: boolean | Prisma.EventCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["event"]>
@@ -3431,6 +3669,7 @@ export type EventInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   attendees?: boolean | Prisma.Event$attendeesArgs<ExtArgs>
   attendances?: boolean | Prisma.Event$attendancesArgs<ExtArgs>
   minutes?: boolean | Prisma.Event$minutesArgs<ExtArgs>
+  transcript?: boolean | Prisma.Event$transcriptArgs<ExtArgs>
   qrTokens?: boolean | Prisma.Event$qrTokensArgs<ExtArgs>
   _count?: boolean | Prisma.EventCountOutputTypeDefaultArgs<ExtArgs>
 }
@@ -3456,6 +3695,7 @@ export type $EventPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     attendees: Prisma.$EventAttendeePayload<ExtArgs>[]
     attendances: Prisma.$AttendancePayload<ExtArgs>[]
     minutes: Prisma.$MinutesPayload<ExtArgs> | null
+    transcript: Prisma.$TranscriptPayload<ExtArgs> | null
     qrTokens: Prisma.$QRTokenPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
@@ -3900,6 +4140,7 @@ export interface Prisma__EventClient<T, Null = never, ExtArgs extends runtime.Ty
   attendees<T extends Prisma.Event$attendeesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Event$attendeesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EventAttendeePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   attendances<T extends Prisma.Event$attendancesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Event$attendancesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AttendancePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   minutes<T extends Prisma.Event$minutesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Event$minutesArgs<ExtArgs>>): Prisma.Prisma__MinutesClient<runtime.Types.Result.GetResult<Prisma.$MinutesPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  transcript<T extends Prisma.Event$transcriptArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Event$transcriptArgs<ExtArgs>>): Prisma.Prisma__TranscriptClient<runtime.Types.Result.GetResult<Prisma.$TranscriptPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   qrTokens<T extends Prisma.Event$qrTokensArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Event$qrTokensArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$QRTokenPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -4513,6 +4754,25 @@ export type Event$minutesArgs<ExtArgs extends runtime.Types.Extensions.InternalA
    */
   include?: Prisma.MinutesInclude<ExtArgs> | null
   where?: Prisma.MinutesWhereInput
+}
+
+/**
+ * Event.transcript
+ */
+export type Event$transcriptArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Transcript
+   */
+  select?: Prisma.TranscriptSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Transcript
+   */
+  omit?: Prisma.TranscriptOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TranscriptInclude<ExtArgs> | null
+  where?: Prisma.TranscriptWhereInput
 }
 
 /**
