@@ -13,10 +13,21 @@ export const GEOFENCE_RADIUS_METERS = 100;
  * Tightest fix we accept when *setting* the anchor. Deliberately stricter than
  * the attendee threshold, and it has to be: the anchor is the one reading every
  * later judgement is measured against, so its error is not one person's problem
- * but the whole meeting's. A worse fix than this mints the code ungeofenced
- * rather than anchoring badly.
+ * but the whole meeting's. A worse fix than this is refused, both when setting the
+ * area and when moving it.
  */
 export const ANCHOR_MAX_ACCURACY_METERS = 50;
+
+/**
+ * How early before a meeting starts its check-in code can be generated.
+ *
+ * Generating the code sets the check-in area from wherever the organizer is
+ * standing, so a code minted the day before — from the office, for a meeting
+ * across town — fences the wrong building. Each day of a series is its own
+ * meeting with its own area; this keeps each one being set at its venue, on
+ * the day, while leaving room to set up before people arrive.
+ */
+export const CODE_OPENS_BEFORE_START_MINUTES = 120;
 
 /**
  * Worst fix we accept from an attendee before refusing to judge at all.
