@@ -117,7 +117,21 @@ describe('EventsService', () => {
   };
 
   /** getOne and listEvents take the acting user, not a bare ministry id. */
-  const staff = { systemRole: 'STAFF', ministryId: 'ministry-1' };
+  const staff = {
+    id: 'staff-1',
+    systemRole: 'STAFF',
+    ministryId: 'ministry-1',
+  };
+  const otherStaff = {
+    id: 'staff-2',
+    systemRole: 'STAFF',
+    ministryId: 'ministry-1',
+  };
+  const minister = {
+    id: 'minister-1',
+    systemRole: 'MINISTER',
+    ministryId: 'ministry-1',
+  };
 
   beforeEach(async () => {
     // Call history only — mockClear keeps the implementations set above, but
@@ -652,17 +666,109 @@ describe('EventsService', () => {
       // setEvents, not set: the list is written with the events TTL.
       expect(mockCache.setEvents).toHaveBeenCalled();
     });
+
+    /**
+     * Staff see only the meetings they are part of. The two things that can go
+     * wrong are the filter dropping out of the query, and the cache handing one
+     * person's list to a colleague.
+     */
+    describe('invite-only visibility', () => {
+      const whereUsed = () => mockRepository.findMany.mock.calls[0][0];
+      const cacheKeyUsed = (n = 0) => mockCache.get.mock.calls[n][0];
+
+      beforeEach(() => {
+        mockCache.get.mockResolvedValue(null);
+        mockRepository.findMany.mockResolvedValue({ data: [], total: 0 });
+      });
+
+      it('narrows staff to events they run, co-run, attend, or that are public', async () => {
+        await service.listEvents('ministry-1', staff, { page: 1 });
+
+        expect(whereUsed().AND).toEqual([
+          { ministryId: 'ministry-1' },
+          {
+            OR: [
+              { isPublic: true },
+              { organizerId: 'staff-1' },
+              { coOrganizers: { some: { userId: 'staff-1' } } },
+              { attendees: { some: { userId: 'staff-1' } } },
+            ],
+          },
+        ]);
+      });
+
+      it('keeps the visibility filter when "mine" adds its own OR', async () => {
+        await service.listEvents('ministry-1', staff, { page: 1, mine: true });
+
+        expect(whereUsed().AND[1].OR).toBeDefined();
+        expect(whereUsed().OR).toBeDefined();
+      });
+
+      it('leaves leadership seeing the whole ministry', async () => {
+        await service.listEvents('ministry-1', minister, { page: 1 });
+
+        expect(whereUsed().AND).toEqual([{ ministryId: 'ministry-1' }, {}]);
+      });
+
+      it('caches each staff member separately', async () => {
+        await service.listEvents('ministry-1', staff, { page: 1 });
+        await service.listEvents('ministry-1', otherStaff, { page: 1 });
+
+        expect(cacheKeyUsed(0)).toContain('u:staff-1');
+        expect(cacheKeyUsed(1)).toContain('u:staff-2');
+      });
+
+      it('lets leadership share the ministry-wide cache entry', async () => {
+        await service.listEvents('ministry-1', minister, { page: 1 });
+
+        expect(cacheKeyUsed()).toContain(':all:');
+        expect(cacheKeyUsed()).not.toContain('minister-1');
+      });
+    });
   });
 
   describe('getOne', () => {
-    it('should return event by id', async () => {
-      mockRepository.findOne.mockResolvedValue({
-        id: 'event-1',
-        title: 'Test Event',
-        ministryId: 'ministry-1',
-      });
+    const invitedEvent = {
+      id: 'event-1',
+      title: 'Test Event',
+      ministryId: 'ministry-1',
+      isPublic: false,
+      organizerId: 'someone-else',
+      coOrganizers: [],
+      attendees: [{ userId: 'staff-1' }],
+    };
+
+    it('returns the event to someone invited to it', async () => {
+      mockRepository.findOne.mockResolvedValue(invitedEvent);
 
       const result = await service.getOne('event-1', staff);
+
+      expect(result.id).toBe('event-1');
+    });
+
+    it('reports not-found to a colleague who was not invited', async () => {
+      mockRepository.findOne.mockResolvedValue(invitedEvent);
+
+      await expect(service.getOne('event-1', otherStaff)).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+
+    it('returns it to leadership without an invitation', async () => {
+      mockRepository.findOne.mockResolvedValue(invitedEvent);
+
+      const result = await service.getOne('event-1', minister);
+
+      expect(result.id).toBe('event-1');
+    });
+
+    it('returns a public event to any colleague', async () => {
+      mockRepository.findOne.mockResolvedValue({
+        ...invitedEvent,
+        isPublic: true,
+      });
+
+      const result = await service.getOne('event-1', otherStaff);
 
       expect(result.id).toBe('event-1');
     });
