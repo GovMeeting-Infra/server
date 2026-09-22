@@ -1,4 +1,8 @@
-import { BadRequestException, ForbiddenException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  NotFoundException,
+} from '@nestjs/common';
 import { MinutesService } from '../minutes.service';
 
 /**
@@ -344,6 +348,63 @@ describe('MinutesService', () => {
       });
       // So the page can say the window has passed and they are editing anyway.
       expect(result.editWindowEndsAt).not.toBeNull();
+    });
+  });
+
+  /**
+   * Minutes and action items are as private as their meeting. These routes
+   * used to check nothing at all — any signed-in user holding an event id could
+   * read the record, from any ministry.
+   */
+  describe('assertCanReadEvent', () => {
+    const meeting = {
+      ministryId: MINISTRY,
+      isPublic: false,
+      organizerId: ORGANIZER,
+      coOrganizers: [],
+      attendees: [{ userId: 'u-invited' }],
+    };
+
+    beforeEach(() => prisma.event.findUnique.mockResolvedValue(meeting));
+
+    it('lets an invitee through', async () => {
+      await expect(
+        service.assertCanReadEvent(EVENT_ID, {
+          id: 'u-invited',
+          systemRole: 'STAFF',
+          ministryId: MINISTRY,
+        }),
+      ).resolves.toBeUndefined();
+    });
+
+    it('lets leadership through without an invitation', async () => {
+      await expect(
+        service.assertCanReadEvent(EVENT_ID, {
+          id: 'u-min',
+          systemRole: 'MINISTER',
+          ministryId: MINISTRY,
+        }),
+      ).resolves.toBeUndefined();
+    });
+
+    it('turns away a colleague who was not invited, as not-found', async () => {
+      await expect(
+        service.assertCanReadEvent(EVENT_ID, {
+          id: 'u-other',
+          systemRole: 'STAFF',
+          ministryId: MINISTRY,
+        }),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('turns away another ministry, as not-found', async () => {
+      await expect(
+        service.assertCanReadEvent(EVENT_ID, {
+          id: 'u-invited',
+          systemRole: 'MINISTER',
+          ministryId: 'min-other',
+        }),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 });

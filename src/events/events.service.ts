@@ -24,6 +24,9 @@ import { randomBytes } from 'crypto';
 import {
   ministryScope,
   assertSameMinistry,
+  eventVisibilityScope,
+  canSeeEvent,
+  SEE_ALL_EVENTS_ROLES,
 } from '../common/utils/ministry-scope.util';
 
 @Injectable()
@@ -439,8 +442,10 @@ export class EventsService {
           }
         : {};
 
+    // Staff see only the events they are part of; leadership sees the whole
+    // ministry. Kept under AND because mineWhere is an OR as well.
     const where = {
-      ...ministryScope(user),
+      AND: [ministryScope(user), eventVisibilityScope(user)],
       ...(options.isPublic !== undefined && { isPublic: options.isPublic }),
       ...timeframeWhere,
       ...(range && { startAt: range }),
@@ -464,13 +469,17 @@ export class EventsService {
     // reporting an event as "happening now" after it ended — those queries skip
     // the cache. For the rest, sort belongs in the key because results are
     // paginated server-side, so a different sort is a different page of data.
-    // The actor is in the key whenever `mine` narrowed the query, because that
-    // result set belongs to one person: cached under the ministry-wide key it
-    // would be served to the next colleague who asked, which is the exact
-    // cross-user leak ministry scoping exists to prevent.
+    // The actor is in the key whenever the result set belongs to one person —
+    // `mine` narrowed it, or they are staff and only see what they are part of.
+    // Cached under the ministry-wide key it would be served to the next
+    // colleague who asked, which is the exact cross-user leak these filters
+    // exist to prevent. Only the see-everything roles share the "all" entry.
+    const personal =
+      !!user.id &&
+      (options.mine || !SEE_ALL_EVENTS_ROLES.includes(user.systemRole));
     const cacheKey = options.timeframe
       ? null
-      : `events:list:${ministryId}:${options.mine && user.id ? `u:${user.id}` : 'all'}:${page}:${options.isPublic || 'all'}:${sortBy}:${order}:${options.from ?? '-'}:${options.to ?? '-'}`;
+      : `events:list:${ministryId}:${personal ? `u:${user.id}` : 'all'}:${page}:${options.isPublic || 'all'}:${sortBy}:${order}:${options.from ?? '-'}:${options.to ?? '-'}`;
 
     if (cacheKey) {
       const cached = await this.cache.get(cacheKey);
@@ -507,18 +516,21 @@ export class EventsService {
    */
   async listAttendeeCandidates(
     eventId: string,
-    user: { systemRole: string; ministryId?: string },
+    user: { id?: string; systemRole: string; ministryId?: string },
     query?: string,
   ) {
     const event = await (this.prisma as any).event.findUnique({
       where: { id: eventId },
       select: {
         ministryId: true,
+        isPublic: true,
+        organizerId: true,
         organizer: {
           select: { id: true, name: true, email: true, jobTitle: true },
         },
         coOrganizers: {
           select: {
+            userId: true,
             user: {
               select: { id: true, name: true, email: true, jobTitle: true },
             },
@@ -526,6 +538,7 @@ export class EventsService {
         },
         attendees: {
           select: {
+            userId: true,
             externalName: true,
             externalEmail: true,
             user: {
@@ -541,6 +554,12 @@ export class EventsService {
     }
 
     assertSameMinistry(user, event.ministryId);
+
+    // The picker lists who was in the meeting, so it is as private as the
+    // meeting itself.
+    if (!canSeeEvent(user, event)) {
+      throw new NotFoundException('Event not found');
+    }
 
     // Everyone who could reasonably own work from this meeting. The organizer
     // and co-organizers run it without necessarily appearing on the invite
@@ -610,7 +629,10 @@ export class EventsService {
     });
   }
 
-  async getOne(id: string, user: { systemRole: string; ministryId?: string }) {
+  async getOne(
+    id: string,
+    user: { id?: string; systemRole: string; ministryId?: string },
+  ) {
     const event = await this.eventsRepository.findOne(id);
 
     if (!event) {
@@ -618,6 +640,12 @@ export class EventsService {
     }
 
     assertSameMinistry(user, event.ministryId);
+
+    // Not found rather than forbidden: someone who wasn't invited shouldn't
+    // learn from the response that the meeting exists at all.
+    if (!canSeeEvent(user, event)) {
+      throw new NotFoundException(`Event ${id} not found`);
+    }
 
     return event;
   }
@@ -956,6 +984,10 @@ export class EventsService {
       description: `Added co-organizer to event: ${event.title}`,
     });
 
+    // Who co-runs a meeting decides who can see it, and staff lists are cached
+    // per person.
+    await this.cache.invalidatePattern(`events:*${event.ministryId}*`);
+
     // A public activity still waiting for approval holds its announcements
     // until publishEvent, the same as the ones named when it was created.
     if (!event.isPublic || event.status === 'PUBLISHED') {
@@ -1018,6 +1050,10 @@ export class EventsService {
       actorId,
       description: `Removed co-organizer from event: ${event.title}`,
     });
+
+    // Who co-runs a meeting decides who can see it, and staff lists are cached
+    // per person.
+    await this.cache.invalidatePattern(`events:*${event.ministryId}*`);
 
     return { success: true };
   }

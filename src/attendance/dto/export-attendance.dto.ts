@@ -1,7 +1,7 @@
 import { IsIn } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
-export const EXPORT_FORMATS = ['csv', 'pdf'] as const;
+export const EXPORT_FORMATS = ['csv', 'xlsx', 'pdf'] as const;
 export type ExportFormat = (typeof EXPORT_FORMATS)[number];
 
 /**

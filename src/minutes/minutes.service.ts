@@ -14,6 +14,8 @@ import { MinutesAccessService } from './minutes-access.service';
 import {
   ministryScope,
   assertSameMinistry,
+  eventVisibilityScope,
+  canSeeEvent,
 } from '../common/utils/ministry-scope.util';
 import { canReadArchived } from './archive.policy';
 import { CreateMinutesDto } from './dto/create-minutes.dto';
@@ -562,7 +564,7 @@ export class MinutesService {
    * already treats minutes.
    */
   async listMinutes(
-    user: { systemRole: string; ministryId?: string | null },
+    user: { id?: string; systemRole: string; ministryId?: string | null },
     opts: { q?: string; status?: string; skip?: number; take?: number } = {},
   ) {
     const take = Math.min(opts.take ?? 25, 100);
@@ -577,8 +579,14 @@ export class MinutesService {
         ? { status: 'ARCHIVED' }
         : { status: { not: 'ARCHIVED' } };
 
+    // Minutes are as private as their meeting: staff only list the ones for
+    // events they took part in.
+    const eventScope = {
+      AND: [ministryScope(user), eventVisibilityScope(user)],
+    };
+
     const where: any = {
-      event: ministryScope(user),
+      event: eventScope,
       ...(opts.status && opts.status !== 'ARCHIVED'
         ? { status: opts.status }
         : archiveFilter),
@@ -601,7 +609,7 @@ export class MinutesService {
     // The ministry scope has to survive the search OR above, which replaces the
     // event filter when a term is present.
     if (term) {
-      where.AND = [{ event: ministryScope(user) }];
+      where.AND = [{ event: eventScope }];
       delete where.event;
     }
 
@@ -752,6 +760,45 @@ export class MinutesService {
     }
 
     return { minutes, event };
+  }
+
+  /**
+   * The read gate for everything hanging off one meeting: its minutes, its
+   * action items, the edit-permission summary. The same people who can open
+   * the event can read them — its ministry, and within it only those taking
+   * part unless they are leadership.
+   *
+   * Not found rather than forbidden throughout, so the answer does not confirm
+   * that a meeting someone wasn't invited to exists.
+   */
+  async assertCanReadEvent(
+    eventId: string,
+    user: { id?: string; systemRole: string; ministryId?: string | null },
+  ): Promise<void> {
+    const event = await (this.prisma as any).event.findUnique({
+      where: { id: eventId },
+      select: {
+        ministryId: true,
+        isPublic: true,
+        organizerId: true,
+        coOrganizers: { select: { userId: true } },
+        attendees: { select: { userId: true } },
+      },
+    });
+
+    if (!event) {
+      throw new NotFoundException('Event not found');
+    }
+
+    try {
+      assertSameMinistry(user, event.ministryId);
+    } catch {
+      throw new NotFoundException('Event not found');
+    }
+
+    if (!canSeeEvent(user, event)) {
+      throw new NotFoundException('Event not found');
+    }
   }
 
   async getMinutes(eventId: string, systemRole?: string) {

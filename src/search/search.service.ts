@@ -1,6 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { ministryScope } from '../common/utils/ministry-scope.util';
+import {
+  ministryScope,
+  eventVisibilityScope,
+} from '../common/utils/ministry-scope.util';
 
 const LIMIT = 20;
 const MIN_QUERY = 2;
@@ -35,12 +38,16 @@ export class SearchService {
     }
 
     const scope = ministryScope(user);
+    // Events, and the minutes hanging off them, are further narrowed to the
+    // ones this user takes part in unless they are leadership. Under AND
+    // because the title/description match below is an OR too.
+    const eventScope = { AND: [scope, eventVisibilityScope(user)] };
     const like = { contains: q, mode: 'insensitive' as const };
     const isAdmin = ADMIN_ROLES.includes(user.systemRole);
 
     const [events, minutes, people] = await Promise.all([
       (this.prisma as any).event.findMany({
-        where: { ...scope, OR: [{ title: like }, { description: like }] },
+        where: { ...eventScope, OR: [{ title: like }, { description: like }] },
         select: {
           id: true,
           title: true,
@@ -53,7 +60,7 @@ export class SearchService {
 
       (this.prisma as any).minutes.findMany({
         where: {
-          event: scope,
+          event: eventScope,
           // Archived records are leadership-only and are kept out of everyday
           // listings even for them — see archive.policy.ts and the same
           // default in MinutesService.list. Without this, search returned

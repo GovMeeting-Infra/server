@@ -81,6 +81,10 @@ export class AttendanceExportController {
       set,
       format === 'pdf',
     );
+    const workbook =
+      format === 'xlsx'
+        ? await this.exportService.toXlsx(event, rows, set)
+        : null;
 
     await this.audit.log({
       action: 'ATTENDANCE_EXPORTED',
@@ -107,6 +111,15 @@ export class AttendanceExportController {
     if (format === 'csv') {
       res.setHeader('Content-Type', 'text/csv; charset=utf-8');
       res.send(this.exportService.toCsv(rows, set));
+      return;
+    }
+
+    if (workbook) {
+      res.setHeader(
+        'Content-Type',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      );
+      res.send(workbook);
       return;
     }
 
