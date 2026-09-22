@@ -20,6 +20,7 @@ import { HealthModule } from './health/health.module';
 import { UploadsModule } from './uploads/uploads.module';
 import { SearchModule } from './search/search.module';
 import { InvitesModule } from './invites/invites.module';
+import { TranscriptionModule } from './transcription/transcription.module';
 import { SessionMiddleware } from './auth/middleware/session.middleware';
 import { redisConnectionOptions } from './common/utils/redis-connection.util';
 import { SettingsModule } from './common/settings/settings.module';
@@ -65,6 +66,7 @@ import { SettingsModule } from './common/settings/settings.module';
     UploadsModule,
     SearchModule,
     InvitesModule,
+    TranscriptionModule,
   ],
   controllers: [AppController],
   providers: [AppService],
