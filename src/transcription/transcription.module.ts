@@ -37,19 +37,19 @@ import { OpenAiDrafter } from './drafters/openai.drafter';
           .split(',')
           .map((t) => t.trim())
           .filter(Boolean);
-        // Deepgram unless asked otherwise: it labels speakers, costs about a
-        // third as much, and stores nothing once opted out. OpenAI is the
-        // alternative to compare it against on real Krio-heavy meetings.
-        return process.env.TRANSCRIPTION_PROVIDER === 'openai'
-          ? new OpenAiProvider(
+        // OpenAI unless asked otherwise, so transcription and drafting share
+        // one vendor. Deepgram stays switchable: it labels speakers and takes
+        // key terms at once, costs about a third as much, and stores nothing.
+        return process.env.TRANSCRIPTION_PROVIDER === 'deepgram'
+          ? new DeepgramProvider(process.env.DEEPGRAM_API_KEY ?? '', keyterms)
+          : new OpenAiProvider(
               process.env.OPENAI_API_KEY ?? '',
               // Diarizing by default: speaker labels matter more to a set of
               // minutes than the key-term prompt this model gives up.
               process.env.OPENAI_TRANSCRIBE_MODEL ||
                 'gpt-4o-transcribe-diarize',
               keyterms,
-            )
-          : new DeepgramProvider(process.env.DEEPGRAM_API_KEY ?? '', keyterms);
+            );
       },
     },
     {
