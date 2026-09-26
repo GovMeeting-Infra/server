@@ -1,7 +1,7 @@
 import { Processor, WorkerHost } from '@nestjs/bullmq';
-import { Logger } from '@nestjs/common';
+import { Inject, Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
-import { MinutesDrafter } from './minutes-drafter';
+import { MINUTES_DRAFTER, MinutesDrafter } from './minutes-drafter';
 import { TranscriptionService } from './transcription.service';
 
 /**
@@ -23,7 +23,7 @@ export class MinutesDraftProcessor extends WorkerHost {
 
   constructor(
     private transcripts: TranscriptionService,
-    private drafter: MinutesDrafter,
+    @Inject(MINUTES_DRAFTER) private drafter: MinutesDrafter,
   ) {
     super();
   }

@@ -1,4 +1,6 @@
-import { MinutesDrafter, renderTranscript } from '../minutes-drafter';
+import { renderTranscript } from '../minutes-drafter';
+import { ClaudeDrafter } from '../drafters/claude.drafter';
+import { OpenAiDrafter } from '../drafters/openai.drafter';
 
 describe('MinutesDrafter', () => {
   const input = {
@@ -34,7 +36,7 @@ describe('MinutesDrafter', () => {
     const parse = jest.fn().mockResolvedValue(response);
     return {
       parse,
-      drafter: new MinutesDrafter(() => ({ messages: { parse } }) as any),
+      drafter: new ClaudeDrafter(() => ({ messages: { parse } }) as any),
     };
   };
 

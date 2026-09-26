@@ -1,9 +1,13 @@
 import { AddressInfo } from 'net';
 import WebSocket, { WebSocketServer } from 'ws';
 import {
+  absoluteTime,
   AudioConverter,
   OpenAiProvider,
+  realtimeUrl,
   sessionUpdate,
+  SpeakerNumbering,
+  supportsKeyterms,
 } from '../providers/openai.provider';
 import {
   StreamHandlers,
@@ -13,6 +17,15 @@ import {
 
 /** 24 kHz mono 16-bit: one second of audio is this many bytes. */
 const SECOND = 24_000 * 2;
+
+describe('realtimeUrl', () => {
+  it('names the model in the query, as the official SDK does', () => {
+    const url = new URL(realtimeUrl('gpt-4o-transcribe-diarize'));
+    expect(url.host).toBe('api.openai.com');
+    expect(url.pathname).toBe('/v1/realtime');
+    expect(url.searchParams.get('model')).toBe('gpt-4o-transcribe-diarize');
+  });
+});
 
 describe('sessionUpdate', () => {
   it('asks for PCM at the rate the model requires, with no turn detection', () => {
@@ -181,6 +194,39 @@ describe('OpenAiProvider stream', () => {
     await waitFor(() => finals.length === 2);
     expect(finals[1].start).toBe(9);
     expect(finals[1].end).toBe(18);
+  });
+
+  it('saves diarized segments with their speaker, and not twice', async () => {
+    const stream = await openStream();
+    stream.send(Buffer.alloc(9 * SECOND));
+    await waitFor(() =>
+      received.some((m) => m.type === 'input_audio_buffer.commit'),
+    );
+
+    reply({
+      type: 'conversation.item.input_audio_transcription.segment',
+      item_id: 'item_1',
+      speaker: 'B',
+      start: 1,
+      end: 4,
+      text: 'Kushe, we go start.',
+    });
+    await waitFor(() => finals.length === 1);
+    expect(finals[0]).toEqual({
+      text: 'Kushe, we go start.',
+      speaker: 0,
+      start: 1,
+      end: 4,
+    });
+
+    // The completion for that item repeats the same words in one block.
+    reply({
+      type: 'conversation.item.input_audio_transcription.completed',
+      item_id: 'item_1',
+      transcript: 'Kushe, we go start.',
+    });
+    await new Promise((r) => setTimeout(r, 50));
+    expect(finals).toHaveLength(1);
   });
 
   it('shows deltas as live captions without saving them', async () => {

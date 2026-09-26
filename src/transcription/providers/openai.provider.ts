@@ -37,14 +37,53 @@ const ROTATE_MS = 20 * 60 * 1000;
 const FINISH_TIMEOUT_MS = 10_000;
 
 /**
- * Read per connection rather than at import, so the endpoint can be pointed
- * elsewhere without a redeploy — OpenAI moved this path once already.
+ * Where the realtime socket connects.
+ *
+ * This is the URL OpenAI's own Node SDK builds (`buildRealtimeURL` in
+ * openai/realtime/internal-base): the base URL with /realtime and the model as
+ * a query parameter. Their written guide still shows an older
+ * `?intent=transcription` form, which is why this is overridable by env —
+ * the endpoint can be corrected without a redeploy.
  */
-export function realtimeUrl(): string {
+export function realtimeUrl(model: string): string {
   return (
     process.env.OPENAI_REALTIME_URL ||
-    'wss://api.openai.com/v1/realtime?intent=transcription'
+    `wss://api.openai.com/v1/realtime?model=${encodeURIComponent(model)}`
   );
+}
+
+/**
+ * Speaker labels come back as names like "A" or "speaker_1". The record stores
+ * a number, so each label is numbered as it is first heard.
+ */
+export class SpeakerNumbering {
+  private seen = new Map<string, number>();
+
+  numberFor(label: string | undefined | null): number | null {
+    if (!label) return null;
+    const known = this.seen.get(label);
+    if (known !== undefined) return known;
+    const next = this.seen.size;
+    this.seen.set(label, next);
+    return next;
+  }
+}
+
+/**
+ * Place a segment on the recording's timeline.
+ *
+ * The diarized events time each segment, but whether those times are measured
+ * from the start of the turn or the start of the session is not documented.
+ * A time that fits inside the current turn is treated as relative to it;
+ * anything beyond that is already absolute. Both readings agree on the first
+ * turn, and this keeps a long meeting from drifting on either one.
+ */
+export function absoluteTime(
+  windowStart: number,
+  turnSeconds: number,
+  reported: number,
+): number {
+  return reported <= turnSeconds + 1 ? windowStart + reported : reported;
 }
 
 /**
@@ -53,7 +92,13 @@ export function realtimeUrl(): string {
  * turn_detection is null because this model does not do voice-activity
  * detection — the commits below mark the turns instead.
  */
+/** The diarizing model is the one that refuses a prompt. */
+export function supportsKeyterms(model: string): boolean {
+  return !model.includes('diarize');
+}
+
 export function sessionUpdate(model: string, keyterms: string[]) {
+  const useKeyterms = keyterms.length > 0 && supportsKeyterms(model);
   return {
     type: 'session.update',
     session: {
@@ -64,9 +109,11 @@ export function sessionUpdate(model: string, keyterms: string[]) {
           transcription: {
             model,
             language: 'en',
-            // Names and Krio words the model would otherwise mangle. It has no
-            // Krio of its own, so this is the only lever, as with Deepgram.
-            ...(keyterms.length ? { prompt: keyterms.join(', ') } : {}),
+            // Names and Krio words the model would otherwise mangle — the only
+            // lever on accuracy, as with Deepgram. gpt-4o-transcribe-diarize
+            // rejects a prompt, so choosing speaker labels means giving this
+            // up; that is the trade-off between the two OpenAI models.
+            ...(useKeyterms ? { prompt: keyterms.join(', ') } : {}),
           },
           turn_detection: null,
         },
@@ -100,6 +147,12 @@ class OpenAiStream implements TranscriptionStream {
   private uncommittedBytes = 0;
   /** Committed windows awaiting their transcript, oldest first. */
   private windows: Window[] = [];
+  private speakers = new SpeakerNumbering();
+  /**
+   * Items that arrived as diarized segments. Their `completed` event repeats
+   * the same words in one block, so it is skipped rather than saved twice.
+   */
+  private segmented = new Set<string>();
   private rotateTimer: ReturnType<typeof setTimeout> | null = null;
   private closed = false;
 
@@ -123,7 +176,7 @@ class OpenAiStream implements TranscriptionStream {
   }
 
   private open() {
-    const socket = new WebSocket(realtimeUrl(), {
+    const socket = new WebSocket(realtimeUrl(this.model), {
       headers: {
         Authorization: `Bearer ${this.apiKey}`,
         // A stable pseudonym for the organizer, which OpenAI asks for on every
@@ -176,15 +229,34 @@ class OpenAiStream implements TranscriptionStream {
         }
         break;
       }
+      case 'conversation.item.input_audio_transcription.segment': {
+        // Only the diarizing model sends these, one per stretch of speech,
+        // with the speaker it heard and its own timings.
+        const text = String(msg.text ?? '').trim();
+        if (msg.item_id) this.segmented.add(String(msg.item_id));
+        if (!text) break;
+        const window = this.windows[0];
+        const base = window?.start ?? this.windowStart;
+        const turn = (window?.end ?? this.seconds()) - base;
+        this.handlers.onFinal({
+          text,
+          speaker: this.speakers.numberFor(msg.speaker),
+          start: absoluteTime(base, turn, Number(msg.start ?? 0)),
+          end: absoluteTime(base, turn, Number(msg.end ?? turn)),
+        });
+        break;
+      }
       case 'conversation.item.input_audio_transcription.completed': {
         const text = String(msg.transcript ?? '').trim();
         // Completions arrive in the order their audio was committed.
         const window = this.windows.shift();
+        const itemId = msg.item_id ? String(msg.item_id) : null;
+        if (itemId && this.segmented.delete(itemId)) break; // already saved
         if (!text) break;
         this.handlers.onFinal({
           text,
-          // This model does not say who spoke. The record shows the words
-          // without attributing them rather than guessing.
+          // Without the diarizing model nothing says who spoke, so the record
+          // shows the words unattributed rather than guessing.
           speaker: null,
           start: window?.start ?? this.windowStart,
           end: window?.end ?? this.seconds(),
@@ -302,10 +374,12 @@ class OpenAiStream implements TranscriptionStream {
 /**
  * OpenAI's realtime speech-to-text.
  *
- * Two things to know against Deepgram: it returns no speaker labels, and
- * OpenAI keeps request data for up to 30 days for abuse monitoring unless the
- * organization has been approved for zero data retention. The audio still
- * exists nowhere on this platform either way.
+ * Against Deepgram: gpt-4o-transcribe-diarize labels speakers but accepts no
+ * key terms, and gpt-4o-transcribe takes key terms but labels nobody —
+ * Deepgram does both at once, for about a third of the price. OpenAI also
+ * keeps request data up to 30 days for abuse monitoring unless the
+ * organization has zero data retention. The audio itself is stored nowhere on
+ * this platform either way.
  */
 export class OpenAiProvider implements TranscriptionProvider {
   readonly name = 'openai';

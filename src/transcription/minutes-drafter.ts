@@ -1,5 +1,3 @@
-import Anthropic from '@anthropic-ai/sdk';
-import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod';
 import { z } from 'zod/v4';
 
 /**
@@ -29,7 +27,7 @@ export interface DraftInput {
   segments: { speaker: number | null; text: string }[];
 }
 
-const SYSTEM = `You draft the minutes of Government of Sierra Leone meetings from an automatic transcript.
+export const SYSTEM = `You draft the minutes of Government of Sierra Leone meetings from an automatic transcript.
 
 The minutes record what a meeting settled, not what was said in it. Produce:
 - decisions: things the meeting agreed or resolved. One sentence each.
@@ -63,34 +61,14 @@ export function renderTranscript(input: DraftInput): string {
     .join('\n');
 }
 
-export class MinutesDrafter {
-  private client: Anthropic | null = null;
-
-  /**
-   * Takes a factory so the client is built on first use: the SDK throws when
-   * ANTHROPIC_API_KEY is missing, and that should fail a draft, not the boot.
-   */
-  constructor(private makeClient: () => Anthropic) {}
-
-  async draft(input: DraftInput): Promise<MinutesDraft> {
-    this.client ??= this.makeClient();
-    const response = await this.client.messages.parse({
-      model: 'claude-opus-5',
-      max_tokens: 16000,
-      system: SYSTEM,
-      messages: [{ role: 'user', content: renderTranscript(input) }],
-      output_config: { format: zodOutputFormat(MinutesDraftSchema) },
-    });
-
-    if (response.stop_reason === 'refusal') {
-      throw new Error('The model declined to draft these minutes');
-    }
-    if (response.stop_reason === 'max_tokens') {
-      throw new Error('The draft was cut off before it finished');
-    }
-    if (!response.parsed_output) {
-      throw new Error('The model returned a draft that did not parse');
-    }
-    return response.parsed_output;
-  }
+/**
+ * Turns a transcript into suggested minutes. Two implementations sit behind
+ * it, in drafters/: one calling OpenAI, one calling Claude. Everything above
+ * — the shape of a draft, the instructions, how the transcript is written out
+ * — is shared, so the two differ only in the call they make.
+ */
+export interface MinutesDrafter {
+  draft(input: DraftInput): Promise<MinutesDraft>;
 }
+
+export const MINUTES_DRAFTER = Symbol('MINUTES_DRAFTER');
