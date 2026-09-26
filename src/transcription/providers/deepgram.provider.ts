@@ -110,6 +110,7 @@ export class DeepgramProvider implements TranscriptionProvider {
     private keyterms: string[],
   ) {}
 
+  // Takes no StreamContext: Deepgram asks for no end-user identifier.
   openStream(handlers: StreamHandlers): TranscriptionStream {
     const socket = new WebSocket(buildListenUrl(this.keyterms), {
       headers: { Authorization: `Token ${this.apiKey}` },

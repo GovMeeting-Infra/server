@@ -5,7 +5,11 @@ import { PrismaModule } from '../prisma/prisma.module';
 import { AuditModule } from '../audit/audit.module';
 import { AuthModule } from '../auth/auth.module';
 import { DeepgramProvider } from './providers/deepgram.provider';
-import { TRANSCRIPTION_PROVIDER } from './providers/transcription-provider';
+import { OpenAiProvider } from './providers/openai.provider';
+import {
+  TRANSCRIPTION_PROVIDER,
+  TranscriptionProvider,
+} from './providers/transcription-provider';
 import { TranscriptionService } from './transcription.service';
 import { TranscriptionGateway } from './transcription.gateway';
 import { TranscriptionController } from './transcription.controller';
@@ -25,14 +29,22 @@ import { MinutesDrafter } from './minutes-drafter';
     MinutesDraftProcessor,
     {
       provide: TRANSCRIPTION_PROVIDER,
-      useFactory: () =>
-        new DeepgramProvider(
-          process.env.DEEPGRAM_API_KEY ?? '',
-          (process.env.TRANSCRIPTION_KEYTERMS ?? '')
-            .split(',')
-            .map((t) => t.trim())
-            .filter(Boolean),
-        ),
+      useFactory: (): TranscriptionProvider => {
+        const keyterms = (process.env.TRANSCRIPTION_KEYTERMS ?? '')
+          .split(',')
+          .map((t) => t.trim())
+          .filter(Boolean);
+        // Deepgram unless asked otherwise: it labels speakers, costs about a
+        // third as much, and stores nothing once opted out. OpenAI is the
+        // alternative to compare it against on real Krio-heavy meetings.
+        return process.env.TRANSCRIPTION_PROVIDER === 'openai'
+          ? new OpenAiProvider(
+              process.env.OPENAI_API_KEY ?? '',
+              process.env.OPENAI_TRANSCRIBE_MODEL || 'gpt-live-transcribe',
+              keyterms,
+            )
+          : new DeepgramProvider(process.env.DEEPGRAM_API_KEY ?? '', keyterms);
+      },
     },
     {
       provide: MinutesDrafter,

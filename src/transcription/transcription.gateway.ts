@@ -6,6 +6,7 @@ import {
   OnApplicationShutdown,
 } from '@nestjs/common';
 import { HttpAdapterHost } from '@nestjs/core';
+import { createHash } from 'crypto';
 import type { IncomingMessage } from 'http';
 import type { Duplex } from 'stream';
 import WebSocket, { WebSocketServer } from 'ws';
@@ -156,23 +157,39 @@ export class TranscriptionGateway
     // insert can never let a later segment land first.
     let writes = Promise.resolve();
 
-    const stream: TranscriptionStream = this.provider.openStream({
-      onFinal: (segment) => {
-        writes = writes
-          .then(() => this.transcripts.appendSegment(session, segment))
-          .then((row) => send({ type: 'final', segment: row }))
-          .catch((err) =>
-            this.logger.error(`Could not save a segment: ${err.message}`),
-          );
+    const stream: TranscriptionStream = this.provider.openStream(
+      {
+        onFinal: (segment) => {
+          writes = writes
+            .then(() => this.transcripts.appendSegment(session, segment))
+            .then((row) => send({ type: 'final', segment: row }))
+            .catch((err) =>
+              this.logger.error(`Could not save a segment: ${err.message}`),
+            );
+        },
+        onInterim: (segment) => send({ type: 'interim', segment }),
+        // The organizer is staff, and the upstream's own wording ("ffmpeg is
+        // not installed", "Unexpected server response: 401") is what makes a
+        // broken recording diagnosable instead of merely broken.
+        onError: (err) =>
+          send({
+            type: 'error',
+            message: err.message.slice(0, 200) || 'Transcription service error',
+          }),
+        onClose: () => {
+          // The provider hung up on its own; nothing more will be heard.
+          if (!ended) void end({ draft: false, failed: true });
+        },
       },
-      onInterim: (segment) => send({ type: 'interim', segment }),
-      onError: () =>
-        send({ type: 'error', message: 'Transcription service error' }),
-      onClose: () => {
-        // The provider hung up on its own; nothing more will be heard.
-        if (!ended) void end({ draft: false, failed: true });
+      // OpenAI requires an end-user identifier on every realtime request.
+      // A hash of the user id satisfies that without handing over who it is.
+      {
+        userRef: createHash('sha256')
+          .update(user.id)
+          .digest('hex')
+          .slice(0, 32),
       },
-    });
+    );
 
     const end = async (opts: { draft: boolean; failed?: boolean }) => {
       if (ended) return;

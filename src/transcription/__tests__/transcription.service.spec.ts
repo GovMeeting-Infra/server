@@ -58,7 +58,10 @@ describe('TranscriptionService', () => {
     };
     audit = { log: jest.fn() };
     queue = { add: jest.fn() };
-    service = new TranscriptionService(prisma, audit, queue);
+    service = new TranscriptionService(prisma, audit, queue, {
+      name: 'deepgram',
+      openStream: jest.fn(),
+    } as any);
   });
 
   describe('who may record', () => {

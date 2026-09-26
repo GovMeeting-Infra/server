@@ -35,9 +35,18 @@ export interface StreamHandlers {
   onClose(): void;
 }
 
+/** Who is recording, for providers that require an end-user identifier. */
+export interface StreamContext {
+  /** A stable pseudonym for the organizer — hashed, never the user id. */
+  userRef: string;
+}
+
 export interface TranscriptionProvider {
   readonly name: string;
-  openStream(handlers: StreamHandlers): TranscriptionStream;
+  openStream(
+    handlers: StreamHandlers,
+    context: StreamContext,
+  ): TranscriptionStream;
 }
 
 export const TRANSCRIPTION_PROVIDER = Symbol('TRANSCRIPTION_PROVIDER');

@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ConflictException,
   ForbiddenException,
+  Inject,
   Injectable,
   Logger,
   NotFoundException,
@@ -12,7 +13,11 @@ import { Queue } from 'bullmq';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
 import { EncryptionUtil } from '../common/utils/encryption.util';
-import { StreamSegment } from './providers/transcription-provider';
+import {
+  StreamSegment,
+  TRANSCRIPTION_PROVIDER,
+  TranscriptionProvider,
+} from './providers/transcription-provider';
 
 export interface Recorder {
   id: string;
@@ -43,6 +48,7 @@ export class TranscriptionService implements OnModuleInit {
     private prisma: PrismaService,
     private audit: AuditService,
     @InjectQueue('ai-queue') private aiQueue: Queue,
+    @Inject(TRANSCRIPTION_PROVIDER) private provider: TranscriptionProvider,
   ) {}
 
   /**
@@ -150,7 +156,7 @@ export class TranscriptionService implements OnModuleInit {
       : await (this.prisma as any).transcript.create({
           data: {
             eventId,
-            provider: 'deepgram',
+            provider: this.provider.name,
             startedById: user.id,
             startedAt: now,
           },

@@ -11,6 +11,18 @@ describe('MinutesDrafter', () => {
     ],
   };
 
+  it('leaves speaker labels off when the provider gave none', () => {
+    const text = renderTranscript({
+      ...input,
+      segments: [
+        { speaker: null, text: 'We go do am next week.' },
+        { speaker: null, text: 'Agreed.' },
+      ],
+    });
+    expect(text).not.toContain('Speaker');
+    expect(text).toContain('We go do am next week.');
+  });
+
   it('labels speakers and dates the meeting for the model', () => {
     const text = renderTranscript(input);
     expect(text).toContain('Date: 2026-09-22');

@@ -37,13 +37,16 @@ The minutes record what a meeting settled, not what was said in it. Produce:
 - actionItems: tasks someone was asked to do. ownerName only if the transcript names the person responsible; dueDate (YYYY-MM-DD) only if a date or clear deadline was stated, resolved against the meeting date. Otherwise null.
 - lowConfidenceNotes: short notes on anything you were unsure of — garbled passages, a decision you could not tell was final, a name you could not make out.
 
-About the transcript: speakers are labelled by number, not name, and the labels are the recogniser's guess. Much of the speech is Krio mixed with English. The recogniser only knows English, so Krio passages appear as English-looking words chosen for their sound ("wi go du am" may come out as "we go do am", or as unrelated English words). Read through that to the meaning where you reasonably can, and write every point in plain formal English. Where you cannot recover the meaning, leave it out of the lists and say so in lowConfidenceNotes rather than guessing.
+About the transcript: where the recogniser could tell voices apart, speakers are labelled by number, not name, and the labels are its guess. Some transcripts have no speaker labels at all — the words are then in the order they were said, with no indication of who said what, so attribute nothing to anyone. Much of the speech is Krio mixed with English. The recogniser only knows English, so Krio passages appear as English-looking words chosen for their sound ("wi go du am" may come out as "we go do am", or as unrelated English words). Read through that to the meaning where you reasonably can, and write every point in plain formal English. Where you cannot recover the meaning, leave it out of the lists and say so in lowConfidenceNotes rather than guessing.
 
 Include only what the transcript supports. Empty lists are fine. Keep each item to a single line.`;
 
 export function renderTranscript(input: DraftInput): string {
-  const lines = input.segments.map(
-    (s) => `[Speaker ${s.speaker ?? '?'}] ${s.text}`,
+  // Some providers return no speaker labels. Printing "[Speaker ?]" on every
+  // line would invite the model to invent speakers, so they are left off.
+  const labelled = input.segments.some((s) => s.speaker !== null);
+  const lines = input.segments.map((s) =>
+    labelled ? `[Speaker ${s.speaker ?? '?'}] ${s.text}` : s.text,
   );
   return [
     `Meeting: ${input.title}`,
