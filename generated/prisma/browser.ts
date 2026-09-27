@@ -129,6 +129,28 @@ export type MinutePoint = Prisma.MinutePointModel
  */
 export type MinutesAccessToken = Prisma.MinutesAccessTokenModel
 /**
+ * Model Transcript
+ * *
+ *  * What was said in a meeting, as text. Never the sound of it.
+ *  * Audio is streamed from the organizer's browser through this server to the
+ *  * speech-to-text provider and exists only as frames in flight: nothing here or
+ *  * at the provider (mip_opt_out) ever stores it. What survives is the text below.
+ *  *
+ *  * aiDraft holds suggested decisions, next steps and action items. They are kept
+ *  * here rather than written into Minutes because the minutes editor replaces its
+ *  * lists wholesale on every save — the organizer adopts a suggestion, and only
+ *  * then does it become part of the record.
+ */
+export type Transcript = Prisma.TranscriptModel
+/**
+ * Model TranscriptSegment
+ * *
+ *  * One finalised utterance. text is encrypted at rest with DATA_ENCRYPTION_KEY.
+ *  * startMs/endMs are measured from Transcript.startedAt, so a recording that is
+ *  * stopped and resumed keeps one timeline with a visible gap.
+ */
+export type TranscriptSegment = Prisma.TranscriptSegmentModel
+/**
  * Model ActionItem
  * 
  */

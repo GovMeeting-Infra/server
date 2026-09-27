@@ -116,6 +116,24 @@ export const MinutesStatus = {
 export type MinutesStatus = (typeof MinutesStatus)[keyof typeof MinutesStatus]
 
 
+export const TranscriptStatus = {
+  RECORDING: 'RECORDING',
+  COMPLETE: 'COMPLETE',
+  FAILED: 'FAILED'
+} as const
+
+export type TranscriptStatus = (typeof TranscriptStatus)[keyof typeof TranscriptStatus]
+
+
+export const AiDraftStatus = {
+  PENDING: 'PENDING',
+  READY: 'READY',
+  FAILED: 'FAILED'
+} as const
+
+export type AiDraftStatus = (typeof AiDraftStatus)[keyof typeof AiDraftStatus]
+
+
 export const PointType = {
   ACTION_POINT: 'ACTION_POINT',
   AGREED: 'AGREED',

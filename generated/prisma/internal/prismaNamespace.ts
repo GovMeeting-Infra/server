@@ -413,6 +413,8 @@ export const ModelName = {
   Minutes: 'Minutes',
   MinutePoint: 'MinutePoint',
   MinutesAccessToken: 'MinutesAccessToken',
+  Transcript: 'Transcript',
+  TranscriptSegment: 'TranscriptSegment',
   ActionItem: 'ActionItem',
   ActionItemAssistant: 'ActionItemAssistant',
   Notification: 'Notification',
@@ -434,7 +436,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "session" | "account" | "verification" | "ministry" | "staffDirectoryEntry" | "userPreferences" | "event" | "eventSeries" | "eventCoOrganizer" | "eventAttendee" | "attendance" | "qRToken" | "minutes" | "minutePoint" | "minutesAccessToken" | "actionItem" | "actionItemAssistant" | "notification" | "emailSuppression" | "auditLog" | "platformSetting"
+    modelProps: "user" | "session" | "account" | "verification" | "ministry" | "staffDirectoryEntry" | "userPreferences" | "event" | "eventSeries" | "eventCoOrganizer" | "eventAttendee" | "attendance" | "qRToken" | "minutes" | "minutePoint" | "minutesAccessToken" | "transcript" | "transcriptSegment" | "actionItem" | "actionItemAssistant" | "notification" | "emailSuppression" | "auditLog" | "platformSetting"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1622,6 +1624,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    Transcript: {
+      payload: Prisma.$TranscriptPayload<ExtArgs>
+      fields: Prisma.TranscriptFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.TranscriptFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TranscriptPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.TranscriptFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TranscriptPayload>
+        }
+        findFirst: {
+          args: Prisma.TranscriptFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TranscriptPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.TranscriptFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TranscriptPayload>
+        }
+        findMany: {
+          args: Prisma.TranscriptFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TranscriptPayload>[]
+        }
+        create: {
+          args: Prisma.TranscriptCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TranscriptPayload>
+        }
+        createMany: {
+          args: Prisma.TranscriptCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.TranscriptCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TranscriptPayload>[]
+        }
+        delete: {
+          args: Prisma.TranscriptDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TranscriptPayload>
+        }
+        update: {
+          args: Prisma.TranscriptUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TranscriptPayload>
+        }
+        deleteMany: {
+          args: Prisma.TranscriptDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.TranscriptUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.TranscriptUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TranscriptPayload>[]
+        }
+        upsert: {
+          args: Prisma.TranscriptUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TranscriptPayload>
+        }
+        aggregate: {
+          args: Prisma.TranscriptAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateTranscript>
+        }
+        groupBy: {
+          args: Prisma.TranscriptGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TranscriptGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.TranscriptCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TranscriptCountAggregateOutputType> | number
+        }
+      }
+    }
+    TranscriptSegment: {
+      payload: Prisma.$TranscriptSegmentPayload<ExtArgs>
+      fields: Prisma.TranscriptSegmentFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.TranscriptSegmentFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TranscriptSegmentPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.TranscriptSegmentFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TranscriptSegmentPayload>
+        }
+        findFirst: {
+          args: Prisma.TranscriptSegmentFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TranscriptSegmentPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.TranscriptSegmentFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TranscriptSegmentPayload>
+        }
+        findMany: {
+          args: Prisma.TranscriptSegmentFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TranscriptSegmentPayload>[]
+        }
+        create: {
+          args: Prisma.TranscriptSegmentCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TranscriptSegmentPayload>
+        }
+        createMany: {
+          args: Prisma.TranscriptSegmentCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.TranscriptSegmentCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TranscriptSegmentPayload>[]
+        }
+        delete: {
+          args: Prisma.TranscriptSegmentDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TranscriptSegmentPayload>
+        }
+        update: {
+          args: Prisma.TranscriptSegmentUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TranscriptSegmentPayload>
+        }
+        deleteMany: {
+          args: Prisma.TranscriptSegmentDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.TranscriptSegmentUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.TranscriptSegmentUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TranscriptSegmentPayload>[]
+        }
+        upsert: {
+          args: Prisma.TranscriptSegmentUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TranscriptSegmentPayload>
+        }
+        aggregate: {
+          args: Prisma.TranscriptSegmentAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateTranscriptSegment>
+        }
+        groupBy: {
+          args: Prisma.TranscriptSegmentGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TranscriptSegmentGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.TranscriptSegmentCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TranscriptSegmentCountAggregateOutputType> | number
+        }
+      }
+    }
     ActionItem: {
       payload: Prisma.$ActionItemPayload<ExtArgs>
       fields: Prisma.ActionItemFieldRefs
@@ -2378,6 +2528,39 @@ export const MinutesAccessTokenScalarFieldEnum = {
 export type MinutesAccessTokenScalarFieldEnum = (typeof MinutesAccessTokenScalarFieldEnum)[keyof typeof MinutesAccessTokenScalarFieldEnum]
 
 
+export const TranscriptScalarFieldEnum = {
+  id: 'id',
+  eventId: 'eventId',
+  status: 'status',
+  provider: 'provider',
+  startedById: 'startedById',
+  startedAt: 'startedAt',
+  endedAt: 'endedAt',
+  durationSec: 'durationSec',
+  aiDraftStatus: 'aiDraftStatus',
+  aiDraft: 'aiDraft',
+  aiDraftError: 'aiDraftError',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type TranscriptScalarFieldEnum = (typeof TranscriptScalarFieldEnum)[keyof typeof TranscriptScalarFieldEnum]
+
+
+export const TranscriptSegmentScalarFieldEnum = {
+  id: 'id',
+  transcriptId: 'transcriptId',
+  order: 'order',
+  speaker: 'speaker',
+  text: 'text',
+  startMs: 'startMs',
+  endMs: 'endMs',
+  createdAt: 'createdAt'
+} as const
+
+export type TranscriptSegmentScalarFieldEnum = (typeof TranscriptSegmentScalarFieldEnum)[keyof typeof TranscriptSegmentScalarFieldEnum]
+
+
 export const ActionItemScalarFieldEnum = {
   id: 'id',
   minutesId: 'minutesId',
@@ -2739,6 +2922,48 @@ export type ListEnumMinutePointTypeFieldRefInput<$PrismaModel> = FieldRefInputTy
 
 
 /**
+ * Reference to a field of type 'TranscriptStatus'
+ */
+export type EnumTranscriptStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TranscriptStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'TranscriptStatus[]'
+ */
+export type ListEnumTranscriptStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TranscriptStatus[]'>
+    
+
+
+/**
+ * Reference to a field of type 'AiDraftStatus'
+ */
+export type EnumAiDraftStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AiDraftStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'AiDraftStatus[]'
+ */
+export type ListEnumAiDraftStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AiDraftStatus[]'>
+    
+
+
+/**
+ * Reference to a field of type 'Json'
+ */
+export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
+    
+
+
+/**
+ * Reference to a field of type 'QueryMode'
+ */
+export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
+    
+
+
+/**
  * Reference to a field of type 'ActionItemStatus'
  */
 export type EnumActionItemStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ActionItemStatus'>
@@ -2777,20 +3002,6 @@ export type EnumAuditStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$Pris
  * Reference to a field of type 'AuditStatus[]'
  */
 export type ListEnumAuditStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AuditStatus[]'>
-    
-
-
-/**
- * Reference to a field of type 'Json'
- */
-export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
-    
-
-
-/**
- * Reference to a field of type 'QueryMode'
- */
-export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
     
 
 /**
@@ -2960,6 +3171,8 @@ export type GlobalOmitConfig = {
   minutes?: Prisma.MinutesOmit
   minutePoint?: Prisma.MinutePointOmit
   minutesAccessToken?: Prisma.MinutesAccessTokenOmit
+  transcript?: Prisma.TranscriptOmit
+  transcriptSegment?: Prisma.TranscriptSegmentOmit
   actionItem?: Prisma.ActionItemOmit
   actionItemAssistant?: Prisma.ActionItemAssistantOmit
   notification?: Prisma.NotificationOmit
