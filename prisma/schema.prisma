@@ -47,6 +47,7 @@ model User {
   createdActionItems   ActionItem[]          @relation("actionAssignedBy")
   auditLogs            AuditLog[]
   notifications        Notification[]
+  pushSubscriptions    PushSubscription[]
   settingsChanged      PlatformSetting[]
 
   @@index([ministryId])
@@ -185,6 +186,14 @@ model UserPreferences {
   minutesNotifications    Boolean  @default(true)
   meetingReminders        Boolean  @default(true)
   actionItemNotifications Boolean  @default(true)
+  /// Master switch for browser push, the way emailNotifications is for email.
+  ///
+  /// Defaults to FALSE where the others default to true, because push is the
+  /// only channel that needs the browser's own permission as well — a default
+  /// of true would describe a wish nobody had expressed and no device had
+  /// granted. It is turned on from the profile page, in the same gesture that
+  /// asks the browser.
+  pushNotifications       Boolean  @default(false)
   theme                   String   @default("light")
   compactMode             Boolean  @default(false)
   sessionTimeout          Int      @default(1800)
@@ -638,6 +647,46 @@ enum ActionItemStatus {
 // ============================================================================
 // NOTIFICATIONS
 // ============================================================================
+
+/// One browser's push endpoint, as handed over by PushManager.subscribe().
+///
+/// A row is a DEVICE-AND-BROWSER, not a person: the same user signing in on a
+/// phone and a laptop produces two, and clearing site data produces a third
+/// while the first is still on file. That is why endpoint is the unique key
+/// rather than userId — the push service issues it, and it is the only thing
+/// that identifies the same subscription twice.
+///
+/// Rows die by being pruned, not by being tidied. When the push service answers
+/// 404 or 410 the subscription is gone for good and PushService deletes it;
+/// without that this table only ever grows, and every send retries against
+/// endpoints that will never answer again.
+model PushSubscription {
+  id String @id @default(cuid())
+
+  userId String
+
+  /// The push service URL for this browser. Unique because re-subscribing the
+  /// same browser must update the row rather than add another — otherwise one
+  /// person gets the same alert three times on one device.
+  endpoint String @unique
+
+  /// The two halves of the subscription's encryption keys, exactly as the
+  /// browser reported them. Everything sent is encrypted to these, so the push
+  /// service relays a payload it cannot itself read.
+  p256dh String
+  auth   String
+
+  /// Only so somebody looking at their own device list can tell which is which.
+  userAgent String?
+
+  createdAt  DateTime @default(now())
+  /// Last time a push to this endpoint was accepted, for pruning later.
+  lastUsedAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
 
 model Notification {
   id     String @id @default(cuid())

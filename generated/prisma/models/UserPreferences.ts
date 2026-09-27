@@ -41,6 +41,7 @@ export type UserPreferencesMinAggregateOutputType = {
   minutesNotifications: boolean | null
   meetingReminders: boolean | null
   actionItemNotifications: boolean | null
+  pushNotifications: boolean | null
   theme: string | null
   compactMode: boolean | null
   sessionTimeout: number | null
@@ -58,6 +59,7 @@ export type UserPreferencesMaxAggregateOutputType = {
   minutesNotifications: boolean | null
   meetingReminders: boolean | null
   actionItemNotifications: boolean | null
+  pushNotifications: boolean | null
   theme: string | null
   compactMode: boolean | null
   sessionTimeout: number | null
@@ -75,6 +77,7 @@ export type UserPreferencesCountAggregateOutputType = {
   minutesNotifications: number
   meetingReminders: number
   actionItemNotifications: number
+  pushNotifications: number
   theme: number
   compactMode: number
   sessionTimeout: number
@@ -102,6 +105,7 @@ export type UserPreferencesMinAggregateInputType = {
   minutesNotifications?: true
   meetingReminders?: true
   actionItemNotifications?: true
+  pushNotifications?: true
   theme?: true
   compactMode?: true
   sessionTimeout?: true
@@ -119,6 +123,7 @@ export type UserPreferencesMaxAggregateInputType = {
   minutesNotifications?: true
   meetingReminders?: true
   actionItemNotifications?: true
+  pushNotifications?: true
   theme?: true
   compactMode?: true
   sessionTimeout?: true
@@ -136,6 +141,7 @@ export type UserPreferencesCountAggregateInputType = {
   minutesNotifications?: true
   meetingReminders?: true
   actionItemNotifications?: true
+  pushNotifications?: true
   theme?: true
   compactMode?: true
   sessionTimeout?: true
@@ -240,6 +246,7 @@ export type UserPreferencesGroupByOutputType = {
   minutesNotifications: boolean
   meetingReminders: boolean
   actionItemNotifications: boolean
+  pushNotifications: boolean
   theme: string
   compactMode: boolean
   sessionTimeout: number
@@ -280,6 +287,7 @@ export type UserPreferencesWhereInput = {
   minutesNotifications?: Prisma.BoolFilter<"UserPreferences"> | boolean
   meetingReminders?: Prisma.BoolFilter<"UserPreferences"> | boolean
   actionItemNotifications?: Prisma.BoolFilter<"UserPreferences"> | boolean
+  pushNotifications?: Prisma.BoolFilter<"UserPreferences"> | boolean
   theme?: Prisma.StringFilter<"UserPreferences"> | string
   compactMode?: Prisma.BoolFilter<"UserPreferences"> | boolean
   sessionTimeout?: Prisma.IntFilter<"UserPreferences"> | number
@@ -298,6 +306,7 @@ export type UserPreferencesOrderByWithRelationInput = {
   minutesNotifications?: Prisma.SortOrder
   meetingReminders?: Prisma.SortOrder
   actionItemNotifications?: Prisma.SortOrder
+  pushNotifications?: Prisma.SortOrder
   theme?: Prisma.SortOrder
   compactMode?: Prisma.SortOrder
   sessionTimeout?: Prisma.SortOrder
@@ -319,6 +328,7 @@ export type UserPreferencesWhereUniqueInput = Prisma.AtLeast<{
   minutesNotifications?: Prisma.BoolFilter<"UserPreferences"> | boolean
   meetingReminders?: Prisma.BoolFilter<"UserPreferences"> | boolean
   actionItemNotifications?: Prisma.BoolFilter<"UserPreferences"> | boolean
+  pushNotifications?: Prisma.BoolFilter<"UserPreferences"> | boolean
   theme?: Prisma.StringFilter<"UserPreferences"> | string
   compactMode?: Prisma.BoolFilter<"UserPreferences"> | boolean
   sessionTimeout?: Prisma.IntFilter<"UserPreferences"> | number
@@ -337,6 +347,7 @@ export type UserPreferencesOrderByWithAggregationInput = {
   minutesNotifications?: Prisma.SortOrder
   meetingReminders?: Prisma.SortOrder
   actionItemNotifications?: Prisma.SortOrder
+  pushNotifications?: Prisma.SortOrder
   theme?: Prisma.SortOrder
   compactMode?: Prisma.SortOrder
   sessionTimeout?: Prisma.SortOrder
@@ -362,6 +373,7 @@ export type UserPreferencesScalarWhereWithAggregatesInput = {
   minutesNotifications?: Prisma.BoolWithAggregatesFilter<"UserPreferences"> | boolean
   meetingReminders?: Prisma.BoolWithAggregatesFilter<"UserPreferences"> | boolean
   actionItemNotifications?: Prisma.BoolWithAggregatesFilter<"UserPreferences"> | boolean
+  pushNotifications?: Prisma.BoolWithAggregatesFilter<"UserPreferences"> | boolean
   theme?: Prisma.StringWithAggregatesFilter<"UserPreferences"> | string
   compactMode?: Prisma.BoolWithAggregatesFilter<"UserPreferences"> | boolean
   sessionTimeout?: Prisma.IntWithAggregatesFilter<"UserPreferences"> | number
@@ -378,6 +390,7 @@ export type UserPreferencesCreateInput = {
   minutesNotifications?: boolean
   meetingReminders?: boolean
   actionItemNotifications?: boolean
+  pushNotifications?: boolean
   theme?: string
   compactMode?: boolean
   sessionTimeout?: number
@@ -396,6 +409,7 @@ export type UserPreferencesUncheckedCreateInput = {
   minutesNotifications?: boolean
   meetingReminders?: boolean
   actionItemNotifications?: boolean
+  pushNotifications?: boolean
   theme?: string
   compactMode?: boolean
   sessionTimeout?: number
@@ -412,6 +426,7 @@ export type UserPreferencesUpdateInput = {
   minutesNotifications?: Prisma.BoolFieldUpdateOperationsInput | boolean
   meetingReminders?: Prisma.BoolFieldUpdateOperationsInput | boolean
   actionItemNotifications?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  pushNotifications?: Prisma.BoolFieldUpdateOperationsInput | boolean
   theme?: Prisma.StringFieldUpdateOperationsInput | string
   compactMode?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sessionTimeout?: Prisma.IntFieldUpdateOperationsInput | number
@@ -430,6 +445,7 @@ export type UserPreferencesUncheckedUpdateInput = {
   minutesNotifications?: Prisma.BoolFieldUpdateOperationsInput | boolean
   meetingReminders?: Prisma.BoolFieldUpdateOperationsInput | boolean
   actionItemNotifications?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  pushNotifications?: Prisma.BoolFieldUpdateOperationsInput | boolean
   theme?: Prisma.StringFieldUpdateOperationsInput | string
   compactMode?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sessionTimeout?: Prisma.IntFieldUpdateOperationsInput | number
@@ -447,6 +463,7 @@ export type UserPreferencesCreateManyInput = {
   minutesNotifications?: boolean
   meetingReminders?: boolean
   actionItemNotifications?: boolean
+  pushNotifications?: boolean
   theme?: string
   compactMode?: boolean
   sessionTimeout?: number
@@ -463,6 +480,7 @@ export type UserPreferencesUpdateManyMutationInput = {
   minutesNotifications?: Prisma.BoolFieldUpdateOperationsInput | boolean
   meetingReminders?: Prisma.BoolFieldUpdateOperationsInput | boolean
   actionItemNotifications?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  pushNotifications?: Prisma.BoolFieldUpdateOperationsInput | boolean
   theme?: Prisma.StringFieldUpdateOperationsInput | string
   compactMode?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sessionTimeout?: Prisma.IntFieldUpdateOperationsInput | number
@@ -480,6 +498,7 @@ export type UserPreferencesUncheckedUpdateManyInput = {
   minutesNotifications?: Prisma.BoolFieldUpdateOperationsInput | boolean
   meetingReminders?: Prisma.BoolFieldUpdateOperationsInput | boolean
   actionItemNotifications?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  pushNotifications?: Prisma.BoolFieldUpdateOperationsInput | boolean
   theme?: Prisma.StringFieldUpdateOperationsInput | string
   compactMode?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sessionTimeout?: Prisma.IntFieldUpdateOperationsInput | number
@@ -502,6 +521,7 @@ export type UserPreferencesCountOrderByAggregateInput = {
   minutesNotifications?: Prisma.SortOrder
   meetingReminders?: Prisma.SortOrder
   actionItemNotifications?: Prisma.SortOrder
+  pushNotifications?: Prisma.SortOrder
   theme?: Prisma.SortOrder
   compactMode?: Prisma.SortOrder
   sessionTimeout?: Prisma.SortOrder
@@ -523,6 +543,7 @@ export type UserPreferencesMaxOrderByAggregateInput = {
   minutesNotifications?: Prisma.SortOrder
   meetingReminders?: Prisma.SortOrder
   actionItemNotifications?: Prisma.SortOrder
+  pushNotifications?: Prisma.SortOrder
   theme?: Prisma.SortOrder
   compactMode?: Prisma.SortOrder
   sessionTimeout?: Prisma.SortOrder
@@ -540,6 +561,7 @@ export type UserPreferencesMinOrderByAggregateInput = {
   minutesNotifications?: Prisma.SortOrder
   meetingReminders?: Prisma.SortOrder
   actionItemNotifications?: Prisma.SortOrder
+  pushNotifications?: Prisma.SortOrder
   theme?: Prisma.SortOrder
   compactMode?: Prisma.SortOrder
   sessionTimeout?: Prisma.SortOrder
@@ -592,6 +614,7 @@ export type UserPreferencesCreateWithoutUserInput = {
   minutesNotifications?: boolean
   meetingReminders?: boolean
   actionItemNotifications?: boolean
+  pushNotifications?: boolean
   theme?: string
   compactMode?: boolean
   sessionTimeout?: number
@@ -608,6 +631,7 @@ export type UserPreferencesUncheckedCreateWithoutUserInput = {
   minutesNotifications?: boolean
   meetingReminders?: boolean
   actionItemNotifications?: boolean
+  pushNotifications?: boolean
   theme?: string
   compactMode?: boolean
   sessionTimeout?: number
@@ -640,6 +664,7 @@ export type UserPreferencesUpdateWithoutUserInput = {
   minutesNotifications?: Prisma.BoolFieldUpdateOperationsInput | boolean
   meetingReminders?: Prisma.BoolFieldUpdateOperationsInput | boolean
   actionItemNotifications?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  pushNotifications?: Prisma.BoolFieldUpdateOperationsInput | boolean
   theme?: Prisma.StringFieldUpdateOperationsInput | string
   compactMode?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sessionTimeout?: Prisma.IntFieldUpdateOperationsInput | number
@@ -656,6 +681,7 @@ export type UserPreferencesUncheckedUpdateWithoutUserInput = {
   minutesNotifications?: Prisma.BoolFieldUpdateOperationsInput | boolean
   meetingReminders?: Prisma.BoolFieldUpdateOperationsInput | boolean
   actionItemNotifications?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  pushNotifications?: Prisma.BoolFieldUpdateOperationsInput | boolean
   theme?: Prisma.StringFieldUpdateOperationsInput | string
   compactMode?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sessionTimeout?: Prisma.IntFieldUpdateOperationsInput | number
@@ -675,6 +701,7 @@ export type UserPreferencesSelect<ExtArgs extends runtime.Types.Extensions.Inter
   minutesNotifications?: boolean
   meetingReminders?: boolean
   actionItemNotifications?: boolean
+  pushNotifications?: boolean
   theme?: boolean
   compactMode?: boolean
   sessionTimeout?: boolean
@@ -693,6 +720,7 @@ export type UserPreferencesSelectCreateManyAndReturn<ExtArgs extends runtime.Typ
   minutesNotifications?: boolean
   meetingReminders?: boolean
   actionItemNotifications?: boolean
+  pushNotifications?: boolean
   theme?: boolean
   compactMode?: boolean
   sessionTimeout?: boolean
@@ -711,6 +739,7 @@ export type UserPreferencesSelectUpdateManyAndReturn<ExtArgs extends runtime.Typ
   minutesNotifications?: boolean
   meetingReminders?: boolean
   actionItemNotifications?: boolean
+  pushNotifications?: boolean
   theme?: boolean
   compactMode?: boolean
   sessionTimeout?: boolean
@@ -729,6 +758,7 @@ export type UserPreferencesSelectScalar = {
   minutesNotifications?: boolean
   meetingReminders?: boolean
   actionItemNotifications?: boolean
+  pushNotifications?: boolean
   theme?: boolean
   compactMode?: boolean
   sessionTimeout?: boolean
@@ -739,7 +769,7 @@ export type UserPreferencesSelectScalar = {
   updatedAt?: boolean
 }
 
-export type UserPreferencesOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "emailNotifications" | "minutesNotifications" | "meetingReminders" | "actionItemNotifications" | "theme" | "compactMode" | "sessionTimeout" | "consentTimestamp" | "consentVersion" | "geoLocationConsent" | "tourCompletedVersion" | "updatedAt", ExtArgs["result"]["userPreferences"]>
+export type UserPreferencesOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "emailNotifications" | "minutesNotifications" | "meetingReminders" | "actionItemNotifications" | "pushNotifications" | "theme" | "compactMode" | "sessionTimeout" | "consentTimestamp" | "consentVersion" | "geoLocationConsent" | "tourCompletedVersion" | "updatedAt", ExtArgs["result"]["userPreferences"]>
 export type UserPreferencesInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }
@@ -762,6 +792,16 @@ export type $UserPreferencesPayload<ExtArgs extends runtime.Types.Extensions.Int
     minutesNotifications: boolean
     meetingReminders: boolean
     actionItemNotifications: boolean
+    /**
+     * Master switch for browser push, the way emailNotifications is for email.
+     * 
+     * Defaults to FALSE where the others default to true, because push is the
+     * only channel that needs the browser's own permission as well — a default
+     * of true would describe a wish nobody had expressed and no device had
+     * granted. It is turned on from the profile page, in the same gesture that
+     * asks the browser.
+     */
+    pushNotifications: boolean
     theme: string
     compactMode: boolean
     sessionTimeout: number
@@ -1205,6 +1245,7 @@ export interface UserPreferencesFieldRefs {
   readonly minutesNotifications: Prisma.FieldRef<"UserPreferences", 'Boolean'>
   readonly meetingReminders: Prisma.FieldRef<"UserPreferences", 'Boolean'>
   readonly actionItemNotifications: Prisma.FieldRef<"UserPreferences", 'Boolean'>
+  readonly pushNotifications: Prisma.FieldRef<"UserPreferences", 'Boolean'>
   readonly theme: Prisma.FieldRef<"UserPreferences", 'String'>
   readonly compactMode: Prisma.FieldRef<"UserPreferences", 'Boolean'>
   readonly sessionTimeout: Prisma.FieldRef<"UserPreferences", 'Int'>

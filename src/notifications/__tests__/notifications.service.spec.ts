@@ -10,6 +10,7 @@ import { NotificationsService } from '../notifications.service';
 describe('NotificationsService', () => {
   let prisma: any;
   let queue: any;
+  let pushQueue: any;
   let service: NotificationsService;
   let prefRows: any[];
 
@@ -34,7 +35,11 @@ describe('NotificationsService', () => {
       add: jest.fn().mockResolvedValue(undefined),
       addBulk: jest.fn().mockResolvedValue(undefined),
     };
-    service = new NotificationsService(prisma, queue);
+    pushQueue = {
+      add: jest.fn().mockResolvedValue(undefined),
+      addBulk: jest.fn().mockResolvedValue(undefined),
+    };
+    service = new NotificationsService(prisma, queue, pushQueue);
   });
 
   const prefs = (userId: string, overrides: Record<string, boolean> = {}) => ({
@@ -103,13 +108,94 @@ describe('NotificationsService', () => {
       expect(written.map((d: any) => d.userId)).toEqual(['u1', 'u2', 'u3']);
     });
 
-    it('no longer reads preferences at all', async () => {
+    // This used to assert that preferences were never read at all, which was a
+    // proxy for the real rule: an in-app row is written for everyone. Push
+    // reads preferences again — it is the one channel that interrupts somebody,
+    // so it has to be asked for — and the proxy stopped tracking the rule. The
+    // rule itself is asserted directly instead.
+    it('writes in-app rows without consulting preferences', async () => {
+      prefRows = [prefs('u1', { pushNotifications: false })];
       await service.notifyMany([{ userId: 'u1', ministryId: 'm1' }], {
         type: 'MINUTES_PUBLISHED',
         title: 't',
         body: 'b',
       });
-      expect(prisma.userPreferences.findMany).not.toHaveBeenCalled();
+      const written = prisma.notification.createMany.mock.calls[0][0].data;
+      expect(written.map((d: any) => d.userId)).toEqual(['u1']);
+      // ...and the push preference being off changed only the push.
+      expect(pushQueue.addBulk).not.toHaveBeenCalled();
+    });
+
+    describe('push', () => {
+      it('queues a push only for recipients who turned it on', async () => {
+        prefRows = [
+          prefs('u1', { pushNotifications: true }),
+          prefs('u2', { pushNotifications: false }),
+        ];
+        await service.notifyMany(
+          [
+            { userId: 'u1', ministryId: 'm1' },
+            { userId: 'u2', ministryId: 'm1' },
+          ],
+          { type: 'MINUTES_PUBLISHED', title: 't', body: 'b' },
+        );
+        expect(pushQueue.addBulk).toHaveBeenCalledTimes(1);
+        const queued = pushQueue.addBulk.mock.calls[0][0];
+        expect(queued.map((j: any) => j.data.userId)).toEqual(['u1']);
+      });
+
+      // The master switch defaults to FALSE, unlike the others. A missing row
+      // must not be read as consent: push needs the browser's permission too,
+      // and nobody is subscribed until they have asked to be.
+      it('does not push to someone with no preferences row', async () => {
+        prefRows = [];
+        await service.notifyMany([{ userId: 'u1', ministryId: 'm1' }], {
+          type: 'MINUTES_PUBLISHED',
+          title: 't',
+          body: 'b',
+        });
+        expect(pushQueue.addBulk).not.toHaveBeenCalled();
+      });
+
+      // The category toggle still applies on top of the channel switch, the
+      // same way it does for email.
+      it('respects the category toggle even when push is on', async () => {
+        prefRows = [
+          prefs('u1', { pushNotifications: true, minutesNotifications: false }),
+        ];
+        await service.notifyMany([{ userId: 'u1', ministryId: 'm1' }], {
+          type: 'MINUTES_PUBLISHED',
+          title: 't',
+          body: 'b',
+        });
+        expect(pushQueue.addBulk).not.toHaveBeenCalled();
+      });
+
+      it('collapses repeats with a stable tag and job id', async () => {
+        prefRows = [prefs('u1', { pushNotifications: true })];
+        await service.notifyMany([{ userId: 'u1', ministryId: 'm1' }], {
+          type: 'MEETING_REMINDER',
+          title: 't',
+          body: 'b',
+          entityId: 'e1',
+        });
+        const [job] = pushQueue.addBulk.mock.calls[0][0];
+        expect(job.data.tag).toBe('MEETING_REMINDER:e1');
+        expect(job.opts.jobId).toBe('push:MEETING_REMINDER:e1:u1');
+      });
+
+      // Redis being unreachable must not fail the thing that raised the
+      // notification — the same contract the email path has.
+      it('still writes in-app rows when the push queue is down', async () => {
+        prefRows = [prefs('u1', { pushNotifications: true })];
+        pushQueue.addBulk.mockRejectedValue(new Error('redis is gone'));
+        const result = await service.notifyMany(
+          [{ userId: 'u1', ministryId: 'm1' }],
+          { type: 'MINUTES_PUBLISHED', title: 't', body: 'b' },
+        );
+        expect(result).toEqual([true]);
+        expect(prisma.notification.createMany).toHaveBeenCalled();
+      });
     });
 
     it('does nothing for an empty recipient list', async () => {
