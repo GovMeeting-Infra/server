@@ -105,29 +105,38 @@ describe('PushService', () => {
     // 404 and 410 are the push service saying this endpoint is finished for
     // good. Without pruning, the table only grows and every later send retries
     // against an endpoint that will never answer.
-    it.each([404, 410])('deletes a subscription the service reports %i for', async (status) => {
-      subscriptions = [sub('dead')];
-      sendNotification.mockRejectedValue(webPushError(status));
+    it.each([404, 410])(
+      'deletes a subscription the service reports %i for',
+      async (status) => {
+        subscriptions = [sub('dead')];
+        sendNotification.mockRejectedValue(webPushError(status));
 
-      const delivered = await build().sendToUser('u1', { title: 't', body: 'b' });
+        const delivered = await build().sendToUser('u1', {
+          title: 't',
+          body: 'b',
+        });
 
-      expect(delivered).toBe(0);
-      expect(prisma.pushSubscription.deleteMany).toHaveBeenCalledWith({
-        where: { id: { in: ['dead'] } },
-      });
-    });
+        expect(delivered).toBe(0);
+        expect(prisma.pushSubscription.deleteMany).toHaveBeenCalledWith({
+          where: { id: { in: ['dead'] } },
+        });
+      },
+    );
 
     // The mirror image, and the more dangerous mistake: deleting on a
     // transient failure silently unsubscribes a working device, and nobody
     // finds out until they notice they have stopped being told about meetings.
-    it.each([429, 500, 503])('keeps a subscription after a %i', async (status) => {
-      subscriptions = [sub('alive')];
-      sendNotification.mockRejectedValue(webPushError(status));
+    it.each([429, 500, 503])(
+      'keeps a subscription after a %i',
+      async (status) => {
+        subscriptions = [sub('alive')];
+        sendNotification.mockRejectedValue(webPushError(status));
 
-      await build().sendToUser('u1', { title: 't', body: 'b' });
+        await build().sendToUser('u1', { title: 't', body: 'b' });
 
-      expect(prisma.pushSubscription.deleteMany).not.toHaveBeenCalled();
-    });
+        expect(prisma.pushSubscription.deleteMany).not.toHaveBeenCalled();
+      },
+    );
 
     it('keeps a subscription when the failure carries no status at all', async () => {
       subscriptions = [sub('alive')];
@@ -144,7 +153,10 @@ describe('PushService', () => {
         .mockResolvedValueOnce({})
         .mockRejectedValueOnce(webPushError(410));
 
-      const delivered = await build().sendToUser('u1', { title: 't', body: 'b' });
+      const delivered = await build().sendToUser('u1', {
+        title: 't',
+        body: 'b',
+      });
 
       expect(delivered).toBe(1);
       expect(prisma.pushSubscription.deleteMany).toHaveBeenCalledWith({
@@ -177,7 +189,11 @@ describe('PushService', () => {
 
       const call = prisma.pushSubscription.upsert.mock.calls[0][0];
       expect(call.where).toEqual({ endpoint: 'https://push.example/shared' });
-      expect(call.update).toMatchObject({ userId: 'u2', p256dh: 'p2', auth: 'a2' });
+      expect(call.update).toMatchObject({
+        userId: 'u2',
+        p256dh: 'p2',
+        auth: 'a2',
+      });
       expect(call.create).toMatchObject({ userId: 'u2' });
     });
 

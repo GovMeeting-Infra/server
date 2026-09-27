@@ -126,7 +126,10 @@ export class PushService {
         select: { id: true, endpoint: true, p256dh: true, auth: true },
       });
     } catch (error) {
-      this.logger.error(`Could not read push subscriptions for ${userId}`, error);
+      this.logger.error(
+        `Could not read push subscriptions for ${userId}`,
+        error,
+      );
       return 0;
     }
     if (subscriptions.length === 0) return 0;

@@ -250,8 +250,7 @@ export class NotificationsService {
     const lookup = await this.preferencesFor([userId]);
     const prefs = lookup(userId);
     return (
-      prefs.pushNotifications === true &&
-      prefs[PREFERENCE_FOR[type]] !== false
+      prefs.pushNotifications === true && prefs[PREFERENCE_FOR[type]] !== false
     );
   }
 
