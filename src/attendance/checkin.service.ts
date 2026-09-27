@@ -21,6 +21,7 @@ import {
   GEOFENCE_RADIUS_METERS,
   ANCHOR_MAX_ACCURACY_METERS,
   CHECKIN_MAX_ACCURACY_METERS,
+  CODE_OPENS_BEFORE_START_MINUTES,
   GEO_ERROR,
 } from './geofence.constants';
 
@@ -38,6 +39,16 @@ interface GeofenceVerdict {
   checkInMethod: 'QR' | 'GEO';
   distance: number | null;
   mockLocationFlag: boolean;
+}
+
+/** Organizers read times in Freetown; matches mail/templates.ts. */
+const DISPLAY_TIMEZONE = process.env.DISPLAY_TIMEZONE || 'Africa/Freetown';
+
+/** When a meeting's check-in code can first be generated. */
+export function codeOpensAt(startAt: Date): Date {
+  return new Date(
+    new Date(startAt).getTime() - CODE_OPENS_BEFORE_START_MINUTES * 60 * 1000,
+  );
 }
 
 const ANCHOR_FIELDS = {
@@ -90,6 +101,7 @@ export class CheckinService {
         id: true,
         title: true,
         status: true,
+        startAt: true,
         endAt: true,
         ministryId: true,
         allowGuestCheckIn: true,
@@ -109,6 +121,24 @@ export class CheckinService {
       throw new BadRequestException('This meeting has ended');
     }
 
+    // On the day, at the venue: the code sets the area from where the
+    // organizer stands, so it must not be generated from somewhere else ahead
+    // of time. Every day of a series is gated by its own start.
+    const opensAt = codeOpensAt(event.startAt);
+    if (new Date() < opensAt) {
+      const when = opensAt.toLocaleString('en-GB', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZone: DISPLAY_TIMEZONE,
+      });
+      throw new BadRequestException(
+        `The check-in code can be generated from ${CODE_OPENS_BEFORE_START_MINUTES / 60} hours before the meeting, from ${when}. Generate it at the venue, so the check-in area is set in the right place.`,
+      );
+    }
+
     const hasAnchor =
       event.checkInAnchorLat !== null && event.checkInAnchorLng !== null;
     const wantsCapture = !hasAnchor || dto.resetAnchor === true;
@@ -119,10 +149,23 @@ export class CheckinService {
       dto.gpsAccuracy > 0 &&
       dto.gpsAccuracy <= ANCHOR_MAX_ACCURACY_METERS;
 
-    // Whether this call would leave the event with no fence at all: either
-    // there was never an anchor and this fix is too poor to set one, or the
-    // organizer asked to reset and cannot.
+    // Whether this call would leave the event with no fence at all: there was
+    // never an anchor and this fix is too poor to set one. (A reset that
+    // cannot be honoured is refused separately below, keeping the old area.)
     const wouldBeUnfenced = wantsCapture && !usableFix && !hasAnchor;
+
+    // Moving the area with a fix too poor to move it to used to clear the old
+    // area instead, leaving a live code with no fence — everyone accepted from
+    // anywhere. Refuse and leave both the area and the code as they were.
+    if (dto.resetAnchor === true && hasAnchor && !usableFix) {
+      throw new BadRequestException(
+        dto.lat == null || dto.lng == null
+          ? "Your location couldn't be read, so the check-in area hasn't been moved. It is still where it was set. Turn on location for this site and try again."
+          : `Your location is only accurate to ${Math.round(
+              dto.gpsAccuracy ?? 0,
+            )}m, which is too vague to move the check-in area to, so it hasn't been moved. Step outside or near a window and try again.`,
+      );
+    }
 
     if (wouldBeUnfenced) {
       // Always, now — this is no longer a per-event setting.
@@ -142,7 +185,7 @@ export class CheckinService {
       );
     }
 
-    let anchorChange: 'set' | 'cleared' | null = null;
+    let anchorChange: 'set' | null = null;
     let anchorData: Record<string, unknown> | null = null;
 
     if (wantsCapture && usableFix) {
@@ -153,18 +196,6 @@ export class CheckinService {
         checkInAnchorAccuracy: Math.round(dto.gpsAccuracy as number),
         checkInAnchorSetAt: new Date(),
         checkInAnchorSetById: actor.id,
-      };
-    } else if (wantsCapture && dto.resetAnchor === true && hasAnchor) {
-      // Resetting without a usable fix must clear the old anchor rather than
-      // silently leave it in place — otherwise the organizer believes they have
-      // moved the fence when they have not.
-      anchorChange = 'cleared';
-      anchorData = {
-        checkInAnchorLat: null,
-        checkInAnchorLng: null,
-        checkInAnchorAccuracy: null,
-        checkInAnchorSetAt: null,
-        checkInAnchorSetById: null,
       };
     }
     // Not capturing: incoming coordinates are ignored entirely, so replacing a
@@ -182,6 +213,7 @@ export class CheckinService {
             id: true,
             title: true,
             status: true,
+            startAt: true,
             endAt: true,
             ministryId: true,
             allowGuestCheckIn: true,
@@ -230,10 +262,7 @@ export class CheckinService {
         status: 'SUCCESS',
         ministryId: event.ministryId,
         actorId: actor.id,
-        description:
-          anchorChange === 'set'
-            ? `Check-in area set for event: ${event.title}`
-            : `Check-in area cleared for event: ${event.title}`,
+        description: `Check-in area set for event: ${event.title}`,
         metadata: {
           change: anchorChange,
           accuracy: updated.checkInAnchorAccuracy,
@@ -253,6 +282,7 @@ export class CheckinService {
         id: true,
         title: true,
         status: true,
+        startAt: true,
         endAt: true,
         allowGuestCheckIn: true,
         requireGeofence: true,
@@ -334,6 +364,9 @@ export class CheckinService {
       allowGuestCheckIn: event.allowGuestCheckIn,
       eventStatus: event.status,
       endAt: event.endAt,
+      // So the page can say when the button starts working instead of letting
+      // the organizer find out by being refused.
+      codeOpensAt: event.startAt ? codeOpensAt(event.startAt) : null,
     };
   }
 

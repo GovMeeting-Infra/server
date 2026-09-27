@@ -55,8 +55,33 @@ describe('SearchService.search', () => {
     it('confines a ministry user to their own records', async () => {
       await service.search(staff, 'budget');
 
-      expect(whereFor('minutes').event).toEqual({ ministryId: 'min-moh' });
-      expect(whereFor('event').ministryId).toBe('min-moh');
+      expect(whereFor('minutes').event.AND[0]).toEqual({
+        ministryId: 'min-moh',
+      });
+      expect(whereFor('event').AND[0]).toEqual({ ministryId: 'min-moh' });
+    });
+
+    it('confines staff to events they take part in, and their minutes', async () => {
+      await service.search(staff, 'budget');
+
+      const visible = {
+        OR: [
+          { isPublic: true },
+          { organizerId: 'u1' },
+          { coOrganizers: { some: { userId: 'u1' } } },
+          { attendees: { some: { userId: 'u1' } } },
+        ],
+      };
+      expect(whereFor('event').AND[1]).toEqual(visible);
+      expect(whereFor('minutes').event.AND[1]).toEqual(visible);
+      // The text match is an OR as well; it must sit beside the filter, not
+      // replace it.
+      expect(whereFor('event').OR).toHaveLength(2);
+    });
+
+    it('lets leadership search every event in the ministry', async () => {
+      await service.search(minister, 'budget');
+      expect(whereFor('event').AND[1]).toEqual({});
     });
 
     it('confines the people search to the searcher own ministry', async () => {

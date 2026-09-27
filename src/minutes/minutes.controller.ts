@@ -108,6 +108,7 @@ export class MinutesController {
     @Param('eventId') eventId: string,
     @CurrentUser() user: any,
   ) {
+    await this.minutesService.assertCanReadEvent(eventId, user);
     return this.minutesService.getMinutes(eventId, user?.systemRole);
   }
 
@@ -123,6 +124,7 @@ export class MinutesController {
     @Param('eventId') eventId: string,
     @CurrentUser() user: any,
   ) {
+    await this.minutesService.assertCanReadEvent(eventId, user);
     const permission = await this.minutesService.describeEditPermission(
       eventId,
       user.id,
@@ -198,7 +200,11 @@ export class MinutesController {
 
   @Get('action-items')
   @Roles('STAFF', 'MINISTRY_ADMIN', 'MINISTER', 'SUPER_ADMIN')
-  async listActionItems(@Param('eventId') eventId: string) {
+  async listActionItems(
+    @Param('eventId') eventId: string,
+    @CurrentUser() user: any,
+  ) {
+    await this.minutesService.assertCanReadEvent(eventId, user);
     const minutes = await (
       this.minutesService as any
     ).prisma.minutes.findUnique({
@@ -214,7 +220,20 @@ export class MinutesController {
 
   @Get('action-items/:actionItemId')
   @Roles('STAFF', 'MINISTRY_ADMIN', 'MINISTER', 'SUPER_ADMIN')
-  async getActionItem(@Param('actionItemId') actionItemId: string) {
-    return this.actionItemsService.getActionItem(actionItemId);
+  async getActionItem(
+    @Param('eventId') eventId: string,
+    @Param('actionItemId') actionItemId: string,
+    @CurrentUser() user: any,
+  ) {
+    await this.minutesService.assertCanReadEvent(eventId, user);
+    const item = await this.actionItemsService.getActionItem(actionItemId);
+
+    // The gate above is for the event in the URL, so the item has to belong to
+    // it — otherwise any visible event id would unlock every action item.
+    if (item.minutes?.event?.id !== eventId) {
+      throw new NotFoundException('Action item not found');
+    }
+
+    return item;
   }
 }

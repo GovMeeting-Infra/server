@@ -1,4 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import * as ExcelJS from 'exceljs';
 import { NotFoundException } from '@nestjs/common';
 import { AttendanceExportService } from '../attendance-export.service';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -313,6 +314,69 @@ describe('AttendanceExportService', () => {
 
       expect(csv.toLowerCase()).not.toContain('lat');
       expect(csv.toLowerCase()).not.toContain('lng');
+    });
+  });
+
+  describe('toXlsx', () => {
+    const event = {
+      id: EVENT_ID,
+      title: 'Budget Review',
+      startAt: new Date('2026-03-01T09:00:00Z'),
+      endAt: new Date('2026-03-01T11:00:00Z'),
+      venueName: 'Youyi Building',
+      ministry: { name: 'Ministry of Health' },
+    };
+
+    /** Writes the workbook and reads it back, as Excel would open it. */
+    const open = async (set: 'checked-in' | 'invited') => {
+      const rows = await service.buildRows(EVENT_ID, set);
+      const buffer = await service.toXlsx(event, rows, set);
+      const workbook = new ExcelJS.Workbook();
+      await workbook.xlsx.load(buffer as any);
+      const sheet = workbook.worksheets[0];
+      const values = (n: number) =>
+        (sheet.getRow(n).values as unknown[]).slice(1);
+      return { sheet, values, rows };
+    };
+
+    it('says which meeting it is above the table', async () => {
+      const { values } = await open('checked-in');
+
+      expect(values(1)).toEqual(['Budget Review']);
+      expect(String(values(2)[0])).toContain('Youyi Building');
+      expect(values(3)).toEqual(['Checked in: 3']);
+    });
+
+    it('uses the same columns as the CSV', async () => {
+      const { values } = await open('checked-in');
+      const rows = await service.buildRows(EVENT_ID, 'checked-in');
+
+      expect(values(5)).toEqual(service.toGrid(rows, 'checked-in').header);
+    });
+
+    it('writes check-in times as dates, so they sort', async () => {
+      const { values } = await open('checked-in');
+
+      expect(values(6)[0]).toBe('Aminata Kamara');
+      expect(values(6)[5]).toEqual(new Date('2026-03-01T09:05:00Z'));
+      expect(values(6)[10]).toBe(12);
+    });
+
+    it('freezes and filters the header row', async () => {
+      const { sheet } = await open('invited');
+
+      expect(sheet.views[0]).toMatchObject({ state: 'frozen', ySplit: 5 });
+      expect(sheet.autoFilter).toBeTruthy();
+    });
+
+    it('never carries the coordinates, which are stored encrypted', async () => {
+      const { sheet } = await open('checked-in');
+      const text = JSON.stringify(
+        sheet.getSheetValues().filter(Boolean),
+      ).toLowerCase();
+
+      expect(text).not.toContain('lat');
+      expect(text).not.toContain('lng');
     });
   });
 });

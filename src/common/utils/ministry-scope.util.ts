@@ -50,3 +50,69 @@ export function assertSameMinistry(
     throw new ForbiddenException('Cross-ministry access denied');
   }
 }
+
+/**
+ * The roles that see every event in their reach, invited or not. Leadership
+ * oversees the ministry's whole calendar and can already edit any of it; the
+ * platform roles keep the cross-ministry overview ministryScope gives them.
+ */
+export const SEE_ALL_EVENTS_ROLES = [
+  ...PLATFORM_ROLES,
+  'MINISTER',
+  'MINISTRY_ADMIN',
+];
+
+interface EventViewer {
+  id?: string | null;
+  systemRole: string;
+}
+
+/**
+ * Narrows an event query to the events this user is part of: ones they run,
+ * co-run or were invited to, plus public ones, which are on the open calendar
+ * anyway. Everyone else in the ministry no longer sees them at all.
+ *
+ * This is a second filter, not a replacement — combine it with ministryScope
+ * under AND. Both this and callers' own filters use OR, and spreading two
+ * objects with an OR key keeps only the last one, silently widening the query.
+ *
+ * Without an id there is nobody to match against, so the filter matches
+ * nothing rather than dropping out — the same reasoning as the null in
+ * ministryScope.
+ */
+export function eventVisibilityScope(
+  user: EventViewer,
+): Record<string, unknown> {
+  if (SEE_ALL_EVENTS_ROLES.includes(user.systemRole)) return {};
+  if (!user.id) return { id: { in: [] } };
+  return {
+    OR: [
+      { isPublic: true },
+      { organizerId: user.id },
+      { coOrganizers: { some: { userId: user.id } } },
+      { attendees: { some: { userId: user.id } } },
+    ],
+  };
+}
+
+/**
+ * eventVisibilityScope for a record already loaded, for routes that fetch one
+ * event by id. Ministry is not checked here; that stays assertSameMinistry's
+ * job.
+ */
+export function canSeeEvent(
+  user: EventViewer,
+  event: {
+    isPublic?: boolean | null;
+    organizerId?: string | null;
+    coOrganizers?: { userId?: string | null }[] | null;
+    attendees?: { userId?: string | null }[] | null;
+  },
+): boolean {
+  if (SEE_ALL_EVENTS_ROLES.includes(user.systemRole)) return true;
+  if (!user.id) return false;
+  if (event.isPublic) return true;
+  if (event.organizerId === user.id) return true;
+  if (event.coOrganizers?.some((c) => c.userId === user.id)) return true;
+  return !!event.attendees?.some((a) => a.userId === user.id);
+}
