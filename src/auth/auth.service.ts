@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
+import { CacheService } from '../cache/cache.service';
 import { SignInDto } from './dto/sign-in.dto';
 import { auth } from './auth.config';
 import { APIError } from 'better-auth/api';
@@ -32,6 +33,7 @@ export class AuthService {
     // redeploy; with no override stored, it returns the same environment value
     // as before.
     private settings: SettingsService,
+    private cache: CacheService,
   ) {}
 
   async signIn(dto: SignInDto, ipAddress?: string) {
@@ -133,6 +135,11 @@ export class AuthService {
           lastLoginAt: new Date(),
         },
       });
+
+      // The reports page counts who signed in recently and when the last
+      // sign-in was, from a copy kept for an hour. Without this, someone who
+      // signed in a minute ago was still missing from both.
+      await this.cache.invalidateAnalyticsFor(user.ministryId ?? null);
 
       await this.audit.log({
         action: 'LOGIN_SUCCESS',
