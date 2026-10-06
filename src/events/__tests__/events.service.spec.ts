@@ -672,6 +672,52 @@ describe('EventsService', () => {
      * wrong are the filter dropping out of the query, and the cache handing one
      * person's list to a colleague.
      */
+    describe('a period within a timeframe', () => {
+      beforeEach(() => {
+        mockCache.get.mockResolvedValue(null);
+        mockRepository.findMany.mockResolvedValue({ data: [], total: 0 });
+      });
+
+      it('keeps both conditions on startAt instead of letting one replace the other', async () => {
+        await service.listEvents('ministry-1', minister, {
+          timeframe: 'upcoming',
+          from: '2026-10-05T00:00:00.000Z',
+          to: '2026-10-12T00:00:00.000Z',
+        });
+
+        const { AND } = mockRepository.findMany.mock.calls[0][0];
+        expect(AND).toEqual(
+          expect.arrayContaining([
+            { startAt: { gt: expect.any(Date) } },
+            {
+              startAt: {
+                gte: new Date('2026-10-05T00:00:00.000Z'),
+                lt: new Date('2026-10-12T00:00:00.000Z'),
+              },
+            },
+          ]),
+        );
+      });
+
+      it('stays paged, unlike the calendar range it borrows from', async () => {
+        await service.listEvents('ministry-1', minister, {
+          page: 2,
+          timeframe: 'past',
+          from: '2026-10-01T00:00:00.000Z',
+        });
+        const [, skip, take] = mockRepository.findMany.mock.calls[0];
+        expect([skip, take]).toEqual([20, 20]);
+
+        mockRepository.findMany.mockClear();
+        await service.listEvents('ministry-1', minister, {
+          page: 2,
+          from: '2026-10-01T00:00:00.000Z',
+        });
+        const [, calSkip, calTake] = mockRepository.findMany.mock.calls[0];
+        expect([calSkip, calTake]).toEqual([0, 500]);
+      });
+    });
+
     describe('invite-only visibility', () => {
       const whereUsed = () => mockRepository.findMany.mock.calls[0][0];
       const cacheKeyUsed = (n = 0) => mockCache.get.mock.calls[n][0];

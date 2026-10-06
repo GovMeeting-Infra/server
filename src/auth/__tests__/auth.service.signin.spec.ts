@@ -42,7 +42,9 @@ describe('AuthService.signIn — ministry status', () => {
       get: jest.fn().mockResolvedValue('.gov.sl'),
       getNumber: jest.fn().mockResolvedValue(43200),
     };
-    service = new AuthService(prisma, audit, settings);
+    service = new AuthService(prisma, audit, settings, {
+      invalidateAnalyticsFor: jest.fn().mockResolvedValue(undefined),
+    } as any);
   });
 
   const signIn = (email = 'aminata@moh.gov.sl') =>
@@ -194,6 +196,7 @@ describe('AuthService.getSession — revocation', () => {
         get: jest.fn().mockResolvedValue('.gov.sl'),
         getNumber: jest.fn().mockResolvedValue(43200),
       } as any,
+      { invalidateAnalyticsFor: jest.fn().mockResolvedValue(undefined) } as any,
     );
   });
 

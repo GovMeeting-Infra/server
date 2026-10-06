@@ -424,7 +424,7 @@ export class EventsService {
           ? { startAt: { lte: now }, endAt: { gte: now } }
           : options.timeframe === 'past'
             ? { endAt: { lt: now } }
-            : {};
+            : null;
 
     // "Mine" means connected to me in any of the three ways this product
     // recognises — I run it, I co-run it, or I was invited. Ministry scope still
@@ -444,19 +444,30 @@ export class EventsService {
 
     // Staff see only the events they are part of; leadership sees the whole
     // ministry. Kept under AND because mineWhere is an OR as well.
+    //
+    // The timeframe and the range sit under AND too, as separate entries. Both
+    // can constrain startAt — "upcoming" and "this week" do — and spread side by
+    // side into one object the range simply replaced the timeframe's, so
+    // upcoming-this-week returned the whole week, finished meetings included.
     const where = {
-      AND: [ministryScope(user), eventVisibilityScope(user)],
+      AND: [
+        ministryScope(user),
+        eventVisibilityScope(user),
+        ...(timeframeWhere ? [timeframeWhere] : []),
+        ...(range ? [{ startAt: range }] : []),
+      ],
       ...(options.isPublic !== undefined && { isPublic: options.isPublic }),
-      ...timeframeWhere,
-      ...(range && { startAt: range }),
       ...mineWhere,
     };
 
     const page = Math.max(1, options.page || 1);
     // A month grid can't be paginated — it needs every event in the window — so
-    // range queries get a much higher ceiling. Still bounded, not unlimited.
-    const take = range ? EventsService.RANGE_MAX : 20;
-    const skip = range ? 0 : (page - 1) * take;
+    // a bare range gets a much higher ceiling. Still bounded, not unlimited. A
+    // range narrowing a timeframe is the list page filtering by period, which
+    // is read a page at a time like the rest of that list.
+    const unpaged = !!range && !timeframeWhere;
+    const take = unpaged ? EventsService.RANGE_MAX : 20;
+    const skip = unpaged ? 0 : (page - 1) * take;
 
     const sortBy = (EventsService.SORTABLE as readonly string[]).includes(
       options.sortBy ?? '',

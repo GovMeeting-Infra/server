@@ -19,6 +19,7 @@ import {
   ActionItemStatsDto,
   CheckInMethodsDto,
   EventsOverTimeDto,
+  SessionsByTypeDto,
   TrendDto,
   EvidenceStatsDto,
   MinistryBreakdownDto,
@@ -62,6 +63,7 @@ export class ReportsService {
       actionItemStats,
       checkInMethods,
       eventsOverTime,
+      sessionsByType,
       trend,
       evidence,
     ] = await Promise.all([
@@ -71,6 +73,7 @@ export class ReportsService {
       this.getActionItemStats(scope),
       this.getCheckInMethods(scope),
       this.getEventsOverTime(scope),
+      this.getSessionsByType(scope),
       this.getRecentTrend(scope),
       this.getEvidenceStats(scope),
     ]);
@@ -82,6 +85,7 @@ export class ReportsService {
       actionItemStats,
       checkInMethods,
       eventsOverTime,
+      sessionsByType,
       trend,
       evidence,
       // Only a super admin has more than one ministry to compare.
@@ -101,7 +105,14 @@ export class ReportsService {
     // Action items carry no ministry of their own; they inherit it from the
     // event their minutes belong to.
     const where = { minutes: { event: scope } };
+    // Whole days, not the instant. Due dates come from a date-only control and
+    // land on midnight, so comparing against now counted an item as overdue
+    // from the first minute of the day it was due — while the action items
+    // board, which counts whole days elapsed, still showed it as due today.
     const now = new Date();
+    const startOfToday = new Date(
+      Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()),
+    );
 
     const [total, completed, inProgress, todo, overdue, cancelled] =
       await Promise.all([
@@ -118,7 +129,7 @@ export class ReportsService {
         (this.prisma as any).actionItem.count({
           where: {
             ...where,
-            dueDate: { lt: now },
+            dueDate: { lt: startOfToday },
             status: { notIn: ['COMPLETED', 'CANCELLED'] },
           },
         }),
@@ -136,9 +147,12 @@ export class ReportsService {
   private async getCheckInMethods(
     scope: Record<string, unknown>,
   ): Promise<CheckInMethodsDto> {
+    // Published meetings only, like every other check-in count on the page. A
+    // meeting cancelled after people had checked in kept its check-ins here
+    // and nowhere else, so this total could exceed "All check-ins".
     const grouped = await (this.prisma as any).attendance.groupBy({
       by: ['checkInMethod'],
-      where: { event: scope },
+      where: { event: { ...scope, status: 'PUBLISHED' } },
       _count: { _all: true },
     });
 
@@ -214,6 +228,27 @@ export class ReportsService {
     return { current, previous };
   }
 
+  /**
+   * Sessions that took place, counted by type, most common first.
+   *
+   * Published and already ended: a draft was never announced and a cancelled
+   * session never happened, so neither was held, whatever its date says. A
+   * type with nothing held is left out rather than reported as zero.
+   */
+  private async getSessionsByType(
+    scope: Record<string, unknown>,
+  ): Promise<SessionsByTypeDto[]> {
+    const grouped = await (this.prisma as any).event.groupBy({
+      by: ['type'],
+      where: { ...scope, status: 'PUBLISHED', endAt: { lt: new Date() } },
+      _count: { _all: true },
+    });
+
+    return grouped
+      .map((g: any) => ({ type: g.type, count: g._count._all }))
+      .sort((a: SessionsByTypeDto, b: SessionsByTypeDto) => b.count - a.count);
+  }
+
   /** Events created per month over the last 12 months, oldest first. */
   private async getEventsOverTime(
     scope: Record<string, unknown>,
@@ -253,11 +288,14 @@ export class ReportsService {
 
     const [total, upcoming, past, byType] = await Promise.all([
       (this.prisma as any).event.count({ where: { ...scope } }),
+      // Published only. A draft nobody was told about is not still to come,
+      // and a cancelled meeting whose date has passed did not finish — it did
+      // not happen. Both were counted here.
       (this.prisma as any).event.count({
-        where: { ...scope, startAt: { gt: now } },
+        where: { ...scope, status: 'PUBLISHED', startAt: { gt: now } },
       }),
       (this.prisma as any).event.count({
-        where: { ...scope, endAt: { lt: now } },
+        where: { ...scope, status: 'PUBLISHED', endAt: { lt: now } },
       }),
       (this.prisma as any).event.groupBy({
         by: ['type'],
@@ -471,9 +509,16 @@ export class ReportsService {
       );
     }
 
+    const lastSignInAt = userLoginData.reduce(
+      (latest: Date | null, u: any) =>
+        !latest || u.lastLoginAt > latest ? u.lastLoginAt : latest,
+      null,
+    );
+
     return {
       totalUsers,
       activeUsers,
+      lastSignInAt,
       // Only the owner sees the ministry-less roles counted.
       //
       // For a ministry-scoped viewer they are already absent, since those
@@ -512,6 +557,7 @@ export class ReportsService {
         'Type',
         'Attendees Invited',
         'CheckIns',
+        'Walk-ins',
         'Attendance Rate (%)',
       ],
     ];
@@ -519,9 +565,15 @@ export class ReportsService {
     for (const event of events) {
       const invitedCount = event.attendees.length;
       const checkInCount = event.attendances.length;
+      // Walk-ins out of the rate, as on the page: they hold no invitation, so
+      // counting them reported more than 100% for a meeting with one invitee
+      // and one walk-in.
+      const walkInCount = event.attendances.filter(
+        (a: any) => a.isWalkIn,
+      ).length;
       const rate =
         invitedCount > 0
-          ? ((checkInCount / invitedCount) * 100).toFixed(1)
+          ? (((checkInCount - walkInCount) / invitedCount) * 100).toFixed(1)
           : '0';
 
       csvRows.push([
@@ -530,6 +582,7 @@ export class ReportsService {
         event.type || 'GENERAL',
         invitedCount.toString(),
         checkInCount.toString(),
+        walkInCount.toString(),
         rate,
       ]);
     }

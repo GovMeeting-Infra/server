@@ -66,6 +66,8 @@ export class UserStatsDto {
   activeUsers: number;
   usersByRole: Array<{ role: string; count: number }>;
   averageDaysSinceLastLogin: number;
+  /** The most recent sign-in by anyone in scope; null if nobody ever has. */
+  lastSignInAt: Date | null;
 }
 
 export class ActionItemStatsDto {
@@ -92,6 +94,12 @@ export class EventsOverTimeDto {
   count: number;
 }
 
+export class SessionsByTypeDto {
+  /** An EventType: MEETING, TRAINING, WORKSHOP and so on. */
+  type: string;
+  count: number;
+}
+
 export class AnalyticsDashboardDto {
   eventStats: EventStatsDto;
   attendanceStats: AttendanceStatsDto;
@@ -99,6 +107,8 @@ export class AnalyticsDashboardDto {
   actionItemStats: ActionItemStatsDto;
   checkInMethods: CheckInMethodsDto;
   eventsOverTime: EventsOverTimeDto[];
+  /** Sessions that took place, by type, most common first. */
+  sessionsByType: SessionsByTypeDto[];
   /** Last 30 days against the 30 before, so a total has something to mean against. */
   trend: TrendDto;
   /** Signature capture and geofence outcomes across every check-in. */

@@ -66,7 +66,11 @@ export class EventsRepository {
         where,
         skip,
         take,
-        orderBy: orderBy ?? { startAt: 'desc' },
+        // id last so the order is total. The list is read a page at a time,
+        // and rows that tie — the same start time, or nearly all of them when
+        // sorting by status — otherwise come back in whatever order suits the
+        // database that query, repeating across pages or missing from all.
+        orderBy: [orderBy ?? { startAt: 'desc' }, { id: 'asc' }],
         omit: OMIT_ANCHOR,
         include: {
           organizer: { select: { id: true, name: true } },
