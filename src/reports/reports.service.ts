@@ -105,7 +105,14 @@ export class ReportsService {
     // Action items carry no ministry of their own; they inherit it from the
     // event their minutes belong to.
     const where = { minutes: { event: scope } };
+    // Whole days, not the instant. Due dates come from a date-only control and
+    // land on midnight, so comparing against now counted an item as overdue
+    // from the first minute of the day it was due — while the action items
+    // board, which counts whole days elapsed, still showed it as due today.
     const now = new Date();
+    const startOfToday = new Date(
+      Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()),
+    );
 
     const [total, completed, inProgress, todo, overdue, cancelled] =
       await Promise.all([
@@ -122,7 +129,7 @@ export class ReportsService {
         (this.prisma as any).actionItem.count({
           where: {
             ...where,
-            dueDate: { lt: now },
+            dueDate: { lt: startOfToday },
             status: { notIn: ['COMPLETED', 'CANCELLED'] },
           },
         }),
