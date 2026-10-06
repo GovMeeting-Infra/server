@@ -698,6 +698,24 @@ describe('EventsService', () => {
           ]),
         );
       });
+
+      it('stays paged, unlike the calendar range it borrows from', async () => {
+        await service.listEvents('ministry-1', minister, {
+          page: 2,
+          timeframe: 'past',
+          from: '2026-10-01T00:00:00.000Z',
+        });
+        const [, skip, take] = mockRepository.findMany.mock.calls[0];
+        expect([skip, take]).toEqual([20, 20]);
+
+        mockRepository.findMany.mockClear();
+        await service.listEvents('ministry-1', minister, {
+          page: 2,
+          from: '2026-10-01T00:00:00.000Z',
+        });
+        const [, calSkip, calTake] = mockRepository.findMany.mock.calls[0];
+        expect([calSkip, calTake]).toEqual([0, 500]);
+      });
     });
 
     describe('invite-only visibility', () => {

@@ -462,9 +462,12 @@ export class EventsService {
 
     const page = Math.max(1, options.page || 1);
     // A month grid can't be paginated — it needs every event in the window — so
-    // range queries get a much higher ceiling. Still bounded, not unlimited.
-    const take = range ? EventsService.RANGE_MAX : 20;
-    const skip = range ? 0 : (page - 1) * take;
+    // a bare range gets a much higher ceiling. Still bounded, not unlimited. A
+    // range narrowing a timeframe is the list page filtering by period, which
+    // is read a page at a time like the rest of that list.
+    const unpaged = !!range && !timeframeWhere;
+    const take = unpaged ? EventsService.RANGE_MAX : 20;
+    const skip = unpaged ? 0 : (page - 1) * take;
 
     const sortBy = (EventsService.SORTABLE as readonly string[]).includes(
       options.sortBy ?? '',
