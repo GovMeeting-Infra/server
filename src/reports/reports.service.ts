@@ -557,6 +557,7 @@ export class ReportsService {
         'Type',
         'Attendees Invited',
         'CheckIns',
+        'Walk-ins',
         'Attendance Rate (%)',
       ],
     ];
@@ -564,9 +565,15 @@ export class ReportsService {
     for (const event of events) {
       const invitedCount = event.attendees.length;
       const checkInCount = event.attendances.length;
+      // Walk-ins out of the rate, as on the page: they hold no invitation, so
+      // counting them reported more than 100% for a meeting with one invitee
+      // and one walk-in.
+      const walkInCount = event.attendances.filter(
+        (a: any) => a.isWalkIn,
+      ).length;
       const rate =
         invitedCount > 0
-          ? ((checkInCount / invitedCount) * 100).toFixed(1)
+          ? (((checkInCount - walkInCount) / invitedCount) * 100).toFixed(1)
           : '0';
 
       csvRows.push([
@@ -575,6 +582,7 @@ export class ReportsService {
         event.type || 'GENERAL',
         invitedCount.toString(),
         checkInCount.toString(),
+        walkInCount.toString(),
         rate,
       ]);
     }
