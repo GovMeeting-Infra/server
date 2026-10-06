@@ -19,6 +19,7 @@ import {
   ActionItemStatsDto,
   CheckInMethodsDto,
   EventsOverTimeDto,
+  SessionsByTypeDto,
   TrendDto,
   EvidenceStatsDto,
   MinistryBreakdownDto,
@@ -62,6 +63,7 @@ export class ReportsService {
       actionItemStats,
       checkInMethods,
       eventsOverTime,
+      sessionsByType,
       trend,
       evidence,
     ] = await Promise.all([
@@ -71,6 +73,7 @@ export class ReportsService {
       this.getActionItemStats(scope),
       this.getCheckInMethods(scope),
       this.getEventsOverTime(scope),
+      this.getSessionsByType(scope),
       this.getRecentTrend(scope),
       this.getEvidenceStats(scope),
     ]);
@@ -82,6 +85,7 @@ export class ReportsService {
       actionItemStats,
       checkInMethods,
       eventsOverTime,
+      sessionsByType,
       trend,
       evidence,
       // Only a super admin has more than one ministry to compare.
@@ -212,6 +216,27 @@ export class ReportsService {
     ]);
 
     return { current, previous };
+  }
+
+  /**
+   * Sessions that took place, counted by type, most common first.
+   *
+   * Published and already ended: a draft was never announced and a cancelled
+   * session never happened, so neither was held, whatever its date says. A
+   * type with nothing held is left out rather than reported as zero.
+   */
+  private async getSessionsByType(
+    scope: Record<string, unknown>,
+  ): Promise<SessionsByTypeDto[]> {
+    const grouped = await (this.prisma as any).event.groupBy({
+      by: ['type'],
+      where: { ...scope, status: 'PUBLISHED', endAt: { lt: new Date() } },
+      _count: { _all: true },
+    });
+
+    return grouped
+      .map((g: any) => ({ type: g.type, count: g._count._all }))
+      .sort((a: SessionsByTypeDto, b: SessionsByTypeDto) => b.count - a.count);
   }
 
   /** Events created per month over the last 12 months, oldest first. */
