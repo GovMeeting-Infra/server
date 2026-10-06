@@ -147,9 +147,12 @@ export class ReportsService {
   private async getCheckInMethods(
     scope: Record<string, unknown>,
   ): Promise<CheckInMethodsDto> {
+    // Published meetings only, like every other check-in count on the page. A
+    // meeting cancelled after people had checked in kept its check-ins here
+    // and nowhere else, so this total could exceed "All check-ins".
     const grouped = await (this.prisma as any).attendance.groupBy({
       by: ['checkInMethod'],
-      where: { event: scope },
+      where: { event: { ...scope, status: 'PUBLISHED' } },
       _count: { _all: true },
     });
 
