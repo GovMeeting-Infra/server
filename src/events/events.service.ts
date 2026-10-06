@@ -424,7 +424,7 @@ export class EventsService {
           ? { startAt: { lte: now }, endAt: { gte: now } }
           : options.timeframe === 'past'
             ? { endAt: { lt: now } }
-            : {};
+            : null;
 
     // "Mine" means connected to me in any of the three ways this product
     // recognises — I run it, I co-run it, or I was invited. Ministry scope still
@@ -444,11 +444,19 @@ export class EventsService {
 
     // Staff see only the events they are part of; leadership sees the whole
     // ministry. Kept under AND because mineWhere is an OR as well.
+    //
+    // The timeframe and the range sit under AND too, as separate entries. Both
+    // can constrain startAt — "upcoming" and "this week" do — and spread side by
+    // side into one object the range simply replaced the timeframe's, so
+    // upcoming-this-week returned the whole week, finished meetings included.
     const where = {
-      AND: [ministryScope(user), eventVisibilityScope(user)],
+      AND: [
+        ministryScope(user),
+        eventVisibilityScope(user),
+        ...(timeframeWhere ? [timeframeWhere] : []),
+        ...(range ? [{ startAt: range }] : []),
+      ],
       ...(options.isPublic !== undefined && { isPublic: options.isPublic }),
-      ...timeframeWhere,
-      ...(range && { startAt: range }),
       ...mineWhere,
     };
 
