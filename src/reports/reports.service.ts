@@ -288,11 +288,14 @@ export class ReportsService {
 
     const [total, upcoming, past, byType] = await Promise.all([
       (this.prisma as any).event.count({ where: { ...scope } }),
+      // Published only. A draft nobody was told about is not still to come,
+      // and a cancelled meeting whose date has passed did not finish — it did
+      // not happen. Both were counted here.
       (this.prisma as any).event.count({
-        where: { ...scope, startAt: { gt: now } },
+        where: { ...scope, status: 'PUBLISHED', startAt: { gt: now } },
       }),
       (this.prisma as any).event.count({
-        where: { ...scope, endAt: { lt: now } },
+        where: { ...scope, status: 'PUBLISHED', endAt: { lt: now } },
       }),
       (this.prisma as any).event.groupBy({
         by: ['type'],
