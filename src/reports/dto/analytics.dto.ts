@@ -66,6 +66,8 @@ export class UserStatsDto {
   activeUsers: number;
   usersByRole: Array<{ role: string; count: number }>;
   averageDaysSinceLastLogin: number;
+  /** The most recent sign-in by anyone in scope; null if nobody ever has. */
+  lastSignInAt: Date | null;
 }
 
 export class ActionItemStatsDto {

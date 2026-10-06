@@ -496,9 +496,16 @@ export class ReportsService {
       );
     }
 
+    const lastSignInAt = userLoginData.reduce(
+      (latest: Date | null, u: any) =>
+        !latest || u.lastLoginAt > latest ? u.lastLoginAt : latest,
+      null,
+    );
+
     return {
       totalUsers,
       activeUsers,
+      lastSignInAt,
       // Only the owner sees the ministry-less roles counted.
       //
       // For a ministry-scoped viewer they are already absent, since those
