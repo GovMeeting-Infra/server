@@ -181,7 +181,9 @@ describe('NotificationsService', () => {
         });
         const [job] = pushQueue.addBulk.mock.calls[0][0];
         expect(job.data.tag).toBe('MEETING_REMINDER:e1');
-        expect(job.opts.jobId).toBe('push:MEETING_REMINDER:e1:u1');
+        // Three colon-separated parts: BullMQ refused the four-part id this
+        // used to assert, so no push was ever queued.
+        expect(job.opts.jobId).toBe('push:MEETING_REMINDER:e1-u1');
       });
 
       // Redis being unreachable must not fail the thing that raised the

@@ -6,6 +6,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { NotificationsService } from './notifications.service';
 import { archiveCutoff } from '../minutes/archive.policy';
 import { MinutesAccessService } from '../minutes/minutes-access.service';
+import { jobId } from '../common/utils/job-id.util';
 
 /**
  * Crons carry an explicit zone. Without one @Cron runs at the given hour in
@@ -80,9 +81,11 @@ export class TasksService {
             name: 'send-action-item-reminder',
             data: { itemId: item.id },
             opts: {
-              jobId: `action-item-reminder:${item.id}:${startOfToday
-                .toISOString()
-                .slice(0, 10)}`,
+              jobId: jobId(
+                'action-item-reminder',
+                item.id,
+                startOfToday.toISOString().slice(0, 10),
+              ),
               removeOnComplete: { age: 2 * 60 * 60 },
               removeOnFail: { age: 2 * 60 * 60 },
             },
@@ -124,7 +127,13 @@ export class TasksService {
         name: 'send-action-item-overdue',
         data: { itemId: item.id },
         opts: {
-          jobId: `action-item-overdue:${item.id}`,
+          // Dated like the reminder. The stamp is what makes it once; the
+          // date only has to give BullMQ the three parts it insists on.
+          jobId: jobId(
+            'action-item-overdue',
+            item.id,
+            startOfToday.toISOString().slice(0, 10),
+          ),
           removeOnComplete: { age: 2 * 60 * 60 },
           removeOnFail: { age: 2 * 60 * 60 },
         },
@@ -176,7 +185,7 @@ export class TasksService {
               // A stable jobId makes the repeat sweeps no-ops: BullMQ ignores
               // an add for an id it already holds. Retaining completed jobs
               // for two hours keeps the id alive across the whole window.
-              jobId: `meeting-reminder:${event.id}:${a.user.id}`,
+              jobId: jobId('meeting-reminder', event.id, a.user.id),
               removeOnComplete: { age: 2 * 60 * 60 },
               removeOnFail: { age: 2 * 60 * 60 },
             },
@@ -393,9 +402,11 @@ export class TasksService {
           },
           opts: {
             // Dated, so a redeploy on the same Monday cannot send it twice.
-            jobId: `action-item-digest:${r.key}:${startOfToday
-              .toISOString()
-              .slice(0, 10)}`,
+            jobId: jobId(
+              'action-item-digest',
+              r.key,
+              startOfToday.toISOString().slice(0, 10),
+            ),
             removeOnComplete: { age: 24 * 60 * 60 },
             removeOnFail: { age: 24 * 60 * 60 },
           },

@@ -8,6 +8,7 @@ import {
   PREFERENCE_FOR,
   DEFAULT_PREFERENCES,
 } from './notification-types';
+import { jobId } from '../common/utils/job-id.util';
 
 export interface NotificationInput {
   userId: string;
@@ -293,7 +294,12 @@ export class NotificationsService {
           },
           opts: {
             // Same stable-id reasoning as the email queue.
-            jobId: `push:${payload.type}:${payload.entityId ?? 'none'}:${r.userId}`,
+            jobId: jobId(
+              'push',
+              payload.type,
+              payload.entityId ?? 'none',
+              r.userId,
+            ),
             removeOnComplete: { age: 2 * 60 * 60 },
             removeOnFail: { age: 2 * 60 * 60 },
           },
@@ -684,7 +690,11 @@ export class NotificationsService {
       recipients.map((r) => ({
         name: 'send-action-item-completed',
         data: { itemId: actionItemId, email: r.email, name: r.name },
-        jobId: `action-item-completed:${actionItemId}:${r.id ?? r.email.toLowerCase()}`,
+        jobId: jobId(
+          'action-item-completed',
+          actionItemId,
+          r.id ?? r.email.toLowerCase(),
+        ),
       })),
     );
   }
@@ -820,7 +830,12 @@ export class NotificationsService {
         },
         // Stamped, because a meeting can move more than once and each move is
         // its own thing to be told about.
-        jobId: `meeting-changed:${eventId}:${r.id ?? r.email.toLowerCase()}:${Date.now()}`,
+        jobId: jobId(
+          'meeting-changed',
+          eventId,
+          r.id ?? r.email.toLowerCase(),
+          Date.now(),
+        ),
       })),
     );
   }
@@ -932,7 +947,7 @@ export class NotificationsService {
             data: { eventId, email: u.email, name: u.name, addedByName },
             // Stamped, because someone removed and added again has been given
             // the role again and should hear about it again.
-            jobId: `coorganizer-added:${eventId}:${u.id}:${Date.now()}`,
+            jobId: jobId('coorganizer-added', eventId, u.id, Date.now()),
           })),
       );
     } catch (error) {

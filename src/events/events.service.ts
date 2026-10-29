@@ -28,6 +28,7 @@ import {
   canSeeEvent,
   SEE_ALL_EVENTS_ROLES,
 } from '../common/utils/ministry-scope.util';
+import { jobId } from '../common/utils/job-id.util';
 
 @Injectable()
 export class EventsService {
@@ -98,7 +99,11 @@ export class EventsService {
           rsvpUrl: this.rsvpUrlFor(a),
         },
         {
-          jobId: `meeting-invitation:${eventId}:${a.userId ?? email.toLowerCase()}`,
+          jobId: jobId(
+            'meeting-invitation',
+            eventId,
+            a.userId ?? email.toLowerCase(),
+          ),
           removeOnComplete: { age: 24 * 60 * 60 },
           removeOnFail: { age: 24 * 60 * 60 },
         },
@@ -1241,7 +1246,12 @@ export class EventsService {
           rsvpUrl: this.rsvpUrlFor(a),
         },
         {
-          jobId: `meeting-invitation:${eventId}:${a.userId ?? email.toLowerCase()}:${stamp}`,
+          jobId: jobId(
+            'meeting-invitation',
+            eventId,
+            a.userId ?? email.toLowerCase(),
+            stamp,
+          ),
           removeOnComplete: { age: 24 * 60 * 60 },
           removeOnFail: { age: 24 * 60 * 60 },
         },
