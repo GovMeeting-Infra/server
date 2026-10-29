@@ -94,6 +94,30 @@ function details(rows: Detail[]): string {
     .join('')}</table>`;
 }
 
+/** A label heading a list, with its count. */
+function listLabel(heading: string, count: number): string {
+  return `<p style="margin:24px 0 4px;color:${MUTED};${LABEL}">${escapeHtml(heading)} (${count})</p>`;
+}
+
+/** Ruled rows of a title over a line of detail. `meta` is pre-escaped markup. */
+function itemList(items: { title: string; meta: string }[]): string {
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0">${items
+    .map(
+      (i) => `<tr><td style="padding:11px 0;border-bottom:1px solid ${RULE};">
+        <p style="margin:0 0 3px;color:${INK};font-size:15px;font-weight:600;">${escapeHtml(i.title)}</p>
+        <p style="margin:0;color:${MUTED};font-size:13px;">${i.meta}</p>
+      </td></tr>`,
+    )
+    .join('')}</table>`;
+}
+
+/** A plain bulleted list. `lines` are pre-escaped markup. */
+function bullets(lines: string[]): string {
+  return `<ul style="margin:6px 0 0;padding-left:20px;color:${INK};font-size:15px;line-height:24px;">${lines
+    .map((line) => `<li>${line}</li>`)
+    .join('')}</ul>`;
+}
+
 /**
  * The letterhead every message shares: the site's masthead — coat of arms,
  * GOVERNMENT OF SIERRA LEONE, the service name — over a rule in the flag's
@@ -398,35 +422,34 @@ export function actionItemDigestEmail({
         ? `${name}, you have 1 action item still open.`
         : `${name}, you have ${count} action items still open.`;
 
-  const rows = items
-    .map(
-      (i) => `<tr><td style="padding:10px 18px;border-top:1px solid #e6eef8;">
-        <p style="margin:0 0 4px;color:#0f172a;font-size:14px;font-weight:600;">${escapeHtml(i.title)}${
-          i.assisting
-            ? ' <span style="color:#64748b;font-weight:400;font-size:13px;">(assisting)</span>'
-            : ''
-        }</p>
-        <p style="margin:0;color:${i.overdue ? '#c2410c' : '#64748b'};font-size:13px;">${
-          i.overdue ? 'Overdue &middot; was due' : 'Due'
-        } ${escapeHtml(formatDate(i.dueDate))}${
-          i.eventTitle ? ` &middot; ${escapeHtml(i.eventTitle)}` : ''
-        }</p>
-      </td></tr>`,
-    )
-    .join('');
+  const openHtml = count
+    ? listLabel('Open', count) +
+      itemList(
+        items.map((i) => ({
+          title: i.assisting ? `${i.title} (assisting)` : i.title,
+          meta: `${
+            i.overdue
+              ? `<span style="color:${TONE.danger};font-weight:600;">Overdue</span> &middot; was due`
+              : 'Due'
+          } ${escapeHtml(formatDate(i.dueDate))}${
+            i.eventTitle ? ` &middot; ${escapeHtml(i.eventTitle)}` : ''
+          }`,
+        })),
+      )
+    : '';
 
   const closedHtml = closed.length
-    ? `<p style="margin:20px 0 8px;color:#0f172a;font-size:14px;font-weight:600;">Closed last week (${closed.length})</p>
-       <ul style="margin:0;padding-left:20px;color:#334155;font-size:14px;line-height:22px;">${closed
-         .map(
-           (c) =>
-             `<li>${escapeHtml(c.title)}${c.ownerName ? ` &mdash; ${escapeHtml(c.ownerName)}` : ''}${
-               c.eventTitle
-                 ? ` <span style="color:#64748b;">(${escapeHtml(c.eventTitle)})</span>`
-                 : ''
-             }</li>`,
-         )
-         .join('')}</ul>`
+    ? listLabel('Closed last week', closed.length) +
+      bullets(
+        closed.map(
+          (c) =>
+            `${escapeHtml(c.title)}${c.ownerName ? ` &mdash; ${escapeHtml(c.ownerName)}` : ''}${
+              c.eventTitle
+                ? ` <span style="color:${MUTED};">(${escapeHtml(c.eventTitle)})</span>`
+                : ''
+            }`,
+        ),
+      )
     : '';
 
   return {
@@ -435,18 +458,15 @@ export function actionItemDigestEmail({
         ? 'You have 1 open action item'
         : `You have ${count} open action items`,
     html: layout({
+      label: 'Weekly summary',
       heading: 'Your week',
       intro,
-      bodyHtml: `${
-        count
-          ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:8px 0;background-color:#ffffff;border:1px solid #e6eef8;border-radius:12px;">${rows}</table>`
-          : ''
-      }${closedHtml}`,
+      bodyHtml: `${openHtml}${closedHtml}`,
       ...(unsubscribeUrl
         ? {
             footnoteHtml: `This summary goes out every Monday. <a href="${escapeHtml(
               unsubscribeUrl,
-            )}" style="color:#64748b;">Unsubscribe from it</a> &mdash; reminders about your own deadlines and meetings will still reach you.`,
+            )}" style="color:${MUTED};">Unsubscribe from it</a> &mdash; reminders about your own deadlines and meetings will still reach you.`,
           }
         : {
             footnote:
@@ -756,25 +776,13 @@ export function minutesPublishedEmail({
 }): EmailBody {
   const when = formatDate(eventDate);
   const intro = `${name}, the minutes for "${eventTitle}" (${when}) have been published.`;
-
-  const itemRows = actionItems
-    .map(
-      (i) => `<tr><td style="padding:10px 18px;border-top:1px solid #e6eef8;">
-        <p style="margin:0 0 4px;color:#0f172a;font-size:14px;font-weight:600;">${escapeHtml(i.title)}</p>
-        <p style="margin:0;color:#64748b;font-size:13px;">${
-          i.ownerName ? `${escapeHtml(i.ownerName)} &middot; ` : ''
-        }due ${escapeHtml(formatDate(i.dueDate))}</p>
-      </td></tr>`,
-    )
-    .join('');
+  const htmlIntro = `${name}, the minutes of this meeting (${when}) have been published.`;
 
   /** A headed list, or nothing at all — an empty heading says less than none. */
   const listHtml = (heading: string, lines: string[]) =>
     lines.length
-      ? `<p style="margin:16px 0 8px;color:#0f172a;font-size:14px;font-weight:600;">${heading} (${lines.length})</p>
-         <ul style="margin:0;padding-left:20px;color:#334155;font-size:14px;line-height:22px;">${lines
-           .map((line) => `<li>${escapeHtml(line)}</li>`)
-           .join('')}</ul>`
+      ? listLabel(heading, lines.length) +
+        bullets(lines.map((line) => escapeHtml(line)))
       : '';
 
   const decisionList = decisions ?? [];
@@ -783,17 +791,23 @@ export function minutesPublishedEmail({
   const bodyHtml = [
     listHtml('Decisions', decisionList),
     actionItems.length
-      ? `<p style="margin:16px 0 8px;color:#0f172a;font-size:14px;font-weight:600;">Action items (${actionItems.length})</p>
-         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#ffffff;border:1px solid #e6eef8;border-radius:12px;">${itemRows}</table>`
-      : `<p style="margin:16px 0 0;color:#64748b;font-size:14px;">No action items were raised.</p>`,
+      ? listLabel('Action items', actionItems.length) +
+        itemList(
+          actionItems.map((i) => ({
+            title: i.title,
+            meta: `${i.ownerName ? `${escapeHtml(i.ownerName)} &middot; ` : ''}due ${escapeHtml(formatDate(i.dueDate))}`,
+          })),
+        )
+      : `<p style="margin:24px 0 0;color:${MUTED};font-size:14px;">No action items were raised.</p>`,
     listHtml('Next steps', nextStepList),
   ].join('');
 
   return {
     subject: `Minutes published: ${eventTitle}`,
     html: layout({
-      heading: 'Minutes published',
-      intro,
+      label: 'Minutes published',
+      heading: eventTitle,
+      intro: htmlIntro,
       bodyHtml,
       actionLabel: 'Read the minutes',
       actionUrl: link,
