@@ -20,6 +20,7 @@ import {
 import { canReadArchived } from './archive.policy';
 import { CreateMinutesDto } from './dto/create-minutes.dto';
 import { UpdateMinutesDto } from './dto/update-minutes.dto';
+import { jobId } from '../common/utils/job-id.util';
 
 @Injectable()
 export class MinutesService {
@@ -331,7 +332,11 @@ export class MinutesService {
           guestLink,
         },
         {
-          jobId: `minutes-published:${minutesId}:${r.userId ?? r.email.toLowerCase()}`,
+          jobId: jobId(
+            'minutes-published',
+            minutesId,
+            r.userId ?? r.email.toLowerCase(),
+          ),
           removeOnComplete: { age: 24 * 60 * 60 },
           removeOnFail: { age: 24 * 60 * 60 },
         },
