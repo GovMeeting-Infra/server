@@ -140,7 +140,7 @@ function layout({
   footnoteHtml,
 }: {
   /** Says what kind of message this is, above the heading. */
-  label?: string;
+  label: string;
   tone?: Tone;
   heading: string;
   intro: string;
@@ -186,7 +186,7 @@ function layout({
           ${stripe('#0072c6')}
           <tr>
             <td style="padding:32px 32px 28px;">
-              ${label ? `<p style="margin:0 0 10px;color:${TONE[tone]};${LABEL}letter-spacing:2px;">${escapeHtml(label)}</p>` : ''}
+              <p style="margin:0 0 10px;color:${TONE[tone]};${LABEL}letter-spacing:2px;">${escapeHtml(label)}</p>
               <h1 style="margin:0 0 16px;color:${NAVY};font-size:24px;line-height:1.25;font-weight:700;">${escapeHtml(heading)}</h1>
               <p style="margin:0 0 22px;color:${INK};font-size:15px;line-height:1.65;">${escapeHtml(intro)}</p>
               ${bodyHtml ?? ''}
@@ -280,6 +280,7 @@ export function inviteEmail({
   return {
     subject: 'Set up your Smart Meeting account',
     html: layout({
+      label: 'Account',
       heading: 'Set up your account',
       intro,
       actionLabel: 'Set your password',
@@ -312,6 +313,7 @@ export function passwordResetEmail({
   return {
     subject: 'Reset your Smart Meeting password',
     html: layout({
+      label: 'Account',
       heading: 'Reset your password',
       intro,
       actionLabel: 'Choose a new password',
