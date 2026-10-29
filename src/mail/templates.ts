@@ -325,25 +325,17 @@ export function actionItemAssignedEmail({
     ? `${name}, ${assignedByName} has assigned you an action item.`
     : `${name}, an action item has been assigned to you.`;
 
-  const rows = [
-    `<p style="margin:0 0 6px;color:#0f172a;font-size:15px;font-weight:600;">${escapeHtml(title)}</p>`,
-    description
-      ? `<p style="margin:0 0 8px;color:#334155;font-size:14px;">${escapeHtml(description)}</p>`
-      : '',
-    eventTitle
-      ? `<p style="margin:0;color:#64748b;font-size:13px;">From: ${escapeHtml(eventTitle)}</p>`
-      : '',
-    `<p style="margin:8px 0 0;color:#64748b;font-size:13px;">Due: ${escapeHtml(due)}</p>`,
-  ].join('');
-
   return {
     subject: `Action item assigned to you: ${title}`,
     html: layout({
-      heading: 'Action item assigned',
+      label: 'Action item assigned',
+      heading: title,
       intro,
-      bodyHtml: `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:8px 0;background-color:#edf3fd;border:1px solid #cfdff8;border-radius:12px;">
-        <tr><td style="padding:16px 18px;">${rows}</td></tr>
-      </table>`,
+      bodyHtml: details([
+        { label: 'Details', value: description },
+        { label: 'Due', value: due },
+        { label: 'From', value: eventTitle },
+      ]),
       footnote:
         'If you do not have an account on the platform, the meeting organizer will record your progress for you.',
     }),
@@ -511,18 +503,14 @@ export function actionItemCompletedEmail({
   return {
     subject: `Completed: ${title}`,
     html: layout({
-      heading: 'Action item completed',
+      label: 'Action item completed',
+      tone: 'success',
+      heading: title,
       intro,
-      bodyHtml: `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:8px 0;background-color:#edf8f1;border:1px solid #cfe5d7;border-radius:12px;">
-        <tr><td style="padding:16px 18px;">
-          <p style="margin:0 0 6px;color:#0f172a;font-size:15px;font-weight:600;">${escapeHtml(title)}</p>
-          ${
-            eventTitle
-              ? `<p style="margin:0;color:#64748b;font-size:13px;">From: ${escapeHtml(eventTitle)}</p>`
-              : ''
-          }
-        </td></tr>
-      </table>`,
+      bodyHtml: details([
+        { label: 'Completed by', value: completedByName },
+        { label: 'From', value: eventTitle },
+      ]),
       footnote: 'Nothing further is needed from you.',
     }),
     text: [intro, '', `- ${title}${eventTitle ? ` (${eventTitle})` : ''}`].join(
@@ -558,24 +546,15 @@ export function actionItemOverdueEmail({
   return {
     subject: `Overdue: ${title}`,
     html: layout({
-      heading: 'Action item overdue',
+      label: 'Action item overdue',
+      tone: 'danger',
+      heading: title,
       intro,
-      bodyHtml: `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:8px 0;background-color:#fdebec;border:1px solid #f6cfd2;border-radius:12px;">
-        <tr><td style="padding:16px 18px;">
-          <p style="margin:0 0 6px;color:#0f172a;font-size:15px;font-weight:600;">${escapeHtml(title)}</p>
-          <p style="margin:0;color:#c2410c;font-size:13px;">Was due ${escapeHtml(formatDate(dueDate))}</p>
-          ${
-            !isOwner && ownerName
-              ? `<p style="margin:6px 0 0;color:#64748b;font-size:13px;">Assigned to ${escapeHtml(ownerName)}</p>`
-              : ''
-          }
-          ${
-            eventTitle
-              ? `<p style="margin:6px 0 0;color:#64748b;font-size:13px;">From: ${escapeHtml(eventTitle)}</p>`
-              : ''
-          }
-        </td></tr>
-      </table>`,
+      bodyHtml: details([
+        { label: 'Was due', value: formatDate(dueDate) },
+        { label: 'Assigned to', value: !isOwner ? ownerName : null },
+        { label: 'From', value: eventTitle },
+      ]),
       footnote:
         'If the deadline has moved, updating it on the platform will stop this and restart the reminders.',
     }),
@@ -606,18 +585,13 @@ export function actionItemUnassignedEmail({
   return {
     subject: `No longer yours: ${title}`,
     html: layout({
-      heading: 'Action item reassigned',
+      label: 'Action item reassigned',
+      heading: title,
       intro,
-      bodyHtml: `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:8px 0;background-color:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;">
-        <tr><td style="padding:16px 18px;">
-          <p style="margin:0 0 6px;color:#0f172a;font-size:15px;font-weight:600;">${escapeHtml(title)}</p>
-          ${
-            eventTitle
-              ? `<p style="margin:0;color:#64748b;font-size:13px;">From: ${escapeHtml(eventTitle)}</p>`
-              : ''
-          }
-        </td></tr>
-      </table>`,
+      bodyHtml: details([
+        { label: 'Now with', value: newOwnerName },
+        { label: 'From', value: eventTitle },
+      ]),
       footnote: 'Nothing further is needed from you.',
     }),
     text: [intro, '', `- ${title}${eventTitle ? ` (${eventTitle})` : ''}`].join(
@@ -718,22 +692,17 @@ export function actionItemReminderEmail({
 }): EmailBody {
   const due = dueDate ? formatDate(dueDate) : 'soon';
   const intro = `${name}, an action item assigned to you is due ${due}.`;
-  const rows = [
-    `<p style="margin:0 0 6px;color:#0f172a;font-size:15px;font-weight:600;">${escapeHtml(title)}</p>`,
-    eventTitle
-      ? `<p style="margin:0;color:#64748b;font-size:13px;">From: ${escapeHtml(eventTitle)}</p>`
-      : '',
-    `<p style="margin:8px 0 0;color:#64748b;font-size:13px;">Due: ${escapeHtml(due)}</p>`,
-  ].join('');
-
   return {
     subject: `Action item due ${due}: ${title}`,
     html: layout({
-      heading: 'Action item due soon',
+      label: 'Action item due soon',
+      tone: 'warning',
+      heading: title,
       intro,
-      bodyHtml: `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:8px 0;background-color:#fff8e5;border:1px solid #fde8a6;border-radius:12px;">
-        <tr><td style="padding:16px 18px;">${rows}</td></tr>
-      </table>`,
+      bodyHtml: details([
+        { label: 'Due', value: due },
+        { label: 'From', value: eventTitle },
+      ]),
       footnote:
         'Update the status on the Action Items board once the work is done.',
     }),
