@@ -4,6 +4,7 @@ import { NotificationsService } from './notifications.service';
 import { NotificationsController } from './notifications.controller';
 import { EmailProcessor } from './email.processor';
 import { PushProcessor } from './push.processor';
+import { QueueErrorsService } from './queue-errors.service';
 import { PushService } from './push.service';
 import { PushController } from './push.controller';
 import { TasksService } from './tasks.service';
@@ -38,6 +39,7 @@ import { CacheModule } from '../cache/cache.module';
     EmailProcessor,
     PushService,
     PushProcessor,
+    QueueErrorsService,
     TasksService,
     MinutesAccessService,
     RateLimitGuard,
