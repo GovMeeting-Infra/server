@@ -16,8 +16,41 @@ export interface EmailBody {
   text: string;
 }
 
+/**
+ * The site's palette, from web/app/globals.css, so a message reads as coming
+ * from the same service as calendar.gov.sl rather than from a generic mailer.
+ */
 const NAVY = '#003580';
 const GREEN = '#007236';
+const INK = '#11243d';
+const MUTED = '#5f6f85';
+const RULE = '#d3deef';
+const SURFACE = '#fbfdff';
+/** Geist is the site's face; mail clients that cannot load it fall through. */
+const FONT =
+  "Geist,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
+
+/**
+ * The colour of the label above the heading. The label is the only coloured
+ * thing in the body, so cancelled or overdue still reads at a glance without
+ * bringing back tinted panels.
+ */
+type Tone = 'neutral' | 'success' | 'warning' | 'danger';
+const TONE: Record<Tone, string> = {
+  neutral: MUTED,
+  success: GREEN,
+  warning: '#7a5600',
+  danger: '#c2410c',
+};
+
+/** Where the site lives, for the masthead image and the footer. */
+function webBase(): string {
+  return (
+    process.env.WEB_URL ??
+    process.env.NEXT_PUBLIC_WEB_URL ??
+    'https://calendar.gov.sl'
+  ).replace(/\/+$/, '');
+}
 
 /**
  * Anything interpolated into the HTML goes through here. Names and event
@@ -33,7 +66,22 @@ export function escapeHtml(value: string): string {
     .replace(/'/g, '&#39;');
 }
 
+/** The small uppercase label used above headings and lists. */
+const LABEL = `font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;`;
+
+/**
+ * The letterhead every message shares: the site's masthead — coat of arms,
+ * GOVERNMENT OF SIERRA LEONE, the service name — over a rule in the flag's
+ * green, white and blue, then a label, a heading and the body.
+ *
+ * The coat of arms is a small copy served by the site (/email/coat_of_arms.png),
+ * not the 1600px original, which every open would download in full. Clients
+ * that block images show its alt text and lose nothing else; no text or
+ * colour depends on it.
+ */
 function layout({
+  label,
+  tone = 'neutral',
   heading,
   intro,
   bodyHtml,
@@ -42,6 +90,9 @@ function layout({
   footnote,
   footnoteHtml,
 }: {
+  /** Says what kind of message this is, above the heading. */
+  label?: string;
+  tone?: Tone;
   heading: string;
   intro: string;
   bodyHtml?: string;
@@ -56,46 +107,62 @@ function layout({
    */
   footnoteHtml?: string;
 }): string {
+  const base = webBase();
+  const host = base.replace(/^https?:\/\//, '');
+  const stripe = (colour: string) =>
+    `<tr><td style="height:3px;line-height:3px;font-size:0;background-color:${colour};">&nbsp;</td></tr>`;
+
   return `<!doctype html>
 <html lang="en">
-<body style="margin:0;padding:0;background-color:#f6faff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f6faff;padding:24px 12px;">
+<body style="margin:0;padding:0;background-color:#eef2f7;font-family:${FONT};color:${INK};">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#eef2f7;padding:28px 12px;">
     <tr>
       <td align="center">
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background-color:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #e2e8f0;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;background-color:#ffffff;border:1px solid ${RULE};">
           <tr>
-            <td style="background:linear-gradient(135deg,${NAVY} 0%,${GREEN} 100%);background-color:${NAVY};padding:28px 32px;">
-              <p style="margin:0;color:#ffffff;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;opacity:0.75;">Smart Meeting</p>
-              <h1 style="margin:6px 0 0;color:#ffffff;font-size:22px;font-weight:700;">${escapeHtml(heading)}</h1>
+            <td style="padding:24px 32px 20px;background-color:${SURFACE};">
+              <table role="presentation" cellpadding="0" cellspacing="0"><tr>
+                <td valign="middle" style="padding-right:14px;">
+                  <img src="${escapeHtml(base)}/email/coat_of_arms.png" width="48" height="46" alt="Sierra Leone coat of arms" style="display:block;border:0;width:48px;height:46px;">
+                </td>
+                <td valign="middle">
+                  <p style="margin:0;color:${GREEN};font-size:10px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;white-space:nowrap;">Government of Sierra Leone</p>
+                  <p style="margin:3px 0 0;color:${NAVY};font-size:19px;font-weight:700;">Smart Meeting</p>
+                </td>
+              </tr></table>
             </td>
           </tr>
+          ${stripe('#1eb53a')}
+          ${stripe('#ffffff')}
+          ${stripe('#0072c6')}
           <tr>
-            <td style="padding:32px;">
-              <p style="margin:0 0 16px;color:#334155;font-size:15px;line-height:1.6;">${escapeHtml(intro)}</p>
+            <td style="padding:32px 32px 28px;">
+              ${label ? `<p style="margin:0 0 10px;color:${TONE[tone]};${LABEL}letter-spacing:2px;">${escapeHtml(label)}</p>` : ''}
+              <h1 style="margin:0 0 16px;color:${NAVY};font-size:24px;line-height:1.25;font-weight:700;">${escapeHtml(heading)}</h1>
+              <p style="margin:0 0 22px;color:${INK};font-size:15px;line-height:1.65;">${escapeHtml(intro)}</p>
               ${bodyHtml ?? ''}
               ${
                 actionUrl && actionLabel
-                  ? `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:24px 0;">
-                <tr><td style="border-radius:12px;background-color:${NAVY};">
-                  <a href="${actionUrl}" style="display:inline-block;padding:13px 28px;color:#ffffff;font-size:15px;font-weight:600;text-decoration:none;border-radius:12px;">${escapeHtml(actionLabel)}</a>
+                  ? `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:24px 0 12px;">
+                <tr><td style="border-radius:4px;background-color:${NAVY};">
+                  <a href="${actionUrl}" style="display:inline-block;padding:13px 26px;color:#ffffff;font-size:15px;font-weight:600;text-decoration:none;border-radius:4px;">${escapeHtml(actionLabel)}</a>
                 </td></tr>
               </table>
-              <p style="margin:0 0 8px;color:#64748b;font-size:13px;line-height:1.6;">If the button does not work, copy this address into your browser:</p>
-              <p style="margin:0;color:${NAVY};font-size:13px;word-break:break-all;">${actionUrl}</p>`
+              <p style="margin:0;color:${MUTED};font-size:13px;line-height:1.6;">If the button does not work, copy this address into your browser:<br><a href="${actionUrl}" style="color:${NAVY};word-break:break-all;">${actionUrl}</a></p>`
                   : ''
               }
               ${
                 footnoteHtml
-                  ? `<p style="margin:24px 0 0;color:#64748b;font-size:13px;line-height:1.6;">${footnoteHtml}</p>`
+                  ? `<p style="margin:24px 0 0;color:${MUTED};font-size:13px;line-height:1.6;">${footnoteHtml}</p>`
                   : footnote
-                    ? `<p style="margin:24px 0 0;color:#64748b;font-size:13px;line-height:1.6;">${escapeHtml(footnote)}</p>`
+                    ? `<p style="margin:24px 0 0;color:${MUTED};font-size:13px;line-height:1.6;">${escapeHtml(footnote)}</p>`
                     : ''
               }
             </td>
           </tr>
           <tr>
-            <td style="padding:18px 32px;background-color:#f8fafc;border-top:1px solid #e2e8f0;">
-              <p style="margin:0;color:#94a3b8;font-size:12px;line-height:1.5;">This is an automated message from the Smart Meeting platform. Please do not reply to it.</p>
+            <td style="padding:18px 32px 22px;background-color:${SURFACE};border-top:1px solid ${RULE};">
+              <p style="margin:0;color:${MUTED};font-size:12px;line-height:1.6;">Government of Sierra Leone &middot; Smart Meeting<br>An automated message from ${escapeHtml(host)}. Replies to this address are not read.</p>
             </td>
           </tr>
         </table>
