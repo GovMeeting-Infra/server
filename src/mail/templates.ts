@@ -16,8 +16,41 @@ export interface EmailBody {
   text: string;
 }
 
+/**
+ * The site's palette, from web/app/globals.css, so a message reads as coming
+ * from the same service as calendar.gov.sl rather than from a generic mailer.
+ */
 const NAVY = '#003580';
 const GREEN = '#007236';
+const INK = '#11243d';
+const MUTED = '#5f6f85';
+const RULE = '#d3deef';
+const SURFACE = '#fbfdff';
+/** Geist is the site's face; mail clients that cannot load it fall through. */
+const FONT =
+  "Geist,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
+
+/**
+ * The colour of the label above the heading. The label is the only coloured
+ * thing in the body, so cancelled or overdue still reads at a glance without
+ * bringing back tinted panels.
+ */
+type Tone = 'neutral' | 'success' | 'warning' | 'danger';
+const TONE: Record<Tone, string> = {
+  neutral: MUTED,
+  success: GREEN,
+  warning: '#7a5600',
+  danger: '#c2410c',
+};
+
+/** Where the site lives, for the masthead image and the footer. */
+function webBase(): string {
+  return (
+    process.env.WEB_URL ??
+    process.env.NEXT_PUBLIC_WEB_URL ??
+    'https://calendar.gov.sl'
+  ).replace(/\/+$/, '');
+}
 
 /**
  * Anything interpolated into the HTML goes through here. Names and event
@@ -33,7 +66,71 @@ export function escapeHtml(value: string): string {
     .replace(/'/g, '&#39;');
 }
 
+/** The small uppercase label used above headings and lists. */
+const LABEL = `font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;`;
+
+interface Detail {
+  label: string;
+  /** Escaped here. */
+  value?: string | null;
+  /** Not escaped — only for markup built in this file from escaped values. */
+  html?: string;
+}
+
+/**
+ * The particulars of a meeting or task as a ruled two-column list. Rows with
+ * nothing to say are dropped, so a meeting without a venue has no Venue row.
+ */
+function details(rows: Detail[]): string {
+  const shown = rows.filter((r) => r.html || r.value);
+  if (shown.length === 0) return '';
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 8px;border-top:1px solid ${RULE};">${shown
+    .map(
+      (r) => `<tr>
+        <td width="112" valign="top" style="padding:12px 12px 12px 0;border-bottom:1px solid ${RULE};color:${MUTED};${LABEL}">${escapeHtml(r.label)}</td>
+        <td valign="top" style="padding:10px 0;border-bottom:1px solid ${RULE};color:${INK};font-size:15px;line-height:1.5;">${r.html ?? escapeHtml(r.value ?? '')}</td>
+      </tr>`,
+    )
+    .join('')}</table>`;
+}
+
+/** A label heading a list, with its count. */
+function listLabel(heading: string, count: number): string {
+  return `<p style="margin:24px 0 4px;color:${MUTED};${LABEL}">${escapeHtml(heading)} (${count})</p>`;
+}
+
+/** Ruled rows of a title over a line of detail. `meta` is pre-escaped markup. */
+function itemList(items: { title: string; meta: string }[]): string {
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0">${items
+    .map(
+      (i) => `<tr><td style="padding:11px 0;border-bottom:1px solid ${RULE};">
+        <p style="margin:0 0 3px;color:${INK};font-size:15px;font-weight:600;">${escapeHtml(i.title)}</p>
+        <p style="margin:0;color:${MUTED};font-size:13px;">${i.meta}</p>
+      </td></tr>`,
+    )
+    .join('')}</table>`;
+}
+
+/** A plain bulleted list. `lines` are pre-escaped markup. */
+function bullets(lines: string[]): string {
+  return `<ul style="margin:6px 0 0;padding-left:20px;color:${INK};font-size:15px;line-height:24px;">${lines
+    .map((line) => `<li>${line}</li>`)
+    .join('')}</ul>`;
+}
+
+/**
+ * The letterhead every message shares: the site's masthead — coat of arms,
+ * GOVERNMENT OF SIERRA LEONE, the service name — over a rule in the flag's
+ * green, white and blue, then a label, a heading and the body.
+ *
+ * The coat of arms is a small copy served by the site (/email/coat_of_arms.png),
+ * not the 1600px original, which every open would download in full. Clients
+ * that block images show its alt text and lose nothing else; no text or
+ * colour depends on it.
+ */
 function layout({
+  label,
+  tone = 'neutral',
   heading,
   intro,
   bodyHtml,
@@ -42,6 +139,9 @@ function layout({
   footnote,
   footnoteHtml,
 }: {
+  /** Says what kind of message this is, above the heading. */
+  label: string;
+  tone?: Tone;
   heading: string;
   intro: string;
   bodyHtml?: string;
@@ -56,46 +156,62 @@ function layout({
    */
   footnoteHtml?: string;
 }): string {
+  const base = webBase();
+  const host = base.replace(/^https?:\/\//, '');
+  const stripe = (colour: string) =>
+    `<tr><td style="height:3px;line-height:3px;font-size:0;background-color:${colour};">&nbsp;</td></tr>`;
+
   return `<!doctype html>
 <html lang="en">
-<body style="margin:0;padding:0;background-color:#f6faff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f6faff;padding:24px 12px;">
+<body style="margin:0;padding:0;background-color:#eef2f7;font-family:${FONT};color:${INK};">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#eef2f7;padding:28px 12px;">
     <tr>
       <td align="center">
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background-color:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #e2e8f0;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;background-color:#ffffff;border:1px solid ${RULE};">
           <tr>
-            <td style="background:linear-gradient(135deg,${NAVY} 0%,${GREEN} 100%);background-color:${NAVY};padding:28px 32px;">
-              <p style="margin:0;color:#ffffff;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;opacity:0.75;">Smart Meeting</p>
-              <h1 style="margin:6px 0 0;color:#ffffff;font-size:22px;font-weight:700;">${escapeHtml(heading)}</h1>
+            <td style="padding:24px 32px 20px;background-color:${SURFACE};">
+              <table role="presentation" cellpadding="0" cellspacing="0"><tr>
+                <td valign="middle" style="padding-right:14px;">
+                  <img src="${escapeHtml(base)}/email/coat_of_arms.png" width="48" height="46" alt="Sierra Leone coat of arms" style="display:block;border:0;width:48px;height:46px;">
+                </td>
+                <td valign="middle">
+                  <p style="margin:0;color:${GREEN};font-size:10px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;white-space:nowrap;">Government of Sierra Leone</p>
+                  <p style="margin:3px 0 0;color:${NAVY};font-size:19px;font-weight:700;">Smart Meeting</p>
+                </td>
+              </tr></table>
             </td>
           </tr>
+          ${stripe('#1eb53a')}
+          ${stripe('#ffffff')}
+          ${stripe('#0072c6')}
           <tr>
-            <td style="padding:32px;">
-              <p style="margin:0 0 16px;color:#334155;font-size:15px;line-height:1.6;">${escapeHtml(intro)}</p>
+            <td style="padding:32px 32px 28px;">
+              <p style="margin:0 0 10px;color:${TONE[tone]};${LABEL}letter-spacing:2px;">${escapeHtml(label)}</p>
+              <h1 style="margin:0 0 16px;color:${NAVY};font-size:24px;line-height:1.25;font-weight:700;">${escapeHtml(heading)}</h1>
+              <p style="margin:0 0 22px;color:${INK};font-size:15px;line-height:1.65;">${escapeHtml(intro)}</p>
               ${bodyHtml ?? ''}
               ${
                 actionUrl && actionLabel
-                  ? `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:24px 0;">
-                <tr><td style="border-radius:12px;background-color:${NAVY};">
-                  <a href="${actionUrl}" style="display:inline-block;padding:13px 28px;color:#ffffff;font-size:15px;font-weight:600;text-decoration:none;border-radius:12px;">${escapeHtml(actionLabel)}</a>
+                  ? `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:24px 0 12px;">
+                <tr><td style="border-radius:4px;background-color:${NAVY};">
+                  <a href="${actionUrl}" style="display:inline-block;padding:13px 26px;color:#ffffff;font-size:15px;font-weight:600;text-decoration:none;border-radius:4px;">${escapeHtml(actionLabel)}</a>
                 </td></tr>
               </table>
-              <p style="margin:0 0 8px;color:#64748b;font-size:13px;line-height:1.6;">If the button does not work, copy this address into your browser:</p>
-              <p style="margin:0;color:${NAVY};font-size:13px;word-break:break-all;">${actionUrl}</p>`
+              <p style="margin:0;color:${MUTED};font-size:13px;line-height:1.6;">If the button does not work, copy this address into your browser:<br><a href="${actionUrl}" style="color:${NAVY};word-break:break-all;">${actionUrl}</a></p>`
                   : ''
               }
               ${
                 footnoteHtml
-                  ? `<p style="margin:24px 0 0;color:#64748b;font-size:13px;line-height:1.6;">${footnoteHtml}</p>`
+                  ? `<p style="margin:24px 0 0;color:${MUTED};font-size:13px;line-height:1.6;">${footnoteHtml}</p>`
                   : footnote
-                    ? `<p style="margin:24px 0 0;color:#64748b;font-size:13px;line-height:1.6;">${escapeHtml(footnote)}</p>`
+                    ? `<p style="margin:24px 0 0;color:${MUTED};font-size:13px;line-height:1.6;">${escapeHtml(footnote)}</p>`
                     : ''
               }
             </td>
           </tr>
           <tr>
-            <td style="padding:18px 32px;background-color:#f8fafc;border-top:1px solid #e2e8f0;">
-              <p style="margin:0;color:#94a3b8;font-size:12px;line-height:1.5;">This is an automated message from the Smart Meeting platform. Please do not reply to it.</p>
+            <td style="padding:18px 32px 22px;background-color:${SURFACE};border-top:1px solid ${RULE};">
+              <p style="margin:0;color:${MUTED};font-size:12px;line-height:1.6;">Government of Sierra Leone &middot; Smart Meeting<br>An automated message from ${escapeHtml(host)}. Replies to this address are not read.</p>
             </td>
           </tr>
         </table>
@@ -164,6 +280,7 @@ export function inviteEmail({
   return {
     subject: 'Set up your Smart Meeting account',
     html: layout({
+      label: 'Account',
       heading: 'Set up your account',
       intro,
       actionLabel: 'Set your password',
@@ -196,6 +313,7 @@ export function passwordResetEmail({
   return {
     subject: 'Reset your Smart Meeting password',
     html: layout({
+      label: 'Account',
       heading: 'Reset your password',
       intro,
       actionLabel: 'Choose a new password',
@@ -233,25 +351,17 @@ export function actionItemAssignedEmail({
     ? `${name}, ${assignedByName} has assigned you an action item.`
     : `${name}, an action item has been assigned to you.`;
 
-  const rows = [
-    `<p style="margin:0 0 6px;color:#0f172a;font-size:15px;font-weight:600;">${escapeHtml(title)}</p>`,
-    description
-      ? `<p style="margin:0 0 8px;color:#334155;font-size:14px;">${escapeHtml(description)}</p>`
-      : '',
-    eventTitle
-      ? `<p style="margin:0;color:#64748b;font-size:13px;">From: ${escapeHtml(eventTitle)}</p>`
-      : '',
-    `<p style="margin:8px 0 0;color:#64748b;font-size:13px;">Due: ${escapeHtml(due)}</p>`,
-  ].join('');
-
   return {
     subject: `Action item assigned to you: ${title}`,
     html: layout({
-      heading: 'Action item assigned',
+      label: 'Action item assigned',
+      heading: title,
       intro,
-      bodyHtml: `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:8px 0;background-color:#edf3fd;border:1px solid #cfdff8;border-radius:12px;">
-        <tr><td style="padding:16px 18px;">${rows}</td></tr>
-      </table>`,
+      bodyHtml: details([
+        { label: 'Details', value: description },
+        { label: 'Due', value: due },
+        { label: 'From', value: eventTitle },
+      ]),
       footnote:
         'If you do not have an account on the platform, the meeting organizer will record your progress for you.',
     }),
@@ -314,35 +424,34 @@ export function actionItemDigestEmail({
         ? `${name}, you have 1 action item still open.`
         : `${name}, you have ${count} action items still open.`;
 
-  const rows = items
-    .map(
-      (i) => `<tr><td style="padding:10px 18px;border-top:1px solid #e6eef8;">
-        <p style="margin:0 0 4px;color:#0f172a;font-size:14px;font-weight:600;">${escapeHtml(i.title)}${
-          i.assisting
-            ? ' <span style="color:#64748b;font-weight:400;font-size:13px;">(assisting)</span>'
-            : ''
-        }</p>
-        <p style="margin:0;color:${i.overdue ? '#c2410c' : '#64748b'};font-size:13px;">${
-          i.overdue ? 'Overdue &middot; was due' : 'Due'
-        } ${escapeHtml(formatDate(i.dueDate))}${
-          i.eventTitle ? ` &middot; ${escapeHtml(i.eventTitle)}` : ''
-        }</p>
-      </td></tr>`,
-    )
-    .join('');
+  const openHtml = count
+    ? listLabel('Open', count) +
+      itemList(
+        items.map((i) => ({
+          title: i.assisting ? `${i.title} (assisting)` : i.title,
+          meta: `${
+            i.overdue
+              ? `<span style="color:${TONE.danger};font-weight:600;">Overdue</span> &middot; was due`
+              : 'Due'
+          } ${escapeHtml(formatDate(i.dueDate))}${
+            i.eventTitle ? ` &middot; ${escapeHtml(i.eventTitle)}` : ''
+          }`,
+        })),
+      )
+    : '';
 
   const closedHtml = closed.length
-    ? `<p style="margin:20px 0 8px;color:#0f172a;font-size:14px;font-weight:600;">Closed last week (${closed.length})</p>
-       <ul style="margin:0;padding-left:20px;color:#334155;font-size:14px;line-height:22px;">${closed
-         .map(
-           (c) =>
-             `<li>${escapeHtml(c.title)}${c.ownerName ? ` &mdash; ${escapeHtml(c.ownerName)}` : ''}${
-               c.eventTitle
-                 ? ` <span style="color:#64748b;">(${escapeHtml(c.eventTitle)})</span>`
-                 : ''
-             }</li>`,
-         )
-         .join('')}</ul>`
+    ? listLabel('Closed last week', closed.length) +
+      bullets(
+        closed.map(
+          (c) =>
+            `${escapeHtml(c.title)}${c.ownerName ? ` &mdash; ${escapeHtml(c.ownerName)}` : ''}${
+              c.eventTitle
+                ? ` <span style="color:${MUTED};">(${escapeHtml(c.eventTitle)})</span>`
+                : ''
+            }`,
+        ),
+      )
     : '';
 
   return {
@@ -351,18 +460,15 @@ export function actionItemDigestEmail({
         ? 'You have 1 open action item'
         : `You have ${count} open action items`,
     html: layout({
+      label: 'Weekly summary',
       heading: 'Your week',
       intro,
-      bodyHtml: `${
-        count
-          ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:8px 0;background-color:#ffffff;border:1px solid #e6eef8;border-radius:12px;">${rows}</table>`
-          : ''
-      }${closedHtml}`,
+      bodyHtml: `${openHtml}${closedHtml}`,
       ...(unsubscribeUrl
         ? {
             footnoteHtml: `This summary goes out every Monday. <a href="${escapeHtml(
               unsubscribeUrl,
-            )}" style="color:#64748b;">Unsubscribe from it</a> &mdash; reminders about your own deadlines and meetings will still reach you.`,
+            )}" style="color:${MUTED};">Unsubscribe from it</a> &mdash; reminders about your own deadlines and meetings will still reach you.`,
           }
         : {
             footnote:
@@ -419,18 +525,14 @@ export function actionItemCompletedEmail({
   return {
     subject: `Completed: ${title}`,
     html: layout({
-      heading: 'Action item completed',
+      label: 'Action item completed',
+      tone: 'success',
+      heading: title,
       intro,
-      bodyHtml: `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:8px 0;background-color:#edf8f1;border:1px solid #cfe5d7;border-radius:12px;">
-        <tr><td style="padding:16px 18px;">
-          <p style="margin:0 0 6px;color:#0f172a;font-size:15px;font-weight:600;">${escapeHtml(title)}</p>
-          ${
-            eventTitle
-              ? `<p style="margin:0;color:#64748b;font-size:13px;">From: ${escapeHtml(eventTitle)}</p>`
-              : ''
-          }
-        </td></tr>
-      </table>`,
+      bodyHtml: details([
+        { label: 'Completed by', value: completedByName },
+        { label: 'From', value: eventTitle },
+      ]),
       footnote: 'Nothing further is needed from you.',
     }),
     text: [intro, '', `- ${title}${eventTitle ? ` (${eventTitle})` : ''}`].join(
@@ -466,24 +568,15 @@ export function actionItemOverdueEmail({
   return {
     subject: `Overdue: ${title}`,
     html: layout({
-      heading: 'Action item overdue',
+      label: 'Action item overdue',
+      tone: 'danger',
+      heading: title,
       intro,
-      bodyHtml: `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:8px 0;background-color:#fdebec;border:1px solid #f6cfd2;border-radius:12px;">
-        <tr><td style="padding:16px 18px;">
-          <p style="margin:0 0 6px;color:#0f172a;font-size:15px;font-weight:600;">${escapeHtml(title)}</p>
-          <p style="margin:0;color:#c2410c;font-size:13px;">Was due ${escapeHtml(formatDate(dueDate))}</p>
-          ${
-            !isOwner && ownerName
-              ? `<p style="margin:6px 0 0;color:#64748b;font-size:13px;">Assigned to ${escapeHtml(ownerName)}</p>`
-              : ''
-          }
-          ${
-            eventTitle
-              ? `<p style="margin:6px 0 0;color:#64748b;font-size:13px;">From: ${escapeHtml(eventTitle)}</p>`
-              : ''
-          }
-        </td></tr>
-      </table>`,
+      bodyHtml: details([
+        { label: 'Was due', value: formatDate(dueDate) },
+        { label: 'Assigned to', value: !isOwner ? ownerName : null },
+        { label: 'From', value: eventTitle },
+      ]),
       footnote:
         'If the deadline has moved, updating it on the platform will stop this and restart the reminders.',
     }),
@@ -514,18 +607,13 @@ export function actionItemUnassignedEmail({
   return {
     subject: `No longer yours: ${title}`,
     html: layout({
-      heading: 'Action item reassigned',
+      label: 'Action item reassigned',
+      heading: title,
       intro,
-      bodyHtml: `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:8px 0;background-color:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;">
-        <tr><td style="padding:16px 18px;">
-          <p style="margin:0 0 6px;color:#0f172a;font-size:15px;font-weight:600;">${escapeHtml(title)}</p>
-          ${
-            eventTitle
-              ? `<p style="margin:0;color:#64748b;font-size:13px;">From: ${escapeHtml(eventTitle)}</p>`
-              : ''
-          }
-        </td></tr>
-      </table>`,
+      bodyHtml: details([
+        { label: 'Now with', value: newOwnerName },
+        { label: 'From', value: eventTitle },
+      ]),
       footnote: 'Nothing further is needed from you.',
     }),
     text: [intro, '', `- ${title}${eventTitle ? ` (${eventTitle})` : ''}`].join(
@@ -563,36 +651,36 @@ export function meetingChangedEmail({
 
   // Old beside new, because "the venue has changed" without saying from what
   // makes someone check whether they had it wrong all along.
+  const struck = (old: string, now: string) =>
+    `<s style="color:${MUTED};">${escapeHtml(old)}</s><br><strong>${escapeHtml(now)}</strong>`;
   const changes = cancelled
-    ? ''
-    : [
-        previousStartAt
-          ? `<p style="margin:0 0 6px;color:#334155;font-size:14px;">When: <s style="color:#94a3b8;">${escapeHtml(
-              formatDateTime(previousStartAt),
-            )}</s> &rarr; <strong>${escapeHtml(formatDateTime(startAt))}</strong></p>`
-          : `<p style="margin:0 0 6px;color:#334155;font-size:14px;">When: <strong>${escapeHtml(formatDateTime(startAt))}</strong></p>`,
-        previousVenueName && previousVenueName !== venueName
-          ? `<p style="margin:0;color:#334155;font-size:14px;">Where: <s style="color:#94a3b8;">${escapeHtml(
-              previousVenueName,
-            )}</s> &rarr; <strong>${escapeHtml(venueName ?? 'To be confirmed')}</strong></p>`
-          : venueName
-            ? `<p style="margin:0;color:#334155;font-size:14px;">Where: ${escapeHtml(venueName)}</p>`
-            : '',
-      ].join('');
+    ? details([{ label: 'Was', value: formatDateTime(startAt) }])
+    : details([
+        {
+          label: 'When',
+          html: previousStartAt
+            ? struck(formatDateTime(previousStartAt), formatDateTime(startAt))
+            : `<strong>${escapeHtml(formatDateTime(startAt))}</strong>`,
+        },
+        {
+          label: 'Where',
+          html:
+            previousVenueName && previousVenueName !== venueName
+              ? struck(previousVenueName, venueName ?? 'To be confirmed')
+              : venueName
+                ? escapeHtml(venueName)
+                : undefined,
+        },
+      ]);
 
   return {
     subject: cancelled ? `Cancelled: ${eventTitle}` : `Changed: ${eventTitle}`,
     html: layout({
-      heading: cancelled ? 'Meeting cancelled' : 'Meeting details changed',
+      label: cancelled ? 'Meeting cancelled' : 'Meeting changed',
+      tone: cancelled ? 'danger' : 'warning',
+      heading: eventTitle,
       intro,
-      bodyHtml: `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:8px 0;background-color:${
-        cancelled ? '#fdebec' : '#fff8e5'
-      };border:1px solid ${cancelled ? '#f6cfd2' : '#fde8a6'};border-radius:12px;">
-        <tr><td style="padding:16px 18px;">
-          <p style="margin:0 0 8px;color:#0f172a;font-size:15px;font-weight:600;">${escapeHtml(eventTitle)}</p>
-          ${changes}
-        </td></tr>
-      </table>`,
+      bodyHtml: changes,
       footnote: cancelled
         ? 'Nothing further is needed from you. The meeting has been removed from the calendar.'
         : 'Your response to the invitation still stands; only the details have changed.',
@@ -626,22 +714,17 @@ export function actionItemReminderEmail({
 }): EmailBody {
   const due = dueDate ? formatDate(dueDate) : 'soon';
   const intro = `${name}, an action item assigned to you is due ${due}.`;
-  const rows = [
-    `<p style="margin:0 0 6px;color:#0f172a;font-size:15px;font-weight:600;">${escapeHtml(title)}</p>`,
-    eventTitle
-      ? `<p style="margin:0;color:#64748b;font-size:13px;">From: ${escapeHtml(eventTitle)}</p>`
-      : '',
-    `<p style="margin:8px 0 0;color:#64748b;font-size:13px;">Due: ${escapeHtml(due)}</p>`,
-  ].join('');
-
   return {
     subject: `Action item due ${due}: ${title}`,
     html: layout({
-      heading: 'Action item due soon',
+      label: 'Action item due soon',
+      tone: 'warning',
+      heading: title,
       intro,
-      bodyHtml: `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:8px 0;background-color:#fff8e5;border:1px solid #fde8a6;border-radius:12px;">
-        <tr><td style="padding:16px 18px;">${rows}</td></tr>
-      </table>`,
+      bodyHtml: details([
+        { label: 'Due', value: due },
+        { label: 'From', value: eventTitle },
+      ]),
       footnote:
         'Update the status on the Action Items board once the work is done.',
     }),
@@ -695,25 +778,13 @@ export function minutesPublishedEmail({
 }): EmailBody {
   const when = formatDate(eventDate);
   const intro = `${name}, the minutes for "${eventTitle}" (${when}) have been published.`;
-
-  const itemRows = actionItems
-    .map(
-      (i) => `<tr><td style="padding:10px 18px;border-top:1px solid #e6eef8;">
-        <p style="margin:0 0 4px;color:#0f172a;font-size:14px;font-weight:600;">${escapeHtml(i.title)}</p>
-        <p style="margin:0;color:#64748b;font-size:13px;">${
-          i.ownerName ? `${escapeHtml(i.ownerName)} &middot; ` : ''
-        }due ${escapeHtml(formatDate(i.dueDate))}</p>
-      </td></tr>`,
-    )
-    .join('');
+  const htmlIntro = `${name}, the minutes of this meeting (${when}) have been published.`;
 
   /** A headed list, or nothing at all — an empty heading says less than none. */
   const listHtml = (heading: string, lines: string[]) =>
     lines.length
-      ? `<p style="margin:16px 0 8px;color:#0f172a;font-size:14px;font-weight:600;">${heading} (${lines.length})</p>
-         <ul style="margin:0;padding-left:20px;color:#334155;font-size:14px;line-height:22px;">${lines
-           .map((line) => `<li>${escapeHtml(line)}</li>`)
-           .join('')}</ul>`
+      ? listLabel(heading, lines.length) +
+        bullets(lines.map((line) => escapeHtml(line)))
       : '';
 
   const decisionList = decisions ?? [];
@@ -722,17 +793,23 @@ export function minutesPublishedEmail({
   const bodyHtml = [
     listHtml('Decisions', decisionList),
     actionItems.length
-      ? `<p style="margin:16px 0 8px;color:#0f172a;font-size:14px;font-weight:600;">Action items (${actionItems.length})</p>
-         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#ffffff;border:1px solid #e6eef8;border-radius:12px;">${itemRows}</table>`
-      : `<p style="margin:16px 0 0;color:#64748b;font-size:14px;">No action items were raised.</p>`,
+      ? listLabel('Action items', actionItems.length) +
+        itemList(
+          actionItems.map((i) => ({
+            title: i.title,
+            meta: `${i.ownerName ? `${escapeHtml(i.ownerName)} &middot; ` : ''}due ${escapeHtml(formatDate(i.dueDate))}`,
+          })),
+        )
+      : `<p style="margin:24px 0 0;color:${MUTED};font-size:14px;">No action items were raised.</p>`,
     listHtml('Next steps', nextStepList),
   ].join('');
 
   return {
     subject: `Minutes published: ${eventTitle}`,
     html: layout({
-      heading: 'Minutes published',
-      intro,
+      label: 'Minutes published',
+      heading: eventTitle,
+      intro: htmlIntro,
       bodyHtml,
       actionLabel: 'Read the minutes',
       actionUrl: link,
@@ -811,26 +888,26 @@ export function meetingInvitationEmail({
   const intro = organizerName
     ? `${name}, ${organizerName} has invited you to ${eventTitle}.`
     : `${name}, you have been invited to ${eventTitle}.`;
-
-  const rows = [
-    `<p style="margin:0 0 6px;color:#0f172a;font-size:15px;font-weight:600;">${escapeHtml(eventTitle)}</p>`,
-    `<p style="margin:0;color:#64748b;font-size:13px;">When: ${escapeHtml(whenLine)}</p>`,
-    venueName
-      ? `<p style="margin:6px 0 0;color:#64748b;font-size:13px;">Where: ${escapeHtml(venueName)}</p>`
-      : '',
-    ministryName
-      ? `<p style="margin:6px 0 0;color:#64748b;font-size:13px;">Hosted by: ${escapeHtml(ministryName)}</p>`
-      : '',
-  ].join('');
+  // The HTML carries the title as its heading, so its intro need not repeat it.
+  const htmlIntro = organizerName
+    ? `${name}, ${organizerName} has invited you to this meeting.`
+    : `${name}, you have been invited to this meeting.`;
+  const timeLine = until
+    ? `${formatTime(startAt)} – ${until}`
+    : formatTime(startAt);
 
   return {
     subject: `Invitation: ${eventTitle}`,
     html: layout({
-      heading: 'You have been invited to a meeting',
-      intro,
-      bodyHtml: `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:8px 0;background-color:#edf3fd;border:1px solid #c9d9f2;border-radius:12px;">
-        <tr><td style="padding:16px 18px;">${rows}</td></tr>
-      </table>`,
+      label: 'Meeting invitation',
+      heading: eventTitle,
+      intro: htmlIntro,
+      bodyHtml: details([
+        { label: 'Date', value: formatDate(startAt) },
+        { label: 'Time', value: timeLine },
+        { label: 'Venue', value: venueName },
+        { label: 'Hosted by', value: ministryName },
+      ]),
       actionLabel: rsvpUrl ? 'Respond to this invitation' : undefined,
       actionUrl: rsvpUrl ?? undefined,
       footnote: rsvpUrl
@@ -878,25 +955,23 @@ export function coOrganizerAddedEmail({
   const intro = addedByName
     ? `${name}, ${addedByName} has made you a co-organizer of ${eventTitle}.`
     : `${name}, you have been made a co-organizer of ${eventTitle}.`;
+  const htmlIntro = addedByName
+    ? `${name}, ${addedByName} has made you a co-organizer of this meeting.`
+    : `${name}, you have been made a co-organizer of this meeting.`;
   const footnote =
     'As a co-organizer you can edit and cancel this meeting alongside its organizer.';
-
-  const rows = [
-    `<p style="margin:0 0 6px;color:#0f172a;font-size:15px;font-weight:600;">${escapeHtml(eventTitle)}</p>`,
-    `<p style="margin:0;color:#64748b;font-size:13px;">When: ${escapeHtml(when)}</p>`,
-    venueName
-      ? `<p style="margin:6px 0 0;color:#64748b;font-size:13px;">Where: ${escapeHtml(venueName)}</p>`
-      : '',
-  ].join('');
 
   return {
     subject: `You are a co-organizer: ${eventTitle}`,
     html: layout({
-      heading: 'You are now a co-organizer',
-      intro,
-      bodyHtml: `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:8px 0;background-color:#edf3fd;border:1px solid #c9d9f2;border-radius:12px;">
-        <tr><td style="padding:16px 18px;">${rows}</td></tr>
-      </table>`,
+      label: 'You are a co-organizer',
+      heading: eventTitle,
+      intro: htmlIntro,
+      bodyHtml: details([
+        { label: 'Date', value: formatDate(startAt) },
+        { label: 'Time', value: formatTime(startAt) },
+        { label: 'Venue', value: venueName },
+      ]),
       actionLabel: 'Open the meeting',
       actionUrl: eventUrl,
       footnote,
@@ -929,22 +1004,20 @@ export function meetingReminderEmail({
 }): EmailBody {
   const when = formatDateTime(startAt);
   const intro = `${name}, this is a reminder that ${eventTitle} starts shortly.`;
-  const rows = [
-    `<p style="margin:0 0 6px;color:#0f172a;font-size:15px;font-weight:600;">${escapeHtml(eventTitle)}</p>`,
-    `<p style="margin:0;color:#64748b;font-size:13px;">When: ${escapeHtml(when)}</p>`,
-    venueName
-      ? `<p style="margin:6px 0 0;color:#64748b;font-size:13px;">Where: ${escapeHtml(venueName)}</p>`
-      : '',
-  ].join('');
+  const htmlIntro = `${name}, this is a reminder that your meeting starts shortly.`;
 
   return {
     subject: `Reminder: ${eventTitle} starts soon`,
     html: layout({
-      heading: 'Your meeting starts soon',
-      intro,
-      bodyHtml: `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:8px 0;background-color:#edf3fd;border:1px solid #c9d9f2;border-radius:12px;">
-        <tr><td style="padding:16px 18px;">${rows}</td></tr>
-      </table>`,
+      label: 'Starting soon',
+      tone: 'success',
+      heading: eventTitle,
+      intro: htmlIntro,
+      bodyHtml: details([
+        { label: 'Date', value: formatDate(startAt) },
+        { label: 'Time', value: formatTime(startAt) },
+        { label: 'Venue', value: venueName },
+      ]),
       footnote:
         'Check in at the venue by scanning the QR code the organizer displays.',
     }),
