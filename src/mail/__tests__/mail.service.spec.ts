@@ -18,6 +18,8 @@ function jsonResponse(status: number, payload: unknown) {
 describe('MailService', () => {
   const originalKey = process.env.RESEND_API_KEY;
   const originalFrom = process.env.EMAIL_FROM;
+  const originalReplyTo = process.env.EMAIL_REPLY_TO;
+  const originalSupport = process.env.SUPPORT_EMAIL;
   let fetchMock: jest.Mock;
   let service: MailService;
 
@@ -30,6 +32,8 @@ describe('MailService', () => {
   afterAll(() => {
     process.env.RESEND_API_KEY = originalKey;
     process.env.EMAIL_FROM = originalFrom;
+    process.env.EMAIL_REPLY_TO = originalReplyTo;
+    process.env.SUPPORT_EMAIL = originalSupport;
   });
 
   describe('without an API key', () => {
@@ -62,8 +66,15 @@ describe('MailService', () => {
   describe('with an API key', () => {
     beforeEach(() => {
       process.env.RESEND_API_KEY = 're_test_key';
-      process.env.EMAIL_FROM = 'noreply@calendar.gov.sl';
+      process.env.EMAIL_FROM = 'smartmeeting@calendar.gov.sl';
+      process.env.EMAIL_REPLY_TO = '';
+      process.env.SUPPORT_EMAIL = '';
     });
+
+    const sentPayload = (): Record<string, string> => {
+      const [, init] = fetchMock.mock.calls[0] as [string, { body: string }];
+      return JSON.parse(init.body) as Record<string, string>;
+    };
 
     it('reports success when Resend accepts the message', async () => {
       fetchMock.mockResolvedValue(jsonResponse(200, { id: 'msg_1' }));
@@ -81,12 +92,51 @@ describe('MailService', () => {
       expect(init.method).toBe('POST');
       expect(init.headers.Authorization).toBe('Bearer re_test_key');
       expect(JSON.parse(init.body)).toEqual({
-        from: 'noreply@calendar.gov.sl',
+        from: 'Smart Meeting <smartmeeting@calendar.gov.sl>',
         to: 'a@b.gov.sl',
         subject: 'Test subject',
         html: '<p>hi</p>',
         text: 'hi',
       });
+    });
+
+    it('keeps a display name EMAIL_FROM already carries', async () => {
+      process.env.EMAIL_FROM = 'Ministry Meetings <meet@calendar.gov.sl>';
+      fetchMock.mockResolvedValue(jsonResponse(200, { id: 'msg_1' }));
+      await service.send('a@b.gov.sl', BODY);
+      expect(sentPayload().from).toBe(
+        'Ministry Meetings <meet@calendar.gov.sl>',
+      );
+    });
+
+    it('sends as smartmeeting@ when EMAIL_FROM is unset', async () => {
+      delete process.env.EMAIL_FROM;
+      fetchMock.mockResolvedValue(jsonResponse(200, { id: 'msg_1' }));
+      await service.send('a@b.gov.sl', BODY);
+      expect(sentPayload().from).toBe(
+        'Smart Meeting <smartmeeting@calendar.gov.sl>',
+      );
+    });
+
+    it('omits reply_to when no reply address is configured', async () => {
+      fetchMock.mockResolvedValue(jsonResponse(200, { id: 'msg_1' }));
+      await service.send('a@b.gov.sl', BODY);
+      expect(sentPayload()).not.toHaveProperty('reply_to');
+    });
+
+    it('sends replies to SUPPORT_EMAIL when EMAIL_REPLY_TO is unset', async () => {
+      process.env.SUPPORT_EMAIL = 'info@mocti.gov.sl';
+      fetchMock.mockResolvedValue(jsonResponse(200, { id: 'msg_1' }));
+      await service.send('a@b.gov.sl', BODY);
+      expect(sentPayload().reply_to).toBe('info@mocti.gov.sl');
+    });
+
+    it('prefers EMAIL_REPLY_TO over SUPPORT_EMAIL', async () => {
+      process.env.SUPPORT_EMAIL = 'info@mocti.gov.sl';
+      process.env.EMAIL_REPLY_TO = 'meetings@mocti.gov.sl';
+      fetchMock.mockResolvedValue(jsonResponse(200, { id: 'msg_1' }));
+      await service.send('a@b.gov.sl', BODY);
+      expect(sentPayload().reply_to).toBe('meetings@mocti.gov.sl');
     });
 
     it('reports the reason when the sender domain is unverified', async () => {
