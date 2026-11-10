@@ -679,7 +679,9 @@ export class EmailProcessor extends WorkerHost {
           nextSteps: textOf(minutes.points, 'NEXT_STEP'),
           actionItems: minutes.actionItems,
           link: guestLink ?? `${base}/administrative/events/${eventId}/minutes`,
-          isGuest: !userId,
+          // The guest wording goes with the guest link, which is also what an
+          // account that has not accepted its invitation is sent.
+          isGuest: !userId || !!guestLink,
         }),
       );
 
