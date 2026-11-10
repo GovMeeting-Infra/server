@@ -8,11 +8,19 @@ import { PrismaModule } from '../prisma/prisma.module';
 import { AuditModule } from '../audit/audit.module';
 import { InvitesModule } from '../invites/invites.module';
 import { CacheModule } from '../cache/cache.module';
+import { StaffImportController } from './staff-import.controller';
+import { StaffImportService } from './staff-import.service';
+import { RateLimitGuard } from '../common/guards/rate-limit.guard';
 
 @Module({
   imports: [PrismaModule, AuditModule, InvitesModule, CacheModule],
-  providers: [UsersService, MeService],
-  controllers: [UsersController, MeController, DirectoryController],
+  providers: [UsersService, MeService, StaffImportService, RateLimitGuard],
+  controllers: [
+    UsersController,
+    MeController,
+    DirectoryController,
+    StaffImportController,
+  ],
   exports: [UsersService],
 })
 export class UsersModule {}
