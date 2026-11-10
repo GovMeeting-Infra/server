@@ -590,6 +590,18 @@ export class ActionItemsService {
       item.minutes.event.ministryId,
     );
 
+    // A helper works on the item in the app. An owner who cannot sign in is
+    // reached through the minutes link instead; a helper has no such route.
+    const credential = await (this.prisma as any).account.findFirst({
+      where: { userId: assistant.id, providerId: 'credential' },
+      select: { id: true },
+    });
+    if (!credential) {
+      throw new BadRequestException(
+        `${assistant.name} hasn't accepted their invitation yet, so cannot help on this item in the app.`,
+      );
+    }
+
     if (assistant.id === item.ownerId) {
       throw new BadRequestException(
         'That person already owns this action item',

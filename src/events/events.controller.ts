@@ -89,14 +89,25 @@ export class EventsController {
     @Param('eventId') eventId: string,
     @CurrentUser() user: any,
     @Query('q') q?: string,
+    // `only` for roles worked in the app, such as an action item's helpers.
+    @Query('accepted') accepted?: string,
   ) {
-    return this.eventsService.listAttendeeCandidates(eventId, user, q);
+    return this.eventsService.listAttendeeCandidates(eventId, user, q, {
+      acceptedOnly: accepted === 'only',
+    });
   }
 
   @Get('co-organizer-candidates')
   @Roles('SUPER_ADMIN', 'MINISTER', 'MINISTRY_ADMIN', 'STAFF')
-  listCandidates(@CurrentUser() user: any) {
-    return this.eventsService.listCoOrganizerCandidates(user);
+  listCandidates(
+    @CurrentUser() user: any,
+    // The action-items board filters by owner, and somebody who has not
+    // accepted can still own an item, so it asks for everyone.
+    @Query('includePending') includePending?: string,
+  ) {
+    return this.eventsService.listCoOrganizerCandidates(user, {
+      includePending: includePending === 'true',
+    });
   }
 
   /**
