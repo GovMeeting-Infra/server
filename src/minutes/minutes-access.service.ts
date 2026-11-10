@@ -1,6 +1,10 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { createHash, randomBytes } from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
+import {
+  CREDENTIAL_SELECT,
+  hasAccepted,
+} from '../common/utils/accepted-account.util';
 
 /**
  * Who gets a copy of published minutes, and how someone without an account
@@ -11,11 +15,24 @@ import { PrismaService } from '../prisma/prisma.service';
  * appearing on the invite list, and someone who declined was on the list without
  * ever being in the room.
  */
+const RECIPIENT_USER = {
+  id: true,
+  name: true,
+  email: true,
+  ...CREDENTIAL_SELECT,
+} as const;
+
 export interface MinutesRecipient {
   /** Null for someone with no account, who is reachable only by email. */
   userId: string | null;
   email: string | null;
   name: string;
+  /**
+   * Whether they can sign in. False for guests and for accounts still holding
+   * an unused invitation: both get the tokenised link, because the in-app
+   * minutes page is one they cannot open.
+   */
+  canSignIn: boolean;
 }
 
 @Injectable()
@@ -54,7 +71,7 @@ export class MinutesAccessService {
           userId: true,
           externalName: true,
           externalEmail: true,
-          user: { select: { id: true, name: true, email: true } },
+          user: { select: RECIPIENT_USER },
         },
       }),
       (this.prisma as any).attendance.findMany({
@@ -64,7 +81,7 @@ export class MinutesAccessService {
           guestName: true,
           guestEmail: true,
           signedName: true,
-          user: { select: { id: true, name: true, email: true } },
+          user: { select: RECIPIENT_USER },
         },
       }),
     ]);
@@ -82,6 +99,7 @@ export class MinutesAccessService {
         userId: a.user?.id ?? null,
         email: a.user?.email ?? a.externalEmail ?? null,
         name: a.user?.name ?? a.externalName ?? 'Colleague',
+        canSignIn: hasAccepted(a.user),
       });
     }
 
@@ -90,6 +108,7 @@ export class MinutesAccessService {
         userId: w.user?.id ?? null,
         email: w.user?.email ?? w.guestEmail ?? null,
         name: w.user?.name ?? w.guestName ?? w.signedName ?? 'Colleague',
+        canSignIn: hasAccepted(w.user),
       });
     }
 

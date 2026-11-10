@@ -51,6 +51,8 @@ describe('ActionItemsService — permissions', () => {
         deleteMany: jest.fn().mockResolvedValue({ count: 1 }),
       },
       user: { findFirst: jest.fn() },
+      // Helpers must be able to sign in; by default they can.
+      account: { findFirst: jest.fn().mockResolvedValue({ id: 'acc' }) },
     };
 
     service = new ActionItemsService(
@@ -257,6 +259,17 @@ describe('ActionItemsService — permissions', () => {
           }),
         }),
       );
+    });
+
+    it('refuses a helper who has not accepted their invitation', async () => {
+      seedItem();
+      activeUser();
+      prisma.account.findFirst.mockResolvedValue(null);
+
+      await expect(
+        service.addAssistant(ITEM, STRANGER, OWNER, MINISTRY, 'STAFF'),
+      ).rejects.toThrow("hasn't accepted their invitation");
+      expect(prisma.actionItemAssistant.upsert).not.toHaveBeenCalled();
     });
 
     // A helper who can recruit helpers is a second owner by another name.

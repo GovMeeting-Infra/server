@@ -318,7 +318,10 @@ export class MinutesService {
     for (const r of recipients) {
       if (!r.email) continue;
 
-      const guestLink = r.userId
+      // Anyone who cannot sign in gets the tokenised copy — guests, and staff
+      // who have not accepted their invitation yet. It is also how the latter
+      // update an action item they own, exactly as a guest owner does.
+      const guestLink = r.canSignIn
         ? null
         : await this.access.issueGuestLink(minutesId, r.email);
 

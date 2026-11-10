@@ -191,6 +191,12 @@ export class InvitesService {
       where: { id: record.id },
     });
 
+    // And the reverse: a reset link requested before the invitation was
+    // accepted would otherwise still replace the password just chosen.
+    await (this.prisma as any).verification.deleteMany({
+      where: { identifier: `reset:${user.id}` },
+    });
+
     await this.audit.log({
       action: 'INVITE_ACCEPTED',
       actionCategory: 'USER_MANAGEMENT',

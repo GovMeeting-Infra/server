@@ -1,4 +1,4 @@
-import { DirectoryController } from '../directory.controller';
+import { DirectoryController, fairMerge } from '../directory.controller';
 
 /**
  * The roster is a staging list, not a second copy of the ministry. These cover
@@ -229,13 +229,79 @@ describe('DirectoryController.people', () => {
       'staff',
     );
 
-    const or = entryFindMany.mock.calls[0][0].where.OR;
-    expect(or.map((c: any) => Object.keys(c)[0])).toEqual([
+    const [word] = entryFindMany.mock.calls[0][0].where.AND;
+    expect(word.OR.map((c: any) => Object.keys(c)[0])).toEqual([
       'firstName',
       'lastName',
       'email',
     ]);
     // Trimmed, so a stray space from a paste does not match nothing.
-    expect(or[0].firstName.contains).toBe('abdul');
+    expect(word.OR[0].firstName.contains).toBe('abdul');
+  });
+
+  it('finds a roster row by full name, in either order', async () => {
+    const { prisma, entryFindMany, userFindMany } = prismaWith({ entries: [] });
+
+    await new DirectoryController(prisma).people(STAFF_USER, 'Mansaray  Abdul');
+
+    // One condition per word, each allowed to match any column, so the two
+    // halves of a name stored apart are both found.
+    const staffWords = entryFindMany.mock.calls[0][0].where.AND;
+    expect(staffWords.map((w: any) => w.OR[0].firstName.contains)).toEqual([
+      'Mansaray',
+      'Abdul',
+    ]);
+    const accountWords = userFindMany.mock.calls[0][0].where.AND;
+    expect(accountWords).toHaveLength(2);
+  });
+
+  it('keeps room for the roster when accounts fill the list', async () => {
+    const accounts = Array.from({ length: 30 }, (_, i) => ({
+      id: `u${i}`,
+      name: `Account ${i}`,
+      email: `a${i}@mocti.gov.sl`,
+      jobTitle: null,
+    }));
+    const entries = Array.from({ length: 30 }, (_, i) =>
+      STAFF({ id: `sd${i}`, email: `s${i}@mocti.gov.sl` }),
+    );
+    const { prisma } = prismaWith({ accounts, entries });
+
+    const result = await new DirectoryController(prisma).people(
+      STAFF_USER,
+      'a',
+    );
+
+    expect(result).toHaveLength(25);
+    expect(result.filter((p) => p.kind === 'staff')).toHaveLength(13);
+    expect(result.filter((p) => p.kind === 'account')).toHaveLength(12);
+  });
+});
+
+describe('fairMerge', () => {
+  it.each([
+    [30, 30, 12, 13],
+    [5, 30, 5, 20],
+    [30, 3, 22, 3],
+    [0, 40, 0, 25],
+    [2, 2, 2, 2],
+  ])('%i accounts and %i roster rows → %i + %i', (a, b, takeA, takeB) => {
+    const out = fairMerge(
+      Array.from({ length: a }, () => 'a'),
+      Array.from({ length: b }, () => 'b'),
+      25,
+    );
+    expect(out.filter((x) => x === 'a')).toHaveLength(takeA);
+    expect(out.filter((x) => x === 'b')).toHaveLength(takeB);
+  });
+});
+
+describe('DirectoryController.directory', () => {
+  it('offers only colleagues who have accepted their invitation', async () => {
+    const { prisma, userFindMany } = prismaWith({});
+    await new DirectoryController(prisma).directory(STAFF_USER, 'abdul');
+    expect(userFindMany.mock.calls[0][0].where.accounts).toEqual({
+      some: { providerId: 'credential' },
+    });
   });
 });

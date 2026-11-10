@@ -29,6 +29,13 @@ import {
   SEE_ALL_EVENTS_ROLES,
 } from '../common/utils/ministry-scope.util';
 import { jobId } from '../common/utils/job-id.util';
+import {
+  ACCEPTED_ACCOUNT,
+  CREDENTIAL_SELECT,
+  hasAccepted,
+  matchesEveryWord,
+  searchWords,
+} from '../common/utils/accepted-account.util';
 
 @Injectable()
 export class EventsService {
@@ -191,6 +198,10 @@ export class EventsService {
         throw new NotFoundException(`Unknown user(s): ${missing.join(', ')}`);
       }
     }
+
+    await this.assertCanCoOrganize(
+      (coOrganizerIds ?? []).filter((id) => id && id !== organizerId),
+    );
 
     if (invitedMinistryIds?.length) {
       const found = await (this.prisma as any).ministry.findMany({
@@ -534,22 +545,29 @@ export class EventsService {
     eventId: string,
     user: { id?: string; systemRole: string; ministryId?: string },
     query?: string,
+    { acceptedOnly = false }: { acceptedOnly?: boolean } = {},
   ) {
+    const person = {
+      id: true,
+      name: true,
+      email: true,
+      jobTitle: true,
+      active: true,
+      deletedAt: true,
+      ...CREDENTIAL_SELECT,
+    };
+
     const event = await (this.prisma as any).event.findUnique({
       where: { id: eventId },
       select: {
         ministryId: true,
         isPublic: true,
         organizerId: true,
-        organizer: {
-          select: { id: true, name: true, email: true, jobTitle: true },
-        },
+        organizer: { select: person },
         coOrganizers: {
           select: {
             userId: true,
-            user: {
-              select: { id: true, name: true, email: true, jobTitle: true },
-            },
+            user: { select: person },
           },
         },
         attendees: {
@@ -557,9 +575,7 @@ export class EventsService {
             userId: true,
             externalName: true,
             externalEmail: true,
-            user: {
-              select: { id: true, name: true, email: true, jobTitle: true },
-            },
+            user: { select: person },
           },
         },
       },
@@ -584,8 +600,21 @@ export class EventsService {
     // organizer, hence the null check.
     const byId = new Map<string, any>();
 
+    // Deactivated and erased accounts are left out: nothing can be assigned
+    // to them (resolveOwner refuses), so offering them only fails later.
+    // `accepted` says whether they can sign in. An owner need not — somebody
+    // who has not accepted is treated like a guest and updates their item from
+    // the minutes link — but a helper works in the app and must.
     const add = (p: any) => {
-      if (p && !byId.has(p.id)) byId.set(p.id, p);
+      if (!p || byId.has(p.id)) return;
+      if ('active' in p && (!p.active || p.deletedAt)) return;
+      byId.set(p.id, {
+        id: p.id,
+        name: p.name,
+        email: p.email,
+        jobTitle: p.jobTitle ?? null,
+        accepted: 'accounts' in p ? hasAccepted(p) : false,
+      });
     };
 
     add(event.organizer);
@@ -607,29 +636,31 @@ export class EventsService {
       }
     }
 
-    const q = query?.trim().toLowerCase();
+    const words = searchWords(query);
 
     return [...byId.values()]
-      .filter(
-        (p: any) =>
-          !q ||
-          p.name.toLowerCase().includes(q) ||
-          p.email.toLowerCase().includes(q),
-      )
+      .filter((p: any) => !acceptedOnly || p.accepted)
+      .filter((p: any) => matchesEveryWord(words, p.name, p.email))
       .sort((a: any, b: any) => a.name.localeCompare(b.name));
   }
 
-  async listCoOrganizerCandidates(user: {
-    id: string;
-    systemRole: string;
-    ministryId?: string;
-  }) {
+  async listCoOrganizerCandidates(
+    user: {
+      id: string;
+      systemRole: string;
+      ministryId?: string;
+    },
+    { includePending = false }: { includePending?: boolean } = {},
+  ) {
     return (this.prisma as any).user.findMany({
       where: {
         ...ministryScope(user),
         active: true,
         deletedAt: null,
         id: { not: user.id },
+        // A co-organizer edits and runs the meeting in the app, so somebody
+        // who has not yet accepted their invitation cannot be one.
+        ...(includePending ? {} : ACCEPTED_ACCOUNT),
       },
       select: { id: true, name: true, email: true, jobTitle: true },
       orderBy: { name: 'asc' },
@@ -943,6 +974,45 @@ export class EventsService {
     return updated;
   }
 
+  /**
+   * Refuses anyone who could not actually co-organize: deactivated, erased, or
+   * still holding an unused invitation. The pickers already leave them out;
+   * this is the same rule for a request that names them anyway.
+   */
+  private async assertCanCoOrganize(userIds: string[]) {
+    const ids = [...new Set(userIds.filter(Boolean))];
+    if (ids.length === 0) return;
+
+    const users = await (this.prisma as any).user.findMany({
+      where: { id: { in: ids } },
+      select: {
+        id: true,
+        name: true,
+        active: true,
+        deletedAt: true,
+        ...CREDENTIAL_SELECT,
+      },
+    });
+
+    const unusable = users.filter((u: any) => !u.active || u.deletedAt);
+    if (unusable.length > 0) {
+      throw new BadRequestException(
+        `${unusable.map((u: any) => u.name).join(', ')} can no longer sign in, so cannot co-organize.`,
+      );
+    }
+
+    const pending = users.filter((u: any) => !hasAccepted(u));
+    if (pending.length > 0) {
+      const names = pending.map((u: any) => u.name).join(', ');
+      throw new BadRequestException({
+        message: `${names} ${pending.length === 1 ? "hasn't" : "haven't"} accepted ${
+          pending.length === 1 ? 'their invitation' : 'their invitations'
+        } yet, so cannot co-organize. Choose a colleague who has, or re-send the invitation from the Users page.`,
+        code: 'COORGANIZER_NOT_ACCEPTED',
+      });
+    }
+  }
+
   async addCoOrganizer(
     eventId: string,
     userId: string,
@@ -972,6 +1042,8 @@ export class EventsService {
     if (!user) {
       throw new NotFoundException(`User ${userId} not found`);
     }
+
+    await this.assertCanCoOrganize([userId]);
 
     const existing = await (this.prisma as any).eventCoOrganizer.findFirst({
       where: { eventId, userId },

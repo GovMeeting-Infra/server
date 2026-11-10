@@ -31,11 +31,16 @@ describe('EventsService', () => {
     },
     // Co-organizer ids are validated against real accounts before creation.
     user: {
-      findMany: jest
-        .fn()
-        .mockImplementation(({ where }: any) =>
-          where.id.in.map((id: string) => ({ id })),
-        ),
+      findMany: jest.fn().mockImplementation(({ where }: any) =>
+        where.id.in.map((id: string) => ({
+          id,
+          name: `User ${id}`,
+          active: true,
+          deletedAt: null,
+          // A credential: they accepted their invitation and can sign in.
+          accounts: [{ id: `acc-${id}` }],
+        })),
+      ),
       findUnique: jest.fn().mockResolvedValue({ name: 'Aminata Kamara' }),
     },
     ministry: {
@@ -260,6 +265,61 @@ describe('EventsService', () => {
         service.createEvent(internalDto(), 'user-1', 'ministry-1'),
       ).rejects.toThrow('needs at least one co-organizer');
       expect(mockRepository.create).not.toHaveBeenCalled();
+    });
+
+    // Somebody still holding an unused invitation cannot sign in, so cannot
+    // run the meeting. The picker leaves them out; this is the same rule.
+    const pendingFindMany = () =>
+      mockPrisma.user.findMany.mockImplementationOnce(({ where }: any) =>
+        where.id.in.map((id: string) => ({
+          id,
+          name: 'Isatu Bangura',
+          active: true,
+          deletedAt: null,
+          accounts: [],
+        })),
+      );
+
+    it('refuses a co-organizer who has not accepted their invitation', async () => {
+      // Once for the existence check, once for the eligibility check.
+      pendingFindMany();
+      pendingFindMany();
+      await expect(
+        service.createEvent(internalDto(['user-2']), 'user-1', 'ministry-1'),
+      ).rejects.toThrow("Isatu Bangura hasn't accepted their invitation");
+      expect(mockRepository.create).not.toHaveBeenCalled();
+    });
+
+    it('refuses to add a co-organizer who has not accepted, afterwards', async () => {
+      pendingFindMany();
+      await expect(
+        service.addCoOrganizer(
+          'event-1',
+          'user-2',
+          'admin-1',
+          'ministry-1',
+          'SUPER_ADMIN',
+        ),
+      ).rejects.toThrow("hasn't accepted their invitation");
+      expect(mockPrisma.eventCoOrganizer.create).not.toHaveBeenCalled();
+    });
+
+    it('refuses a deactivated co-organizer', async () => {
+      mockPrisma.user.findMany.mockImplementationOnce(({ where }: any) =>
+        where.id.in.map((id: string) => ({ id })),
+      );
+      mockPrisma.user.findMany.mockImplementationOnce(({ where }: any) =>
+        where.id.in.map((id: string) => ({
+          id,
+          name: 'Gone Person',
+          active: false,
+          deletedAt: null,
+          accounts: [{ id: 'acc' }],
+        })),
+      );
+      await expect(
+        service.createEvent(internalDto(['user-2']), 'user-1', 'ministry-1'),
+      ).rejects.toThrow('can no longer sign in');
     });
 
     it('refuses an internal meeting whose only co-organizer is the organizer', async () => {

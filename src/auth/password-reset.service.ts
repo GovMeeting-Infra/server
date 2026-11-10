@@ -183,6 +183,13 @@ export class PasswordResetService {
       where: { id: record.id },
     });
 
+    // A password now exists, so an invitation still outstanding is spent too.
+    // Left alive, it would set a new password over this one, without the
+    // current one, for anyone holding the old email.
+    await (this.prisma as any).verification.deleteMany({
+      where: { identifier: `invite:${user.id}` },
+    });
+
     // A reset implies the old credential may be in someone else's hands, so
     // every existing session goes with it.
     const { count } = await (this.prisma as any).session.deleteMany({
