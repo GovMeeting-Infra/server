@@ -24,6 +24,7 @@ import { ReportsController } from '../../reports/reports.controller';
 import { SearchController } from '../../search/search.controller';
 import { EventsController } from '../../events/events.controller';
 import { DirectoryController } from '../../users/directory.controller';
+import { StaffImportController } from '../../users/staff-import.controller';
 import { UploadsController } from '../../uploads/uploads.controller';
 import { UsersController } from '../../users/users.controller';
 import { MinistriesController } from '../../ministries/ministries.controller';
@@ -186,6 +187,26 @@ describe('PLATFORM_ADMIN reaches provisioning and operations', () => {
     ['the operations console', PlatformController, 'overview'],
   ])('can %s', (_label, controller, method) => {
     expect(rolesFor(controller, method as string)).toContain(ROLE);
+  });
+
+  it.each([
+    ['list ministries for a staff upload', StaffImportController, 'ministries'],
+    ['preview a staff list', StaffImportController, 'preview'],
+    ['import a staff list', StaffImportController, 'import'],
+  ])('can %s', (_label, controller, method) => {
+    expect(rolesFor(controller, method as string)).toContain(ROLE);
+  });
+
+  it('shares the staff upload with ministry leadership but not with staff', () => {
+    for (const method of methodsOf(StaffImportController)) {
+      const roles = rolesFor(StaffImportController, method);
+      // Undecorated would mean open to everyone signed in.
+      expect(roles).toBeDefined();
+      expect(roles).toEqual(
+        expect.arrayContaining(['SUPER_ADMIN', 'MINISTER', 'MINISTRY_ADMIN']),
+      );
+      expect(roles).not.toContain('STAFF');
+    }
   });
 
   it.each([
