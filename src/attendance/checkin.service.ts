@@ -24,6 +24,10 @@ import {
   CODE_OPENS_BEFORE_START_MINUTES,
   GEO_ERROR,
 } from './geofence.constants';
+import {
+  CREDENTIAL_SELECT,
+  hasAccepted,
+} from '../common/utils/accepted-account.util';
 
 /** Why a token cannot currently be used, or OPEN when it can. */
 export type CheckInStatus =
@@ -515,15 +519,22 @@ export class CheckinService {
     // Staff must sign in, so an email that belongs to an account is refused
     // rather than accepted as a guest — otherwise anyone could be recorded as
     // present simply by typing a colleague's address.
+    //
+    // Unless the account has never been used. Somebody still holding an
+    // unaccepted invitation has no password to sign in with, and telling them
+    // to was a dead end at the door. They check in on the guest form instead,
+    // and the row carries their user id, so it is still one record per person
+    // and their own attendance history picks it up once they join.
     const account = await (this.prisma as any).user.findFirst({
       where: { email, active: true, deletedAt: null },
-      select: { id: true },
+      select: { id: true, ...CREDENTIAL_SELECT },
     });
-    if (account) {
+    if (account && hasAccepted(account)) {
       throw new ConflictException(
         'This email has an account — please sign in to check in.',
       );
     }
+    const pendingUserId: string | null = account?.id ?? null;
 
     const verdict = this.resolveGeofence(event, dto);
 
@@ -539,7 +550,13 @@ export class CheckinService {
     });
 
     const existing = await (this.prisma as any).attendance.findFirst({
-      where: { eventId: event.id, guestEmail: email },
+      where: {
+        eventId: event.id,
+        OR: [
+          { guestEmail: email },
+          ...(pendingUserId ? [{ userId: pendingUserId }] : []),
+        ],
+      },
     });
     if (existing) {
       throw new ConflictException('Already checked in to this event');
@@ -547,7 +564,7 @@ export class CheckinService {
 
     try {
       return await this.recordAttendance(event, dto, verdict, meta, {
-        userId: null,
+        userId: pendingUserId,
         signedName: dto.guestName.trim(),
         guestName: dto.guestName.trim(),
         guestEmail: email,
