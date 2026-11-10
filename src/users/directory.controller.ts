@@ -4,9 +4,31 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { ministryScope } from '../common/utils/ministry-scope.util';
+import {
+  ACCEPTED_ACCOUNT,
+  matchEveryWord,
+  searchWords,
+} from '../common/utils/accepted-account.util';
 
 /** Enough to fill a picker without becoming a data dump. */
 const MAX_RESULTS = 25;
+
+/**
+ * Merges the two halves so neither can crowd the other out.
+ *
+ * This used to be accounts first, then cut to MAX_RESULTS — so in a ministry
+ * with 25 matching accounts, everybody on the uploaded roster was invisible,
+ * however exactly they were searched for. Each half is now guaranteed half the
+ * list when it has that many, and gives up whatever it does not use.
+ */
+export function fairMerge<T>(first: T[], second: T[], max: number): T[] {
+  const secondTake = Math.min(
+    second.length,
+    Math.max(max - first.length, Math.ceil(max / 2)),
+  );
+  const firstTake = Math.min(first.length, max - secondTake);
+  return [...first.slice(0, firstTake), ...second.slice(0, secondTake)];
+}
 
 /** What a picker renders. `kind` tells the two sources apart. */
 interface DirectoryPerson {
@@ -33,21 +55,17 @@ export class DirectoryController {
   @UseGuards(RolesGuard)
   @Roles('SUPER_ADMIN', 'MINISTER', 'MINISTRY_ADMIN', 'STAFF')
   async directory(@CurrentUser() user: any, @Query('q') q?: string) {
-    const term = q?.trim();
-
     return (this.prisma as any).user.findMany({
       where: {
         ...ministryScope(user),
         active: true,
         deletedAt: null,
-        ...(term
-          ? {
-              OR: [
-                { name: { contains: term, mode: 'insensitive' } },
-                { email: { contains: term, mode: 'insensitive' } },
-              ],
-            }
-          : {}),
+        // Colleagues are added to a meeting by account, which is a promise
+        // that they can sign in and see it. Somebody still holding an unused
+        // invitation cannot; the Guests lookup still finds them, and invites
+        // them by email with a link that needs no sign-in.
+        ...ACCEPTED_ACCOUNT,
+        ...matchEveryWord(searchWords(q), ['name', 'email']),
       },
       select: { id: true, name: true, email: true, jobTitle: true },
       orderBy: { name: 'asc' },
@@ -82,7 +100,7 @@ export class DirectoryController {
     @Query('q') q?: string,
     @Query('sources') sources?: string,
   ): Promise<DirectoryPerson[]> {
-    const term = q?.trim();
+    const words = searchWords(q);
     const requested = (sources ?? 'accounts,staff')
       .split(',')
       .map((s) => s.trim());
@@ -96,14 +114,7 @@ export class DirectoryController {
               ...ministryScope(user),
               active: true,
               deletedAt: null,
-              ...(term
-                ? {
-                    OR: [
-                      { name: { contains: term, mode: 'insensitive' } },
-                      { email: { contains: term, mode: 'insensitive' } },
-                    ],
-                  }
-                : {}),
+              ...matchEveryWord(words, ['name', 'email']),
             },
             select: { id: true, name: true, email: true, jobTitle: true },
             orderBy: { name: 'asc' },
@@ -117,15 +128,9 @@ export class DirectoryController {
     const entries = await (this.prisma as any).staffDirectoryEntry.findMany({
       where: {
         ...ministryScope(user),
-        ...(term
-          ? {
-              OR: [
-                { firstName: { contains: term, mode: 'insensitive' } },
-                { lastName: { contains: term, mode: 'insensitive' } },
-                { email: { contains: term, mode: 'insensitive' } },
-              ],
-            }
-          : {}),
+        // Per word, so a full name finds a roster row: first and last names
+        // are stored apart, and no one column holds "Abdul Mansaray".
+        ...matchEveryWord(words, ['firstName', 'lastName', 'email']),
       },
       select: {
         id: true,
@@ -177,8 +182,7 @@ export class DirectoryController {
         kind: 'staff' as const,
       }));
 
-    // Accounts first: somebody who is already on the platform is the more
-    // likely match, and the roster is the fallback for everyone else.
-    return [...accounts, ...staff].slice(0, MAX_RESULTS);
+    // Accounts first in the list, but never at the roster's expense.
+    return fairMerge(accounts, staff, MAX_RESULTS);
   }
 }
