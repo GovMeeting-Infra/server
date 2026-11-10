@@ -468,7 +468,12 @@ export class CheckinService {
   async checkIn(
     token: string,
     dto: CheckInDto,
-    user: { id: string; name?: string; phone?: string | null },
+    user: {
+      id: string;
+      name?: string;
+      email?: string;
+      phone?: string | null;
+    },
     meta: RequestMeta = {},
   ) {
     const event = await this.resolveOpenEvent(token);
@@ -481,9 +486,28 @@ export class CheckinService {
       throw new ConflictException('Already checked in to this event');
     }
 
+    // Whether they were on the invite list, by account or by the address an
+    // organizer typed for them. This path used to leave isWalkIn false for
+    // everyone, so a colleague who came uninvited and scanned in was neither
+    // an invitee nor a walk-in: missing from the attendees page's All list,
+    // from the export's walk-in count, and from the published minutes.
+    const invite = await (this.prisma as any).eventAttendee.findFirst({
+      where: {
+        eventId: event.id,
+        OR: [
+          { userId: user.id },
+          ...(user.email
+            ? [{ externalEmail: { equals: user.email, mode: 'insensitive' } }]
+            : []),
+        ],
+      },
+      select: { id: true },
+    });
+
     return this.recordAttendance(event, dto, verdict, meta, {
       userId: user.id,
       signedName: dto.signedName.trim(),
+      isWalkIn: !invite,
       // Copied from the account rather than asked for at the door. The form
       // here is a name and a signature on whatever phone someone has in a
       // corridor, and it stays that way — but the attendance row has always had
