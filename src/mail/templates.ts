@@ -10,6 +10,8 @@
  * <style> blocks and do not implement flexbox or grid.
  */
 
+import { replyToAddress } from './sender';
+
 export interface EmailBody {
   subject: string;
   html: string;
@@ -211,7 +213,11 @@ function layout({
           </tr>
           <tr>
             <td style="padding:18px 32px 22px;background-color:${SURFACE};border-top:1px solid ${RULE};">
-              <p style="margin:0;color:${MUTED};font-size:12px;line-height:1.6;">Government of Sierra Leone &middot; Smart Meeting<br>An automated message from ${escapeHtml(host)}. Replies to this address are not read.</p>
+              <p style="margin:0;color:${MUTED};font-size:12px;line-height:1.6;">Government of Sierra Leone &middot; Smart Meeting<br>Sent by ${escapeHtml(host)}. ${
+                replyToAddress()
+                  ? 'Questions? Reply to this email to reach the Smart Meeting team.'
+                  : 'Replies to this address are not read.'
+              }</p>
             </td>
           </tr>
         </table>

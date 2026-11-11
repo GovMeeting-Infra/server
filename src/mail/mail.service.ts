@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import type { EmailBody } from './templates';
+import { replyToAddress, senderAddress } from './sender';
 
 const RESEND_ENDPOINT = 'https://api.resend.com/emails';
 
@@ -36,10 +37,6 @@ export class MailService {
     return (process.env.RESEND_API_KEY || '').trim();
   }
 
-  private get from(): string {
-    return process.env.EMAIL_FROM || 'noreply@calendar.gov.sl';
-  }
-
   /** Whether a send would actually be attempted. */
   get isConfigured(): boolean {
     return this.apiKey.length > 0;
@@ -65,6 +62,8 @@ export class MailService {
       return { sent: false, error: 'Email is not configured on this server' };
     }
 
+    const replyTo = replyToAddress();
+
     try {
       const response = await fetch(RESEND_ENDPOINT, {
         method: 'POST',
@@ -73,8 +72,9 @@ export class MailService {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          from: this.from,
+          from: senderAddress(),
           to,
+          ...(replyTo && { reply_to: replyTo }),
           subject: body.subject,
           html: body.html,
           text: body.text,

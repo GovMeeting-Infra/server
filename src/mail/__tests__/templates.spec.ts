@@ -221,3 +221,34 @@ describe('coOrganizerAddedEmail', () => {
     expect(body.html).toContain('&lt;b&gt;Review&lt;/b&gt;');
   });
 });
+
+/**
+ * The footer may only invite a reply when one has somewhere to go:
+ * calendar.gov.sl receives no mail, so without a Reply-To a reply bounces.
+ */
+describe('the footer', () => {
+  const originalReplyTo = process.env.EMAIL_REPLY_TO;
+  const originalSupport = process.env.SUPPORT_EMAIL;
+
+  afterEach(() => {
+    process.env.EMAIL_REPLY_TO = originalReplyTo;
+    process.env.SUPPORT_EMAIL = originalSupport;
+  });
+
+  const render = () =>
+    inviteEmail({ name: 'Hawa Kallon', link: LINK, expiresInDays: 7 }).html;
+
+  it('invites a reply when a reply address is configured', () => {
+    process.env.EMAIL_REPLY_TO = '';
+    process.env.SUPPORT_EMAIL = 'info@mocti.gov.sl';
+    expect(render()).toContain('Reply to this email');
+    expect(render()).not.toContain('are not read');
+  });
+
+  it('says replies are not read when none is', () => {
+    process.env.EMAIL_REPLY_TO = '';
+    process.env.SUPPORT_EMAIL = '';
+    expect(render()).toContain('Replies to this address are not read.');
+    expect(render()).not.toContain('Reply to this email');
+  });
+});
