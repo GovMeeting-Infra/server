@@ -88,9 +88,12 @@ export class MeService {
         // Counting invitations alone made this disagree with the list rendered
         // directly beneath it on the dashboard — a meeting you organised but
         // were never added to as an attendee appeared there and not here.
+        // Cancelled meetings are not ahead of anyone. They were counted, so a
+        // cancelled session kept the tile one higher than the meetings left.
         (this.prisma as any).event.count({
           where: {
             startAt: { gt: now },
+            status: { not: 'CANCELLED' },
             OR: [
               { organizerId: userId },
               { coOrganizers: { some: { userId } } },
