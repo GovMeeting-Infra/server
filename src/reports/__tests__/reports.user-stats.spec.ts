@@ -73,3 +73,53 @@ describe('ReportsService — usersByRole', () => {
     ]);
   });
 });
+
+/**
+ * The dashboard's "Active users" tile has to agree with the Users page, whose
+ * Active status means: not deactivated, not erased, a password set, and not
+ * currently locked. It showed the signed-in-this-month figure instead, which an
+ * administrator reasonably read as wrong.
+ */
+describe('ReportsService — activeAccounts', () => {
+  it('counts what the Users page calls Active, separately from recent sign-ins', async () => {
+    const count = jest
+      .fn()
+      .mockResolvedValueOnce(40) // totalUsers
+      .mockResolvedValueOnce(9) // activeUsers: signed in within 30 days
+      .mockResolvedValueOnce(31); // activeAccounts
+    const prisma: any = {
+      user: {
+        count,
+        groupBy: jest.fn().mockResolvedValue([]),
+        findMany: jest.fn().mockResolvedValue([]),
+      },
+    };
+    const service = new ReportsService(prisma, {} as any);
+
+    const result = await (service as any).getUserStats(
+      { ministryId: 'min-moh' },
+      'MINISTRY_ADMIN',
+    );
+
+    expect(result).toMatchObject({
+      totalUsers: 40,
+      activeUsers: 9,
+      activeAccounts: 31,
+    });
+
+    const where = count.mock.calls[2][0].where;
+    expect(where).toMatchObject({
+      ministryId: 'min-moh',
+      deletedAt: null,
+      active: true,
+      accounts: { some: { providerId: 'credential' } },
+    });
+    // Not limited to recent sign-ins: that is the other figure's job.
+    expect(where.lastLoginAt).toBeUndefined();
+    // A current lock reads "Locked" on the Users page, so it is left out.
+    expect(where.OR).toEqual([
+      { lockedUntil: null },
+      { lockedUntil: { lte: expect.any(Date) } },
+    ]);
+  });
+});
