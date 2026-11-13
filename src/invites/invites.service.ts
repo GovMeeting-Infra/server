@@ -9,6 +9,7 @@ import { hashPassword } from 'better-auth/crypto';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
 import { MailService } from '../mail/mail.service';
+import { CacheService } from '../cache/cache.service';
 import { inviteEmail } from '../mail/templates';
 import { v4 as uuid } from 'uuid';
 
@@ -31,6 +32,7 @@ export class InvitesService {
     private prisma: PrismaService,
     private audit: AuditService,
     private mail: MailService,
+    private cache: CacheService,
   ) {}
 
   /** Only the hash is stored, so a database read cannot yield a usable link. */
@@ -208,6 +210,11 @@ export class InvitesService {
       actorId: user.id,
       description: `Set initial password via invitation`,
     });
+
+    // Setting a password is what turns "Invited" into "Active" on the Users
+    // page, so the dashboard's Active users figure (cached for an hour) has to
+    // be recounted here or it lags behind the page it is meant to agree with.
+    await this.cache.invalidateAnalyticsFor(user.ministryId ?? null);
 
     return { success: true, email: user.email };
   }

@@ -469,26 +469,45 @@ export class ReportsService {
     // survives one briefing and fails one audit.
     const present = { ...scope, deletedAt: null };
 
-    const [totalUsers, activeUsers, usersByRole, userLoginData] =
-      await Promise.all([
-        (this.prisma as any).user.count({ where: present }),
-        (this.prisma as any).user.count({
-          where: {
-            ...present,
-            active: true,
-            lastLoginAt: { gte: thirtyDaysAgo },
-          },
-        }),
-        (this.prisma as any).user.groupBy({
-          by: ['systemRole'],
-          where: present,
-          _count: true,
-        }),
-        (this.prisma as any).user.findMany({
-          where: { ...present, lastLoginAt: { not: null } },
-          select: { lastLoginAt: true },
-        }),
-      ]);
+    const [
+      totalUsers,
+      activeUsers,
+      activeAccounts,
+      usersByRole,
+      userLoginData,
+    ] = await Promise.all([
+      (this.prisma as any).user.count({ where: present }),
+      (this.prisma as any).user.count({
+        where: {
+          ...present,
+          active: true,
+          lastLoginAt: { gte: thirtyDaysAgo },
+        },
+      }),
+      // What the Users page calls "Active": not deactivated, not erased, and
+      // holding a password, so they can actually sign in. activeUsers above
+      // is a different question (who signed in this month), and the
+      // dashboard tile labelled "Active users" showed it, so it read far
+      // lower than the Active count an administrator saw on the Users page.
+      (this.prisma as any).user.count({
+        where: {
+          ...present,
+          active: true,
+          accounts: { some: { providerId: 'credential' } },
+          // The Users page shows a current lock as "Locked", not "Active".
+          OR: [{ lockedUntil: null }, { lockedUntil: { lte: now } }],
+        },
+      }),
+      (this.prisma as any).user.groupBy({
+        by: ['systemRole'],
+        where: present,
+        _count: true,
+      }),
+      (this.prisma as any).user.findMany({
+        where: { ...present, lastLoginAt: { not: null } },
+        select: { lastLoginAt: true },
+      }),
+    ]);
 
     let averageDaysSinceLastLogin = 0;
     if (userLoginData.length > 0) {
@@ -518,6 +537,7 @@ export class ReportsService {
     return {
       totalUsers,
       activeUsers,
+      activeAccounts,
       lastSignInAt,
       // Only the owner sees the ministry-less roles counted.
       //

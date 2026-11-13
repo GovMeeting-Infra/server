@@ -31,6 +31,9 @@ function prismaFor(userId: string) {
 
 const audit = { log: jest.fn().mockResolvedValue(undefined) } as any;
 const mail = { send: jest.fn() } as any;
+const cache = {
+  invalidateAnalyticsFor: jest.fn().mockResolvedValue(undefined),
+} as any;
 
 const deletedIdentifiers = (prisma: any) =>
   prisma.verification.deleteMany.mock.calls.map(
@@ -54,7 +57,7 @@ describe('setting a password spends the other link', () => {
 
   it('accepting an invitation cancels an outstanding reset', async () => {
     const prisma = prismaFor('u1');
-    const service = new InvitesService(prisma as any, audit, mail);
+    const service = new InvitesService(prisma as any, audit, mail, cache);
     (service as any).findValid = jest.fn().mockResolvedValue({
       record: { id: 'v-invite' },
       user: { id: 'u1', email: 'a@moh.gov.sl', ministryId: 'm1', name: 'A' },

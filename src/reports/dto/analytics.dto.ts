@@ -63,7 +63,13 @@ export class TrendDto {
 
 export class UserStatsDto {
   totalUsers: number;
+  /** Active accounts that signed in during the last 30 days. */
   activeUsers: number;
+  /**
+   * Accounts the Users page shows as Active: not deactivated, not erased, and
+   * with a password set. Not limited to recent sign-ins.
+   */
+  activeAccounts: number;
   usersByRole: Array<{ role: string; count: number }>;
   averageDaysSinceLastLogin: number;
   /** The most recent sign-in by anyone in scope; null if nobody ever has. */
